@@ -768,6 +768,7 @@ def fused_q(
     has_indexer: bool = True,
     index_rope_interleave: bool = False,
     quantize_mqa: bool = True,
+    mqa_q_out: torch.Tensor | None = None,
 ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
     """Fuse the MQA-query and indexer-query RoPE/quantization.
 
@@ -802,17 +803,43 @@ def fused_q(
     grid_heads = max(mqa_grid_heads, num_index_q_heads)
     if quantize_mqa:
         # fp8 path: pack [ql_nope; q_pe] into a single fp8 tensor.
-        mqa_q_fp8 = torch.empty(
+        expected_mqa_shape = (
             q_pe.shape[0],
             q_pe.shape[1],
             ql_nope.shape[2] + q_pe.shape[2],
-            dtype=torch.float8_e4m3fn,
-            device=q_pe.device,
         )
+        if mqa_q_out is None:
+            mqa_q_fp8 = torch.empty(
+                expected_mqa_shape,
+                dtype=torch.float8_e4m3fn,
+                device=q_pe.device,
+            )
+        else:
+            if (
+                tuple(mqa_q_out.shape) != expected_mqa_shape
+                or mqa_q_out.dtype != torch.float8_e4m3fn
+                or mqa_q_out.device != q_pe.device
+                or mqa_q_out.stride(0) != expected_mqa_shape[-1]
+                or mqa_q_out.stride(-1) != 1
+            ):
+                raise RuntimeError(
+                    "fused_q owner-local MQA output does not match the FP8 "
+                    f"producer contract: expected shape={expected_mqa_shape}, "
+                    f"dtype={torch.float8_e4m3fn}, device={q_pe.device}, "
+                    f"token_stride={expected_mqa_shape[-1]}, last_stride=1; got "
+                    f"shape={tuple(mqa_q_out.shape)}, dtype={mqa_q_out.dtype}, "
+                    f"device={mqa_q_out.device}, strides={mqa_q_out.stride()}."
+                )
+            mqa_q_fp8 = mqa_q_out
         # Placeholder; pid 0 packs q_pe into mqa_q_fp8 instead.
         q_pe_out = mqa_q_fp8
         mqa_q = mqa_q_fp8
     else:
+        if mqa_q_out is not None:
+            raise RuntimeError(
+                "fused_q owner-local MQA output currently supports only the "
+                "quantized FP8 query path."
+            )
         # bf16 path: only the RoPE'd q_pe is produced; ql_nope used directly.
         q_pe_out = torch.empty_like(q_pe)
         mqa_q_fp8 = q_pe_out  # unused placeholder for the fp8 pack pointer

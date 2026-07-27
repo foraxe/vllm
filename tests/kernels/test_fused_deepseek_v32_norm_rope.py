@@ -445,6 +445,20 @@ def test_fused_q(num_tokens: int, index_interleave: bool):
     head_scale = INDEX_HEADS**-0.5
     q_cos_sin = make_cos_sin(max_pos, ROPE_DIM, dev)  # q_pe: interleaved
     idx_cos_sin = make_cos_sin(max_pos, ROPE_DIM, dev)
+    preallocated_mqa = None
+    if num_tokens == 17 and index_interleave:
+        query_dim = KV_LORA + ROPE_DIM
+        head_stride = 16_384
+        preallocated_storage = torch.empty(
+            NUM_HEADS * head_stride,
+            dtype=FP8,
+            device=dev,
+        )
+        preallocated_mqa = torch.as_strided(
+            preallocated_storage,
+            size=(num_tokens, NUM_HEADS, query_dim),
+            stride=(query_dim, head_stride, 1),
+        )
 
     iq_fp8, iw_out, mqa = K.fused_q(
         pos,
@@ -459,7 +473,11 @@ def test_fused_q(num_tokens: int, index_interleave: bool):
         head_scale,
         has_indexer=True,
         index_rope_interleave=index_interleave,
+        mqa_q_out=preallocated_mqa,
     )
+    if preallocated_mqa is not None:
+        assert mqa.data_ptr() == preallocated_mqa.data_ptr()
+        assert not mqa.is_contiguous()
 
     s = q_scale.item()
     # MQA query: [ql_nope | q_pe RoPE'd (interleaved)], per-tensor fp8.
