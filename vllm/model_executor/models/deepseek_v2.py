@@ -38,6 +38,7 @@ from vllm._aiter_ops import rocm_aiter_ops
 from vllm.compilation.decorators import support_torch_compile
 from vllm.config import CacheConfig, ParallelConfig, VllmConfig, get_current_vllm_config
 from vllm.distributed import (
+    get_dcp_group,
     get_ep_group,
     get_pp_group,
     get_tensor_model_parallel_rank,
@@ -118,6 +119,32 @@ from .utils import (
 )
 
 logger = init_logger(__name__)
+
+
+def project_indexer_query(
+    projection: Callable[
+        [torch.Tensor],
+        tuple[torch.Tensor, torch.Tensor | None],
+    ],
+    query: torch.Tensor,
+    n_head: int,
+    head_dim: int,
+    indexer_q_sharded: bool,
+) -> torch.Tensor:
+    """Project an indexer query and reconstruct DCP-sharded output heads."""
+    projected, _ = projection(query)
+    if indexer_q_sharded:
+        projected = get_dcp_group().all_gather(projected, dim=-1)
+
+    expected_width = n_head * head_dim
+    if projected.shape[-1] != expected_width:
+        raise RuntimeError(
+            "DSA indexer query projection has incorrect head geometry: "
+            f"expected_width={expected_width}, actual_width={projected.shape[-1]}, "
+            f"n_head={n_head}, head_dim={head_dim}, "
+            f"dcp_sharded={indexer_q_sharded}."
+        )
+    return projected.view(-1, n_head, head_dim)
 
 
 def _get_moe_router_dtype(
@@ -665,14 +692,35 @@ class Indexer(nn.Module):
         self.head_dim = config.index_head_dim  # 128
         self.rope_dim = config.qk_rope_head_dim  # 64
         self.q_lora_rank = q_lora_rank  # 1536
-        # no tensor parallel, just replicated
-        self.wq_b = ReplicatedLinear(
-            self.q_lora_rank,
-            self.head_dim * self.n_head,
-            bias=False,
-            quant_config=quant_config,
-            prefix=f"{prefix}.wq_b",
-        )
+        dcp_size = vllm_config.parallel_config.decode_context_parallel_size
+        self.indexer_q_sharded = envs.VLLM_DCP_INDEXER_Q_SHARD and dcp_size > 1
+        if self.indexer_q_sharded:
+            if vllm_config.parallel_config.prefill_context_parallel_size > 1:
+                raise NotImplementedError(
+                    "DCP-sharded indexer query projection does not support "
+                    "combined PCP and DCP."
+                )
+            dcp_rank = get_dcp_group().rank_in_group
+            # Each DCP rank owns a disjoint set of indexer query heads. Gather
+            # the small projected activation in forward instead of replicating
+            # the much larger projection weight and GEMM on every DCP rank.
+            self.wq_b = ColumnParallelLinear(
+                self.q_lora_rank,
+                self.head_dim * self.n_head,
+                bias=False,
+                quant_config=quant_config,
+                prefix=f"{prefix}.wq_b",
+                tp_rank=dcp_rank,
+                tp_size=dcp_size,
+            )
+        else:
+            self.wq_b = ReplicatedLinear(
+                self.q_lora_rank,
+                self.head_dim * self.n_head,
+                bias=False,
+                quant_config=quant_config,
+                prefix=f"{prefix}.wq_b",
+            )
         # Fused wk + weights_proj: single GEMM producing [head_dim + n_head].
         # FP8 wk weights are upcasted to BF16 during loading to maintain fusion.
         self.wk_weights_proj = MergedColumnParallelLinear(
@@ -728,8 +776,13 @@ class Indexer(nn.Module):
     def forward(
         self, hidden_states: torch.Tensor, qr: torch.Tensor, positions, rotary_emb
     ) -> torch.Tensor:
-        q, _ = self.wq_b(qr)
-        q = q.view(-1, self.n_head, self.head_dim)
+        q = project_indexer_query(
+            self.wq_b,
+            qr,
+            self.n_head,
+            self.head_dim,
+            self.indexer_q_sharded,
+        )
 
         if current_platform.is_rocm() and self.is_inplace_rope:
             # This path should works on all platform, will remove extra

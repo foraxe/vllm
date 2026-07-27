@@ -10,6 +10,7 @@ from vllm.compilation.breakable_cudagraph import eager_break_during_capture
 from vllm.config import CacheConfig, VllmConfig
 from vllm.distributed import get_dcp_group, get_tensor_model_parallel_world_size
 from vllm.forward_context import get_forward_context
+from vllm.logger import init_logger
 from vllm.model_executor.layers.attention import MLAAttention
 from vllm.model_executor.layers.layernorm import LayerNorm, RMSNorm
 from vllm.model_executor.layers.linear import (
@@ -30,6 +31,7 @@ from vllm.model_executor.layers.sparse_attn_indexer import (
 from vllm.model_executor.models.deepseek_v2 import (
     DeepSeekV2FusedQkvAProjLinear,
     DeepseekV32IndexerCache,
+    project_indexer_query,
     yarn_get_mscale,
 )
 from vllm.model_executor.models.utils import extract_layer_index
@@ -40,6 +42,8 @@ from vllm.v1.attention.ops.common import (
 )
 
 from .kernels import fused_norm_rope, fused_q
+
+logger = init_logger(__name__)
 
 
 class DeepseekV32Indexer(nn.Module):
@@ -61,14 +65,38 @@ class DeepseekV32Indexer(nn.Module):
         self.rope_dim = config.qk_rope_head_dim
         self.q_lora_rank = q_lora_rank
 
-        # No tensor parallel, just replicated.
-        self.wq_b = ReplicatedLinear(
-            self.q_lora_rank,
-            self.head_dim * self.n_head,
-            bias=False,
-            quant_config=quant_config,
-            prefix=f"{prefix}.wq_b",
-        )
+        dcp_size = vllm_config.parallel_config.decode_context_parallel_size
+        self.indexer_q_sharded = envs.VLLM_DCP_INDEXER_Q_SHARD and dcp_size > 1
+        if self.indexer_q_sharded:
+            if vllm_config.parallel_config.prefill_context_parallel_size > 1:
+                raise NotImplementedError(
+                    "DCP-sharded NVIDIA indexer query projection does not "
+                    "support combined PCP and DCP."
+                )
+            self.wq_b = ColumnParallelLinear(
+                self.q_lora_rank,
+                self.head_dim * self.n_head,
+                bias=False,
+                quant_config=quant_config,
+                prefix=f"{prefix}.wq_b",
+                tp_rank=get_dcp_group().rank_in_group,
+                tp_size=dcp_size,
+            )
+            logger.info_once(
+                "Using DCP-sharded NVIDIA indexer query projection "
+                "(dcp_world_size=%d, local_heads=%d, total_heads=%d).",
+                dcp_size,
+                self.n_head // dcp_size,
+                self.n_head,
+            )
+        else:
+            self.wq_b = ReplicatedLinear(
+                self.q_lora_rank,
+                self.head_dim * self.n_head,
+                bias=False,
+                quant_config=quant_config,
+                prefix=f"{prefix}.wq_b",
+            )
         # Fused wk + weights_proj: single GEMM producing [head_dim + n_head].
         # FP8 wk weights are upcasted to BF16 during loading to keep this fused.
         self.wk_weights_proj = MergedColumnParallelLinear(
@@ -120,8 +148,13 @@ class DeepseekV32Indexer(nn.Module):
         positions: torch.Tensor,
         rotary_emb: nn.Module,
     ) -> torch.Tensor:
-        q, _ = self.wq_b(qr)
-        q = q.view(-1, self.n_head, self.head_dim)
+        q = project_indexer_query(
+            self.wq_b,
+            qr,
+            self.n_head,
+            self.head_dim,
+            self.indexer_q_sharded,
+        )
 
         q_pe, q_nope = torch.split(
             q, [self.rope_dim, self.head_dim - self.rope_dim], dim=-1
@@ -483,8 +516,13 @@ class DeepseekV32Attention(MLAAttention):
         ql_nope = torch.bmm(q_nope, self.W_UK_T).transpose(0, 1)
 
         if self.indexer is not None:
-            index_q = self.indexer.wq_b(q_c)[0]
-            index_q = index_q.view(-1, self.indexer.n_head, self.indexer.head_dim)
+            index_q = project_indexer_query(
+                self.indexer.wq_b,
+                q_c,
+                self.indexer.n_head,
+                self.indexer.head_dim,
+                self.indexer.indexer_q_sharded,
+            )
         else:
             index_q = None
 
