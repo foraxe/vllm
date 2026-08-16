@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: Apache-2.0
 # SPDX-FileCopyrightText: Copyright contributors to the vLLM project
 from collections.abc import Callable
+from typing import Any
 
 import numpy as np
 import torch
@@ -231,16 +232,31 @@ def compute_prompt_logprobs_with_chunking(
         end_idx = start_idx + CHUNK_SIZE
         chunk_hidden_states = prompt_hidden_states[start_idx:end_idx]
         chunk_token_ids = prompt_token_ids[start_idx:end_idx]
-        if num_prompt_logprobs == 0 and local_logits_fn is not None:
+        if num_prompt_logprobs != -1 and local_logits_fn is not None:
             if chunk_hidden_states.shape[0] >= MIN_LOCAL_PROMPT_LOGPROB_ROWS:
                 local_logits = local_logits_fn(chunk_hidden_states)
                 if local_logits is not None:
-                    logger.info_once(
-                        "MRV2 prompt_logprobs=0 is using TP-local target-only "
-                        "logits (no full-vocabulary gather)."
-                    )
-                    result = compute_distributed_token_logprobs(
-                        local_logits, chunk_token_ids, logprobs_mode
+                    if num_prompt_logprobs == 0:
+                        logger.info_once(
+                            "MRV2 prompt_logprobs=0 is using TP-local target-only "
+                            "logits (no full-vocabulary gather)."
+                        )
+                    else:
+                        logger.info_once(
+                            "MRV2 finite prompt_logprobs is using TP-local compact "
+                            "Top-N logits (no full-vocabulary gather)."
+                        )
+                    result = (
+                        compute_distributed_token_logprobs(
+                            local_logits, chunk_token_ids, logprobs_mode
+                        )
+                        if num_prompt_logprobs == 0
+                        else compute_distributed_topk_scores(
+                            local_logits,
+                            num_prompt_logprobs,
+                            chunk_token_ids,
+                            logprobs_mode,
+                        )
                     )
                     token_ids.append(result.logprob_token_ids)
                     scores.append(result.logprobs)
@@ -290,13 +306,45 @@ def _local_token_indices(
     return token_ids - indices.org_vocab_start_index, owned
 
 
-def _all_reduce_max(values: torch.Tensor) -> torch.Tensor:
-    tp_group = get_tp_group()
+def _all_reduce_max(values: torch.Tensor, tp_group: Any) -> torch.Tensor:
     if tp_group.world_size > 1:
         torch.distributed.all_reduce(
             values, op=torch.distributed.ReduceOp.MAX, group=tp_group.device_group
         )
     return values
+
+
+def _compute_distributed_logprob_stats(
+    local_logits: LocalLogits,
+    token_ids: torch.Tensor,
+    *,
+    need_logsumexp: bool,
+) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor | None]:
+    """Return exact selected-token statistics from TP-local original vocab logits."""
+    tp_group = get_tp_group()
+    logits = local_logits.logits[..., : local_logits.shard_indices.num_org_elements]
+    local_token_ids, owned = _local_token_indices(token_ids, local_logits)
+    row_ids = torch.arange(token_ids.numel(), device=token_ids.device)
+    selected_scores = torch.zeros(
+        token_ids.numel(), dtype=torch.float32, device=logits.device
+    )
+    selected_scores[owned] = logits[row_ids[owned], local_token_ids[owned]].float()
+    selected_scores = tp_group.all_reduce(selected_scores)
+
+    # vLLM's custom GPU all-reduce accepts floating-point tensors, not int64.
+    # Vocabulary ranks are exactly representable in fp32 at supported sizes.
+    selected_ranks = (logits >= selected_scores[:, None]).sum(
+        dim=-1, dtype=torch.float32
+    )
+    selected_ranks = tp_group.all_reduce(selected_ranks).to(torch.int64)
+
+    logsumexp = None
+    if need_logsumexp:
+        row_max = _all_reduce_max(logits.float().amax(dim=-1), tp_group)
+        local_exp_sum = torch.exp(logits.float() - row_max[:, None]).sum(dim=-1)
+        exp_sum = tp_group.all_reduce(local_exp_sum)
+        logsumexp = row_max + torch.log(exp_sum)
+    return logits, selected_scores, selected_ranks, logsumexp
 
 
 def compute_distributed_token_logprobs(
@@ -305,30 +353,71 @@ def compute_distributed_token_logprobs(
     logprobs_mode: LogprobsMode = "raw_logprobs",
 ) -> LogprobsTensors:
     """Compute exact target scores from TP-local original-vocabulary logits."""
-    logits = local_logits.logits[..., : local_logits.shard_indices.num_org_elements]
-    local_token_ids, owned = _local_token_indices(token_ids, local_logits)
-    row_ids = torch.arange(token_ids.numel(), device=token_ids.device)
-    selected_scores = torch.zeros(
-        token_ids.numel(), dtype=torch.float32, device=logits.device
+    logits_mode = logprobs_mode in ("raw_logits", "processed_logits")
+    _, selected_scores, selected_ranks, logsumexp = _compute_distributed_logprob_stats(
+        local_logits, token_ids, need_logsumexp=not logits_mode
     )
-    selected_scores[owned] = logits[row_ids[owned], local_token_ids[owned]].float()
-    selected_scores = get_tp_group().all_reduce(selected_scores)
-
-    # vLLM's custom GPU all-reduce accepts floating-point tensors, not int64.
-    # Vocabulary ranks are exactly representable in fp32 at supported sizes.
-    selected_ranks = (logits >= selected_scores[:, None]).sum(
-        dim=-1, dtype=torch.float32
-    )
-    selected_ranks = get_tp_group().all_reduce(selected_ranks).to(torch.int64)
-
-    if logprobs_mode not in ("raw_logits", "processed_logits"):
-        row_max = _all_reduce_max(logits.float().amax(dim=-1))
-        local_exp_sum = torch.exp(logits.float() - row_max[:, None]).sum(dim=-1)
-        exp_sum = get_tp_group().all_reduce(local_exp_sum)
-        selected_scores -= row_max + torch.log(exp_sum)
+    if not logits_mode:
+        assert logsumexp is not None
+        selected_scores -= logsumexp
 
     return LogprobsTensors(
         logprob_token_ids=token_ids.unsqueeze(-1),
         logprobs=selected_scores.unsqueeze(-1),
+        selected_token_ranks=selected_ranks,
+    )
+
+
+def compute_distributed_topk_scores(
+    local_logits: LocalLogits,
+    num_logprobs: int,
+    selected_token_ids: torch.Tensor,
+    logprobs_mode: LogprobsMode = "raw_logprobs",
+) -> LogprobsTensors:
+    """Compute exact finite Top-N scores from TP-local vocabulary shards."""
+    if num_logprobs <= 0:
+        raise ValueError("distributed Top-N requires a positive finite N")
+    logits_mode = logprobs_mode in ("raw_logits", "processed_logits")
+    logits, selected_scores, selected_ranks, logsumexp = (
+        _compute_distributed_logprob_stats(
+            local_logits,
+            selected_token_ids,
+            need_logsumexp=not logits_mode,
+        )
+    )
+    rows, local_vocab_size = logits.shape
+    local_k = min(num_logprobs, local_vocab_size)
+    local_values, local_indices = torch.topk(logits.float(), local_k, dim=-1)
+    candidate_values = torch.full(
+        (rows, num_logprobs),
+        -float("inf"),
+        dtype=torch.float32,
+        device=logits.device,
+    )
+    candidate_ids = selected_token_ids.new_zeros((rows, num_logprobs))
+    candidate_values[:, :local_k] = local_values
+    candidate_ids[:, :local_k] = (
+        local_indices + local_logits.shard_indices.org_vocab_start_index
+    )
+    tp_group = get_tp_group()
+    gathered_values = tp_group.all_gather(candidate_values, dim=-1)
+    gathered_ids = tp_group.all_gather(candidate_ids, dim=-1)
+    top_values, top_indices = torch.topk(gathered_values, num_logprobs, dim=-1)
+    top_ids = gathered_ids.gather(dim=-1, index=top_indices)
+
+    if logits_mode:
+        scores = torch.cat((selected_scores[:, None], top_values), dim=-1)
+    else:
+        assert logsumexp is not None
+        scores = torch.cat(
+            (
+                (selected_scores - logsumexp)[:, None],
+                top_values - logsumexp[:, None],
+            ),
+            dim=-1,
+        )
+    return LogprobsTensors(
+        logprob_token_ids=torch.cat((selected_token_ids[:, None], top_ids), dim=-1),
+        logprobs=scores,
         selected_token_ranks=selected_ranks,
     )
