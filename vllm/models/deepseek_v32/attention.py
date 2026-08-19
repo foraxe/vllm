@@ -18,6 +18,7 @@ from vllm.model_executor.layers.attention.pcp import (
     maybe_gather_mla_latent_cache_inputs,
 )
 from vllm.model_executor.layers.attention.pcp_direct_kv import (
+    get_layer_mcast_ptr,
     get_layer_peer_ptrs,
     pcp_direct_kv_active,
     publish_pcp_direct_kv,
@@ -421,11 +422,15 @@ class DeepseekV32Attention(MLAAttention):
         k_pe_out = torch.empty_like(k_pe) if collect_pcp else None
         mla_peer_ptrs = None
         indexer_peer_ptrs = None
+        mla_mcast_ptr = 0
+        indexer_mcast_ptr = 0
         pcp_world_size = 1
         if direct_kv and mla_kv_cache is not None:
             mla_peer_ptrs = get_layer_peer_ptrs(self.layer_name)
+            mla_mcast_ptr = get_layer_mcast_ptr(self.layer_name)
             if has_indexer and self.indexer is not None:
                 indexer_peer_ptrs = get_layer_peer_ptrs(self.indexer.k_cache.prefix)
+                indexer_mcast_ptr = get_layer_mcast_ptr(self.indexer.k_cache.prefix)
             if mla_peer_ptrs is not None:
                 pcp_world_size = int(mla_peer_ptrs.numel())
         q_c = fused_norm_rope(
@@ -457,6 +462,8 @@ class DeepseekV32Attention(MLAAttention):
             mla_peer_ptrs=mla_peer_ptrs,
             indexer_peer_ptrs=indexer_peer_ptrs,
             pcp_world_size=pcp_world_size,
+            mla_mcast_ptr=mla_mcast_ptr,
+            indexer_mcast_ptr=indexer_mcast_ptr,
         )
         if pcp_world_size > 1:
             publish_pcp_direct_kv()

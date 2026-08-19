@@ -388,6 +388,9 @@ class FlashInferMLASparseImpl(SparseMLACommonImpl[FlashInferMLASparseMetadata]):
             q = torch.cat(q, dim=-1)
 
         num_actual_toks = q.shape[0]
+        if num_actual_toks == 0:
+            hidden = q.shape[-1] if q.ndim > 1 else 0
+            return q.new_empty((0, hidden)), None
 
         assert self.topk_indices_buffer is not None
         topk_indices = self.topk_indices_buffer[:num_actual_toks]

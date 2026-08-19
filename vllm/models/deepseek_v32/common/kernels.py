@@ -60,6 +60,91 @@ def _fp8_ue8m0_quantize(vals):
 
 
 @triton.jit
+def _multimem_st_u32(ptr, val):
+    # $0 is a dummy output required by tl.inline_asm_elementwise.
+    # NVLS multimem.st accepts u32 / v4.f32, not b8/b16.
+    tl.inline_asm_elementwise(
+        "multimem.st.relaxed.sys.global.u32 [$1], $2;",
+        "=r, l, r",
+        [ptr, val],
+        dtype=tl.int32,
+        is_pure=False,
+        pack=1,
+    )
+
+
+@triton.jit
+def _pack_u8_to_u32(data, N: tl.constexpr):
+    rows = tl.reshape(data.to(tl.uint8, bitcast=True), (N // 4, 4)).to(tl.uint32)
+    col = tl.arange(0, 4)
+    b0 = tl.sum(tl.where(col[None, :] == 0, rows, 0), axis=1)
+    b1 = tl.sum(tl.where(col[None, :] == 1, rows, 0), axis=1)
+    b2 = tl.sum(tl.where(col[None, :] == 2, rows, 0), axis=1)
+    b3 = tl.sum(tl.where(col[None, :] == 3, rows, 0), axis=1)
+    return b0 | (b1 << 8) | (b2 << 16) | (b3 << 24)
+
+
+@triton.jit
+def _pack_u16_to_u32(data, N: tl.constexpr):
+    rows = tl.reshape(data.to(tl.uint16, bitcast=True), (N // 2, 2)).to(tl.uint32)
+    col = tl.arange(0, 2)
+    b0 = tl.sum(tl.where(col[None, :] == 0, rows, 0), axis=1)
+    b1 = tl.sum(tl.where(col[None, :] == 1, rows, 0), axis=1)
+    return b0 | (b1 << 16)
+
+
+@triton.jit
+def _mcast_store_u8(mc_base, byte_off, data, mask, N: tl.constexpr):
+    packed = _pack_u8_to_u32(data, N)
+    base = tl.min(byte_off.to(tl.int64))
+    ptrs = (
+        mc_base.to(tl.int64).to(tl.pointer_type(tl.uint32))
+        + base // 4
+        + tl.arange(0, N // 4)
+    )
+    _multimem_st_u32(ptrs, packed)
+
+
+@triton.jit
+def _mcast_store_f32(mc_base, elem_off, data):
+    ptrs = mc_base.to(tl.int64).to(tl.pointer_type(tl.uint32)) + elem_off
+    _multimem_st_u32(ptrs, data.to(tl.uint32, bitcast=True))
+
+
+@triton.jit
+def _mcast_store_interleaved_bf16(mc_base, elem_off, even, odd):
+    packed = even.to(tl.uint16, bitcast=True).to(tl.uint32) | (
+        odd.to(tl.uint16, bitcast=True).to(tl.uint32) << 16
+    )
+    base = tl.min(elem_off.to(tl.int64))
+    ptrs = (
+        mc_base.to(tl.int64).to(tl.pointer_type(tl.uint32))
+        + base // 2
+        + tl.arange(0, packed.shape[0])
+    )
+    _multimem_st_u32(ptrs, packed)
+
+
+@triton.jit
+def _mcast_store_interleaved_u8(mc_base, byte_off, even, odd, N: tl.constexpr):
+    ev = tl.reshape(even.to(tl.uint8, bitcast=True), (N // 2, 2)).to(tl.uint32)
+    od = tl.reshape(odd.to(tl.uint8, bitcast=True), (N // 2, 2)).to(tl.uint32)
+    col = tl.arange(0, 2)
+    e0 = tl.sum(tl.where(col[None, :] == 0, ev, 0), axis=1)
+    e1 = tl.sum(tl.where(col[None, :] == 1, ev, 0), axis=1)
+    o0 = tl.sum(tl.where(col[None, :] == 0, od, 0), axis=1)
+    o1 = tl.sum(tl.where(col[None, :] == 1, od, 0), axis=1)
+    packed = e0 | (o0 << 8) | (e1 << 16) | (o1 << 24)
+    base = tl.min(byte_off.to(tl.int64))
+    ptrs = (
+        mc_base.to(tl.int64).to(tl.pointer_type(tl.uint32))
+        + base // 4
+        + tl.arange(0, N // 2)
+    )
+    _multimem_st_u32(ptrs, packed)
+
+
+@triton.jit
 def _fp8_quant_and_cache_write(
     vals,
     mask,
@@ -72,6 +157,7 @@ def _fp8_quant_and_cache_write(
     HEAD_DIM: tl.constexpr,
     peer_ptrs,
     PCP_WORLD_SIZE: tl.constexpr,
+    mcast_ptr,
 ):
     k_fp8, scale = _fp8_ue8m0_quantize(vals)
 
@@ -84,6 +170,11 @@ def _fp8_quant_and_cache_write(
     if PCP_WORLD_SIZE == 1:
         tl.store(kv_cache_ptr + data_off, k_fp8, mask=mask)
         tl.store(kv_cache_scale_ptr + scale_elem_off, scale)
+        return
+    if mcast_ptr != 0:
+        # Packed u32 multimem.st; caller must pass a contiguous HEAD_DIM vector.
+        _mcast_store_u8(mcast_ptr, data_off, k_fp8, mask, HEAD_DIM)
+        _mcast_store_f32(mcast_ptr, scale_elem_off, scale)
         return
     for peer in tl.static_range(0, PCP_WORLD_SIZE):
         base = tl.load(peer_ptrs + peer)
@@ -165,6 +256,9 @@ def _fused_norm_rope_kernel(
     mla_peer_ptrs,
     indexer_peer_ptrs,
     PCP_WORLD_SIZE: tl.constexpr,
+    mla_mcast_ptr,
+    indexer_mcast_ptr,
+    USE_MULTIMEM: tl.constexpr,
 ):
     tok_idx = tl.program_id(0).to(tl.int64)
     pid = tl.program_id(1)
@@ -288,6 +382,23 @@ def _fused_norm_rope_kernel(
                     )
                     tl.store(rope_dst + dim_off * 2, r1.to(tl.bfloat16))
                     tl.store(rope_dst + dim_off * 2 + 1, r2.to(tl.bfloat16))
+                elif USE_MULTIMEM:
+                    _mcast_store_u8(
+                        mla_mcast_ptr,
+                        byte_base + kv_block,
+                        kv_c_fp8,
+                        kv_block < KV_DIM,
+                        KV_DIM,
+                    )
+                    _mcast_store_f32(
+                        mla_mcast_ptr,
+                        byte_base // 4 + KV_DIM // 4 + tile_off,
+                        tile_scales,
+                    )
+                    rope_elem = byte_base // 2 + (KV_DIM // 2 + 8)
+                    _mcast_store_interleaved_bf16(
+                        mla_mcast_ptr, rope_elem + dim_off * 2, r1, r2
+                    )
                 else:
                     for peer in tl.static_range(0, PCP_WORLD_SIZE):
                         base = tl.load(mla_peer_ptrs + peer)
@@ -331,6 +442,35 @@ def _fused_norm_rope_kernel(
                 tl.store(dst + kv_block, kv_c_store)
                 tl.store(dst + KV_DIM + dim_off * 2, r1_store)
                 tl.store(dst + KV_DIM + dim_off * 2 + 1, r2_store)
+            elif USE_MULTIMEM:
+                if MLA_CACHE_FP8:
+                    _mcast_store_u8(
+                        mla_mcast_ptr,
+                        dst_off + kv_block,
+                        kv_c_store,
+                        kv_block < KV_DIM,
+                        KV_DIM,
+                    )
+                    _mcast_store_interleaved_u8(
+                        mla_mcast_ptr,
+                        dst_off + KV_DIM + dim_off * 2,
+                        r1_store,
+                        r2_store,
+                        KPE_HALF_ROT_DIM,
+                    )
+                else:
+                    packed_kv = _pack_u16_to_u32(
+                        kv_c_store.to(tl.uint16, bitcast=True), KV_DIM
+                    )
+                    kv_ptrs = (
+                        mla_mcast_ptr.to(tl.int64).to(tl.pointer_type(tl.uint32))
+                        + dst_off // 2
+                        + tl.arange(0, KV_DIM // 2)
+                    )
+                    _multimem_st_u32(kv_ptrs, packed_kv)
+                    _mcast_store_interleaved_bf16(
+                        mla_mcast_ptr, dst_off + KV_DIM + dim_off * 2, r1_store, r2_store
+                    )
             else:
                 for peer in tl.static_range(0, PCP_WORLD_SIZE):
                     base = tl.load(mla_peer_ptrs + peer)
@@ -443,6 +583,7 @@ def _fused_norm_rope_kernel(
                 INDEX_K_DIM,
                 indexer_peer_ptrs,
                 PCP_WORLD_SIZE,
+                indexer_mcast_ptr,
             )
 
 
@@ -477,6 +618,8 @@ def fused_norm_rope(
     mla_peer_ptrs: torch.Tensor | None = None,
     indexer_peer_ptrs: torch.Tensor | None = None,
     pcp_world_size: int = 1,
+    mla_mcast_ptr: int = 0,
+    indexer_mcast_ptr: int = 0,
 ) -> torch.Tensor:
     assert positions.ndim == 1
     assert q_c.ndim == 2
@@ -648,6 +791,9 @@ def fused_norm_rope(
         mla_peer_ptrs=mla_peer_ptrs,
         indexer_peer_ptrs=indexer_peer_ptrs,
         PCP_WORLD_SIZE=pcp_world_size,
+        mla_mcast_ptr=mla_mcast_ptr,
+        indexer_mcast_ptr=indexer_mcast_ptr,
+        USE_MULTIMEM=bool(pcp_world_size > 1 and mla_mcast_ptr),
         launch_pdl=use_pdl,
     )
     return q_c_out
