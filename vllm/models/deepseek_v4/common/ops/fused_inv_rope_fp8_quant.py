@@ -37,6 +37,7 @@ class FusedInvRopeFP8QuantKernel(
         tma_aligned_scales: bool
         launch_pdl: bool
         quantize: bool
+        permuted_output: bool = False
 
     @staticmethod
     # scale_stride_k = align(num_tokens, 4) is only 4-aligned, so its Triton int
@@ -66,6 +67,7 @@ class FusedInvRopeFP8QuantKernel(
         HALF_ROPE: tl.constexpr,
         QUANTIZE: tl.constexpr,
         TMA_ALIGNED_SCALES: tl.constexpr,
+        PERMUTED_OUTPUT: tl.constexpr,
         launch_pdl: tl.constexpr,
     ):
         # Cast every stride to int64 — without this, Python-int strides are
@@ -89,10 +91,21 @@ class FusedInvRopeFP8QuantKernel(
             tl.extra.cuda.gdc_launch_dependents()
             tl.extra.cuda.gdc_wait()
         # Padding rows in the TMA-aligned scale buffer: fill with zero and skip quant.
+        chunk_ids = tl.arange(0, CHUNKS_PER_HEAD) * heads_per_group + head_in_group
         if pid_token >= num_tokens:
             if not QUANTIZE:
                 return
-            if TMA_ALIGNED_SCALES:
+            if TMA_ALIGNED_SCALES and PERMUTED_OUTPUT:
+                scale_bytes = scale_ptr.to(tl.pointer_type(tl.uint8))
+                byte_addr = (
+                    scale_bytes
+                    + g * scale_stride_group * 4
+                    + pid_token * 4
+                    + (chunk_ids // 4) * scale_stride_k * 4
+                    + chunk_ids % 4
+                )
+                tl.store(byte_addr, tl.zeros((CHUNKS_PER_HEAD,), dtype=tl.uint8))
+            elif TMA_ALIGNED_SCALES:
                 packed_offsets = tl.arange(0, CHUNKS_PER_HEAD // 4)
                 scale_addr = (
                     scale_ptr
@@ -138,14 +151,17 @@ class FusedInvRopeFP8QuantKernel(
         rotated = tl.where(is_even, x_add, x_sub)
         x = tl.where(is_rope, rotated, x)
 
-        if not QUANTIZE:
-            out_base = (
-                out_ptr
-                + g * out_stride_group
-                + pid_token * out_stride_token
-                + qb_start * QUANT_GROUP_SIZE
+        out_base = out_ptr + g * out_stride_group + pid_token * out_stride_token
+        if PERMUTED_OUTPUT:
+            out_offsets = tl.reshape(
+                tl.reshape(chunk_ids, (CHUNKS_PER_HEAD, 1)) * QUANT_GROUP_SIZE
+                + tl.reshape(tl.arange(0, QUANT_GROUP_SIZE), (1, QUANT_GROUP_SIZE)),
+                (HEAD_DIM,),
             )
-            tl.store(out_base + offsets, x)
+        else:
+            out_offsets = qb_start * QUANT_GROUP_SIZE + offsets
+        if not QUANTIZE:
+            tl.store(out_base + out_offsets, x)
             return
 
         x_2d = tl.reshape(tl.abs(x), (CHUNKS_PER_HEAD, QUANT_GROUP_SIZE))
@@ -162,17 +178,22 @@ class FusedInvRopeFP8QuantKernel(
         )
         x_quant = tl.clamp(x / scales_exp, -fp8_max, fp8_max).to(tl.float8e4nv)
 
-        out_base = (
-            out_ptr
-            + g * out_stride_group
-            + pid_token * out_stride_token
-            + qb_start * QUANT_GROUP_SIZE
-        )
-        tl.store(out_base + offsets, x_quant)
+        tl.store(out_base + out_offsets, x_quant)
 
         block_offsets = tl.arange(0, CHUNKS_PER_HEAD)
         qb_indices = qb_start + block_offsets
-        if TMA_ALIGNED_SCALES:
+        if TMA_ALIGNED_SCALES and PERMUTED_OUTPUT:
+            ue8m0_bytes = (scales.to(tl.int32, bitcast=True) >> 23) & 0xFF
+            scale_bytes = scale_ptr.to(tl.pointer_type(tl.uint8))
+            byte_addr = (
+                scale_bytes
+                + g * scale_stride_group * 4
+                + pid_token * 4
+                + (chunk_ids // 4) * scale_stride_k * 4
+                + chunk_ids % 4
+            )
+            tl.store(byte_addr, ue8m0_bytes.to(tl.uint8))
+        elif TMA_ALIGNED_SCALES:
             scale_bits = scales.to(tl.int32, bitcast=True)
             ue8m0_bytes = (scale_bits >> 23) & 0xFF
             packed_val = tl.sum(
@@ -301,6 +322,7 @@ class FusedInvRopeFP8QuantKernel(
             half_rope=compile_key.half_rope,
             tma_aligned_scales=compile_key.tma_aligned_scales,
             quantize=compile_key.quantize,
+            permuted_output=compile_key.permuted_output,
             fp8_max=compile_key.fp8_max,
             launch_pdl=compile_key.launch_pdl,
             grid=(1, compile_key.heads_per_group),
@@ -323,6 +345,7 @@ class FusedInvRopeFP8QuantKernel(
         half_rope: int,
         tma_aligned_scales: bool,
         quantize: bool,
+        permuted_output: bool = False,
         fp8_max: float,
         launch_pdl: bool,
         grid: tuple[int, int],
@@ -344,6 +367,7 @@ class FusedInvRopeFP8QuantKernel(
             HALF_ROPE=half_rope,
             QUANTIZE=quantize,
             TMA_ALIGNED_SCALES=tma_aligned_scales,
+            PERMUTED_OUTPUT=permuted_output,
             launch_pdl=launch_pdl,
             num_stages=1,
             num_warps=1,
@@ -361,6 +385,7 @@ def fused_inv_rope_fp8_quant(
     quant_group_size: int = 128,
     tma_aligned_scales: bool = False,
     quantize: bool = True,
+    permuted_output: bool = False,
 ) -> tuple[torch.Tensor, torch.Tensor]:
     """Fused inverse RoPE + block-scaled FP8 quantization.
 
@@ -376,6 +401,8 @@ def fused_inv_rope_fp8_quant(
         tma_aligned_scales: Output INT32 packed UE8M0 for SM100 (True)
                             or FP32 for SM90 (False).
         quantize: Quantize the rotated output to FP8 and return its scales.
+        permuted_output: Interleave per-head 32-element chunks in FlashMLA's
+            fused output layout; requires packed TMA-aligned scales.
 
     Returns:
         Rotated output in [T, G, D] and its FP8 scales. The scale tensor is
@@ -390,6 +417,9 @@ def fused_inv_rope_fp8_quant(
     assert rope_dim % 2 == 0
     assert cos_sin_cache.shape[-1] == rope_dim
     assert cos_sin_cache.dtype == torch.float32
+
+    if permuted_output:
+        assert quantize and tma_aligned_scales and quant_group_size == 32
 
     d = heads_per_group * head_dim
     num_scale_blocks = d // quant_group_size
@@ -427,6 +457,7 @@ def fused_inv_rope_fp8_quant(
         d,
         scale_inner,
         quantize,
+        permuted_output,
     )
     output = out_buf.transpose(0, 1)
     scales = scale_buf.transpose(0, 1) if quantize else scale_buf
@@ -450,6 +481,7 @@ def _fused_inv_rope_fp8_quant_kernel_impl(
     d: int,
     scale_inner: int,
     quantize: bool,
+    permuted_output: bool,
 ) -> tuple[torch.Tensor, torch.Tensor]:
     scale_dtype = torch.int32 if tma_aligned_scales else torch.float32
     out_buf = torch.empty(
@@ -484,6 +516,7 @@ def _fused_inv_rope_fp8_quant_kernel_impl(
         half_rope=half_rope,
         tma_aligned_scales=tma_aligned_scales,
         quantize=quantize,
+        permuted_output=permuted_output,
         fp8_max=fp8_max,
         launch_pdl=launch_pdl,
         grid=grid,
@@ -508,6 +541,7 @@ def _fused_inv_rope_fp8_quant_kernel_fake(
     d: int,
     scale_inner: int,
     quantize: bool,
+    permuted_output: bool,
 ) -> tuple[torch.Tensor, torch.Tensor]:
     scale_dtype = torch.int32 if tma_aligned_scales else torch.float32
     out_buf = torch.empty(
