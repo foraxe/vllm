@@ -1,0 +1,218 @@
+[
+  {
+    "rows": 1,
+    "skew": false,
+    "dtype": "torch.bfloat16",
+    "baseline_us": 95.45600041747093,
+    "lean_us": 100.35200044512749,
+    "baseline_p95_us": 724.3840098381042,
+    "lean_p95_us": 789.9839878082275
+  },
+  {
+    "rows": 1,
+    "skew": true,
+    "dtype": "torch.bfloat16",
+    "baseline_us": 135.8719952404499,
+    "lean_us": 142.8000032901764,
+    "baseline_p95_us": 185.72799861431122,
+    "lean_p95_us": 158.84800255298615
+  },
+  {
+    "rows": 16,
+    "skew": false,
+    "dtype": "torch.bfloat16",
+    "baseline_us": 96.36799991130829,
+    "lean_us": 95.51999717950821,
+    "baseline_p95_us": 122.68800288438797,
+    "lean_p95_us": 154.52800691127777
+  },
+  {
+    "rows": 16,
+    "skew": true,
+    "dtype": "torch.bfloat16",
+    "baseline_us": 90.83199873566628,
+    "lean_us": 85.02399921417236,
+    "baseline_p95_us": 131.52000308036804,
+    "lean_p95_us": 98.55999797582626
+  },
+  {
+    "rows": 64,
+    "skew": false,
+    "dtype": "torch.bfloat16",
+    "baseline_us": 113.80800232291222,
+    "lean_us": 111.02399975061417,
+    "baseline_p95_us": 150.87999403476715,
+    "lean_p95_us": 158.62399339675903
+  },
+  {
+    "rows": 64,
+    "skew": true,
+    "dtype": "torch.bfloat16",
+    "baseline_us": 111.93599924445152,
+    "lean_us": 95.96800059080124,
+    "baseline_p95_us": 140.6719982624054,
+    "lean_p95_us": 106.30399733781815
+  },
+  {
+    "rows": 256,
+    "skew": false,
+    "dtype": "torch.bfloat16",
+    "baseline_us": 106.46399855613708,
+    "lean_us": 107.11999982595444,
+    "baseline_p95_us": 126.8479973077774,
+    "lean_p95_us": 135.1040005683899
+  },
+  {
+    "rows": 256,
+    "skew": true,
+    "dtype": "torch.bfloat16",
+    "baseline_us": 111.42400279641151,
+    "lean_us": 100.97600147128105,
+    "baseline_p95_us": 155.42399883270264,
+    "lean_p95_us": 116.15999788045883
+  },
+  {
+    "rows": 1024,
+    "skew": false,
+    "dtype": "torch.bfloat16",
+    "baseline_us": 118.70399862527847,
+    "lean_us": 128.07999923825264,
+    "baseline_p95_us": 134.17600095272064,
+    "lean_p95_us": 153.24799716472626
+  },
+  {
+    "rows": 1024,
+    "skew": true,
+    "dtype": "torch.bfloat16",
+    "baseline_us": 173.18399995565414,
+    "lean_us": 156.12800419330597,
+    "baseline_p95_us": 194.0159946680069,
+    "lean_p95_us": 172.0000058412552
+  },
+  {
+    "rows": 4096,
+    "skew": false,
+    "dtype": "torch.bfloat16",
+    "baseline_us": 172.4800020456314,
+    "lean_us": 182.76800215244293,
+    "baseline_p95_us": 191.20000302791595,
+    "lean_p95_us": 227.87199914455414
+  },
+  {
+    "rows": 4096,
+    "skew": true,
+    "dtype": "torch.bfloat16",
+    "baseline_us": 400.9919911623001,
+    "lean_us": 392.38400757312775,
+    "baseline_p95_us": 482.91200399398804,
+    "lean_p95_us": 467.20001101493835
+  },
+  {
+    "rows": 1,
+    "skew": false,
+    "dtype": "torch.float16",
+    "baseline_us": 91.26400202512741,
+    "lean_us": 94.7360023856163,
+    "baseline_p95_us": 740.8000230789185,
+    "lean_p95_us": 158.39999914169312
+  },
+  {
+    "rows": 1,
+    "skew": true,
+    "dtype": "torch.float16",
+    "baseline_us": 106.9600023329258,
+    "lean_us": 86.40000224113464,
+    "baseline_p95_us": 140.44800400733948,
+    "lean_p95_us": 109.0880036354065
+  },
+  {
+    "rows": 16,
+    "skew": false,
+    "dtype": "torch.float16",
+    "baseline_us": 91.24800190329552,
+    "lean_us": 100.87999701499939,
+    "baseline_p95_us": 129.18399274349213,
+    "lean_p95_us": 128.03199887275696
+  },
+  {
+    "rows": 16,
+    "skew": true,
+    "dtype": "torch.float16",
+    "baseline_us": 106.1439998447895,
+    "lean_us": 120.7679994404316,
+    "baseline_p95_us": 159.19999778270721,
+    "lean_p95_us": 194.91200149059296
+  },
+  {
+    "rows": 64,
+    "skew": false,
+    "dtype": "torch.float16",
+    "baseline_us": 113.29599842429161,
+    "lean_us": 106.55999928712845,
+    "baseline_p95_us": 126.71999633312225,
+    "lean_p95_us": 137.82399892807007
+  },
+  {
+    "rows": 64,
+    "skew": true,
+    "dtype": "torch.float16",
+    "baseline_us": 116.35199934244156,
+    "lean_us": 105.8880016207695,
+    "baseline_p95_us": 148.60799908638,
+    "lean_p95_us": 116.57600104808807
+  },
+  {
+    "rows": 256,
+    "skew": false,
+    "dtype": "torch.float16",
+    "baseline_us": 202.68800109624863,
+    "lean_us": 183.45599621534348,
+    "baseline_p95_us": 217.3440009355545,
+    "lean_p95_us": 194.33599710464478
+  },
+  {
+    "rows": 256,
+    "skew": true,
+    "dtype": "torch.float16",
+    "baseline_us": 126.63999572396278,
+    "lean_us": 124.38400462269783,
+    "baseline_p95_us": 149.53599870204926,
+    "lean_p95_us": 147.67999947071075
+  },
+  {
+    "rows": 1024,
+    "skew": false,
+    "dtype": "torch.float16",
+    "baseline_us": 118.8960000872612,
+    "lean_us": 117.48800054192543,
+    "baseline_p95_us": 145.11999487876892,
+    "lean_p95_us": 137.5039964914322
+  },
+  {
+    "rows": 1024,
+    "skew": true,
+    "dtype": "torch.float16",
+    "baseline_us": 167.87199676036835,
+    "lean_us": 164.0480011701584,
+    "baseline_p95_us": 197.08800315856934,
+    "lean_p95_us": 186.36800348758698
+  },
+  {
+    "rows": 4096,
+    "skew": false,
+    "dtype": "torch.float16",
+    "baseline_us": 173.16799610853195,
+    "lean_us": 170.6239953637123,
+    "baseline_p95_us": 211.10400557518005,
+    "lean_p95_us": 205.53599298000336
+  },
+  {
+    "rows": 4096,
+    "skew": true,
+    "dtype": "torch.float16",
+    "baseline_us": 414.6080017089844,
+    "lean_us": 405.0079882144928,
+    "baseline_p95_us": 470.5600142478943,
+    "lean_p95_us": 454.49599623680115
+  }
+]
