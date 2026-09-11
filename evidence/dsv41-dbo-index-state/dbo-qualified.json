@@ -1,0 +1,199 @@
+{
+  "dbo": true,
+  "outputs": [
+    {
+      "i": 0,
+      "expected": "323",
+      "text": "323",
+      "token_ids": [
+        18033,
+        1
+      ],
+      "input_tokens": 1218,
+      "pass": true
+    },
+    {
+      "i": 1,
+      "expected": "Paris",
+      "text": "Paris",
+      "token_ids": [
+        51119,
+        1
+      ],
+      "input_tokens": 1218,
+      "pass": true
+    },
+    {
+      "i": 2,
+      "expected": "4",
+      "text": "4",
+      "token_ids": [
+        22,
+        1
+      ],
+      "input_tokens": 1218,
+      "pass": true
+    },
+    {
+      "i": 3,
+      "expected": "100",
+      "text": "100",
+      "token_ids": [
+        1457,
+        1
+      ],
+      "input_tokens": 1218,
+      "pass": true
+    },
+    {
+      "i": 4,
+      "expected": "323",
+      "text": "323",
+      "token_ids": [
+        18033,
+        1
+      ],
+      "input_tokens": 1218,
+      "pass": true
+    },
+    {
+      "i": 5,
+      "expected": "Paris",
+      "text": "Paris",
+      "token_ids": [
+        51119,
+        1
+      ],
+      "input_tokens": 1218,
+      "pass": true
+    },
+    {
+      "i": 6,
+      "expected": "4",
+      "text": "4",
+      "token_ids": [
+        22,
+        1
+      ],
+      "input_tokens": 1218,
+      "pass": true
+    },
+    {
+      "i": 7,
+      "expected": "100",
+      "text": "100",
+      "token_ids": [
+        1457,
+        1
+      ],
+      "input_tokens": 1218,
+      "pass": true
+    },
+    {
+      "i": 8,
+      "expected": "323",
+      "text": "323",
+      "token_ids": [
+        18033,
+        1
+      ],
+      "input_tokens": 1218,
+      "pass": true
+    },
+    {
+      "i": 9,
+      "expected": "Paris",
+      "text": "Paris",
+      "token_ids": [
+        51119,
+        1
+      ],
+      "input_tokens": 1218,
+      "pass": true
+    },
+    {
+      "i": 10,
+      "expected": "4",
+      "text": "4",
+      "token_ids": [
+        22,
+        1
+      ],
+      "input_tokens": 1218,
+      "pass": true
+    },
+    {
+      "i": 11,
+      "expected": "100",
+      "text": "100",
+      "token_ids": [
+        1457,
+        1
+      ],
+      "input_tokens": 1218,
+      "pass": true
+    }
+  ],
+  "probe": [
+    {
+      "rank": 0,
+      "seen": [
+        0,
+        1
+      ],
+      "topk_checks": 8,
+      "candidate_checks": 8,
+      "ep_rank": 0,
+      "storage_shape": [
+        2,
+        2048,
+        512
+      ]
+    },
+    {
+      "rank": 1,
+      "seen": [
+        0,
+        1
+      ],
+      "topk_checks": 8,
+      "candidate_checks": 8,
+      "ep_rank": 1,
+      "storage_shape": [
+        2,
+        2048,
+        512
+      ]
+    },
+    {
+      "rank": 0,
+      "seen": [
+        0,
+        1
+      ],
+      "topk_checks": 8,
+      "candidate_checks": 8,
+      "ep_rank": 2,
+      "storage_shape": [
+        2,
+        2048,
+        512
+      ]
+    },
+    {
+      "rank": 1,
+      "seen": [
+        0,
+        1
+      ],
+      "topk_checks": 8,
+      "candidate_checks": 8,
+      "ep_rank": 3,
+      "storage_shape": [
+        2,
+        2048,
+        512
+      ]
+    }
+  ]
+}

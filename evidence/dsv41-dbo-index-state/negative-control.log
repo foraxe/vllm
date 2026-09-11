@@ -1,0 +1,58 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+_____________ test_ubatch_runner_preserves_cross_layer_index_state _____________
+
+    @pytest.mark.skipif(not torch.cuda.is_available(), reason="DBO needs a GPU")
+    def test_ubatch_runner_preserves_cross_layer_index_state():
+        """Another microbatch must not overwrite indices needed after an MoE yield."""
+        config = _make_dbo_config()
+        device = torch.device("cuda:0")
+        runner = _make_execution_runner(config)
+        model = _CrossLayerIndexModel(device, config.parallel_config.num_ubatches)
+        state = _make_ubatch_state(
+            config,
+            [
+                UBatchSlice(slice(0, 4), slice(0, 8)),
+                UBatchSlice(slice(4, 8), slice(8, 16)),
+            ],
+        )
+        inputs = _make_model_inputs(16, device)
+        for offset in (0, 100):
+            inputs["input_ids"].add_(offset)
+            output = runner.run(model, inputs, state)
+            expected = torch.cat(
+                (
+                    inputs["input_ids"][:, None].expand(-1, 4),
+                    inputs["positions"][:, None].expand(-1, 2),
+                ),
+                dim=-1,
+            ).to(torch.int32)
+>           torch.testing.assert_close(output, expected)
+E           AssertionError: Tensor-likes are not equal!
+E           
+E           Mismatched elements: 48 / 96 (50.0%)
+E           Greatest absolute difference: 8 at index (0, 0)
+E           Greatest relative difference: inf at index (0, 0)
+
+tests/v1/worker/test_gpu_ubatch_slicing.py:773: AssertionError
+----------------------------- Captured stdout call -----------------------------
+INFO 09-11 07:19:19 [model.py:692] Resolved architecture: OPTForCausalLM
+INFO 09-11 07:19:19 [model.py:2030] Using max model len 2048
+INFO 09-11 07:19:19 [scheduler.py:288] Chunked prefill is enabled with max_num_batched_tokens=2048.
+INFO 09-11 07:19:20 [kernel.py:370] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['native'], fused_add_rms_norm=['native'])
+WARNING 09-11 07:19:20 [vllm.py:701] Model Runner V2 does not yet support dual batch overlap; using the V1 model runner instead.
+----------------------------- Captured stderr call -----------------------------
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+------------------------------ Captured log call -------------------------------
+WARNING  huggingface_hub.utils._http:_http.py:951 Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+--------------------------- Captured stdout teardown ---------------------------
+WARNING 09-11 07:19:21 [parallel_state.py:2372] torch.accelerator.empty_host_cache() only available in Pytorch >=2.9
+=============================== warnings summary ===============================
+.venv/lib/python3.12/site-packages/_pytest/config/__init__.py:1290
+  /workspace/vllm_dsv41/vllm/.venv/lib/python3.12/site-packages/_pytest/config/__init__.py:1290: PytestAssertRewriteWarning: Module already imported so cannot be rewritten; anyio
+    self._mark_plugins_for_rewrite(hook, disable_autoload)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/v1/worker/test_gpu_ubatch_slicing.py::test_ubatch_runner_preserves_cross_layer_index_state
+1 failed, 24 deselected, 1 warning in 3.18s

@@ -1,0 +1,67 @@
+{
+  "feature": "ec241884a7dc7ecbff3db69da47963b9008d6245",
+  "integration": "827691787a3c29ffa3b28ebe8dc9cbd151a70bff",
+  "files": [
+    {
+      "file": "DBO_MODEL_RESULTS.md",
+      "sha256": "762d24086dc8301ebb5d14bd300c07e8d3d9e7ea2bc89996d1aaf8c30b20c7f1"
+    },
+    {
+      "file": "dbo_model_eval.py",
+      "sha256": "83f537b8c62bf05adc5e060fca20dcce0b76cdb06d60f23c424465d901798bf1"
+    },
+    {
+      "file": "runtime-provenance.json",
+      "sha256": "6f36ea57433d298f456cc48948e22e84ddb8989ca64b2d656cd3ab2053019484"
+    },
+    {
+      "file": "dbo-qualified.json",
+      "sha256": "9a27f8bb0496b53cfcec6f7ff18efce4fa3c9d19e49d935f7ec7c9946141e00c"
+    },
+    {
+      "file": "dbo-qualified.json.control.json",
+      "sha256": "045dce13768e6138b72b8bcc0441702ef341693c119b72449a5e4c022fcee983"
+    },
+    {
+      "file": "dbo-qualified.json.negative.json",
+      "sha256": "73bb7cfc6685dda292ac2e668fa0fb18e5a9e52bd40dbb33dd8d33c0ea812d43"
+    },
+    {
+      "file": "ubatch-tests-exact.log",
+      "sha256": "50a59ce49731db83cf76f19f4d4dcfcb4fde07746d33f6fd6bf6a902252f1ad6"
+    },
+    {
+      "file": "negative_control.py",
+      "sha256": "577c6eb9a29df7208700823f970155a0f334ee50b863c7f7c37534f08a6fdef0"
+    },
+    {
+      "file": "negative-control.log",
+      "sha256": "7dcd3e25a76a1fcb452d5813fef8da6549543fb7e961248a1c0c477cf28fec06"
+    },
+    {
+      "file": "precommit-final3.log",
+      "sha256": "f336bbe4ee88c50afa18dc42954a549bbffeb366c5bb144fa80e1435de3d4072"
+    },
+    {
+      "file": "dbo-qualified.json.rank-0.json.collision.json",
+      "sha256": "86c0f496b71a1cff2fbeeaac9d4724cba4ec8340080c0c626161fbfa74834aaf"
+    },
+    {
+      "file": "dbo-qualified.json.rank-1.json.collision.json",
+      "sha256": "2f4b185460c16613a7b4f7438f61b4d327f02ea8cbeb7ab089d9103b7281d294"
+    },
+    {
+      "file": "dbo-qualified.json.rank-2.json.collision.json",
+      "sha256": "a8ad365f7da7dea025f70ac79ae1fbd939bc8c588899126e3ead0d59d84c84ee"
+    },
+    {
+      "file": "dbo-qualified.json.rank-3.json.collision.json",
+      "sha256": "f36136da62f5e6a9cc7090d8b264c1b335f5d76d930ffbf5e5c546f3a2fa6159"
+    },
+    {
+      "file": "dbo_model_eval.executed.py.txt",
+      "sha256": "51555d205c997187ef9ebb7f876fffc170f0b19271a7fa2b45dc75d4fa80a682"
+    }
+  ],
+  "harness_packaging": "The .py copy has formatting, import sorting, and SPDX headers; dbo_model_eval.executed.py.txt preserves the exact executed source."
+}

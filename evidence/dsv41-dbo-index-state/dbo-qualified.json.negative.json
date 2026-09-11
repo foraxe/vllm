@@ -1,0 +1,37 @@
+{
+  "error": "EngineCore encountered an issue. See stack trace (above) for the root cause.",
+  "collisions": [
+    {
+      "kind": "topk",
+      "uid": 0,
+      "ep_rank": 1,
+      "rows": 1024,
+      "shared_storage_mode": true,
+      "mismatches": 179831
+    },
+    {
+      "kind": "topk",
+      "uid": 0,
+      "ep_rank": 0,
+      "rows": 1024,
+      "shared_storage_mode": true,
+      "mismatches": 179830
+    },
+    {
+      "kind": "topk",
+      "uid": 0,
+      "ep_rank": 2,
+      "rows": 1024,
+      "shared_storage_mode": true,
+      "mismatches": 179830
+    },
+    {
+      "kind": "topk",
+      "uid": 0,
+      "ep_rank": 3,
+      "rows": 1024,
+      "shared_storage_mode": true,
+      "mismatches": 179834
+    }
+  ]
+}

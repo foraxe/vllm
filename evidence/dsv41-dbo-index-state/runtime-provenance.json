@@ -1,0 +1,27 @@
+{
+  "versions": {
+    "torch": "2.13.0",
+    "flashinfer-python": "0.6.18.post1",
+    "flashinfer-cubin": "0.6.18.post1",
+    "flashinfer-jit-cache": "0.6.18.post1+cu130",
+    "apache-tvm-ffi": "0.1.11",
+    "tilelang": "0.1.12",
+    "nvidia-cutlass-dsl": "4.6.2",
+    "deep-gemm": "2.6.1+8b1392b"
+  },
+  "sources": {
+    "deep_gemm": "/workspace/vllm_dsv41/runtime-deps/deep_gemm/__init__.py",
+    "flashinfer": "/workspace/vllm_dsv41/runtime-deps/flashinfer/__init__.py",
+    "cutlass.cute": "/workspace/vllm_dsv41/runtime-deps/nvidia_cutlass_dsl/dsl_packages/cutlass/cute/__init__.py"
+  },
+  "model_revision": "dba1be0a40aa45a94ad051997016db3960a90277",
+  "vllm_base": "7ef4d9bfed6311e3b78a40abb4a8bb6a2fc741b0",
+  "patch": "ec241884a7dc7ecbff3db69da47963b9008d6245",
+  "flashmla_revision": "6bc49418c5ead572ff0339191ddf3b155749e183",
+  "flashattention_cute_revision": "506341a143fcabd4bb79052a7605ada727d6b3f5",
+  "native_wheel": {
+    "path": "/workspace/vllm_dsv41/context/vllm-base.whl",
+    "base_commit": "7ef4d9bfed6311e3b78a40abb4a8bb6a2fc741b0",
+    "sha256": "40e684cbb71fc658f350105d3de6c65c47812d1acf363ed28836710615fec28a"
+  }
+}
