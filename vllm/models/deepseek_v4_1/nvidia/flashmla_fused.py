@@ -16,9 +16,12 @@ import torch
 from vllm.config import VllmConfig
 from vllm.forward_context import get_forward_context
 from vllm.logger import init_logger
+from vllm.model_executor.layers.fusion.quant_activation import QuantizedActivation
+from vllm.model_executor.layers.quantization.utils.quant_utils import kMxfp8Dynamic
 from vllm.models.deepseek_v4.common.ops.fused_inv_rope_fp8_quant import (
     fused_inv_rope_fp8_quant,
 )
+from vllm.models.deepseek_v4_1.attention import AttentionOutput
 from vllm.models.deepseek_v4_1.common.ops import (
     combine_topk_swa_indices,
     compute_global_topk_indices_and_lens,
@@ -126,18 +129,31 @@ class DeepseekV4FlashMLAFusedAttention(DeepseekV4FlashMLAAttention):
 
     def _alloc_attn_out(
         self, num_tokens: int, hidden_states: torch.Tensor
-    ) -> torch.Tensor:
-        """Post-``wo_a`` activation ``z``; ``wo_b`` consumes it in the graph."""
-        return torch.empty(
-            (num_tokens, self.n_local_groups, self.o_lora_rank),
-            dtype=torch.bfloat16,
+    ) -> QuantizedActivation:
+        shape = (num_tokens, self.n_wv_group, WV_GROUP_SIZE * self.head_dim)
+        data = torch.empty(
+            shape, dtype=torch.float8_e4m3fn, device=hidden_states.device
+        )
+        scale = torch.empty(
+            (self.n_wv_group, shape[-1] // 128, round_up(num_tokens, 4)),
+            dtype=torch.int32,
             device=hidden_states.device,
+        ).permute(2, 0, 1)[:num_tokens]
+        return QuantizedActivation(
+            data, scale, hidden_states.dtype, torch.Size(shape), kMxfp8Dynamic
         )
 
     def _finish_o_proj(
-        self, attn_out: torch.Tensor, positions: torch.Tensor
+        self, attn_out: AttentionOutput, positions: torch.Tensor
     ) -> torch.Tensor:
-        return self.wo_b(attn_out.flatten(1))
+        assert isinstance(attn_out, QuantizedActivation)
+        z = torch.empty(
+            (attn_out.data.shape[0], self.n_local_groups, self.o_lora_rank),
+            dtype=torch.bfloat16,
+            device=attn_out.data.device,
+        )
+        self._wo_a_einsum(attn_out.data, attn_out.scale, z)
+        return self.wo_b(z.flatten(1))
 
     def _prepare_q_and_insert_kv(
         self,
@@ -182,8 +198,9 @@ class DeepseekV4FlashMLAFusedAttention(DeepseekV4FlashMLAAttention):
         q: torch.Tensor,
         kv: torch.Tensor,
         positions: torch.Tensor,
-        output: torch.Tensor,
+        output: AttentionOutput,
     ) -> None:
+        assert isinstance(output, QuantizedActivation)
         if not (self._permuted_wq_b and self._permuted_wo_a):
             raise RuntimeError(
                 f"{self.prefix}: wq_b / wo_a were not permuted for the FlashMLA "
@@ -196,7 +213,8 @@ class DeepseekV4FlashMLAFusedAttention(DeepseekV4FlashMLAAttention):
             # padding kernel, produce zeros.
             self._reserve_dummy_run_workspace(q)
             dsv41_q_layout(q, self.padded_heads, "fused")
-            output.zero_()
+            output.data.zero_()
+            output.scale.zero_()
             return
         assert isinstance(attn_metadata, dict)
         flashmla_metadata = cast(
@@ -217,7 +235,8 @@ class DeepseekV4FlashMLAFusedAttention(DeepseekV4FlashMLAAttention):
                 swa_metadata.positions_int32[num_decode_tokens:],
                 flashmla_metadata,
                 swa_metadata,
-                output[num_decode_tokens:],
+                output.data[num_decode_tokens:],
+                output.scale[num_decode_tokens:],
             )
         if swa_metadata.num_decodes > 0:
             if num_decode_tokens >= self.fused_decode_min_tokens:
@@ -226,7 +245,8 @@ class DeepseekV4FlashMLAFusedAttention(DeepseekV4FlashMLAAttention):
                     swa_metadata.positions_int32[:num_decode_tokens],
                     flashmla_metadata,
                     swa_metadata,
-                    output[:num_decode_tokens],
+                    output.data[:num_decode_tokens],
+                    output.scale[:num_decode_tokens],
                 )
             else:
                 self._forward_decode_split_kv(
@@ -234,7 +254,8 @@ class DeepseekV4FlashMLAFusedAttention(DeepseekV4FlashMLAAttention):
                     positions[:num_decode_tokens],
                     flashmla_metadata,
                     swa_metadata,
-                    output[:num_decode_tokens],
+                    output.data[:num_decode_tokens],
+                    output.scale[:num_decode_tokens],
                 )
 
     def _reserve_dummy_run_workspace(self, q: torch.Tensor) -> None:
@@ -280,13 +301,14 @@ class DeepseekV4FlashMLAFusedAttention(DeepseekV4FlashMLAAttention):
         positions_int32: torch.Tensor,
         flashmla_metadata: DeepseekV4FlashMLAMetadata | None,
         swa_metadata: "DeepseekSparseSWAMetadata",
-        z: torch.Tensor,
+        out_fp8: torch.Tensor,
+        out_sf: torch.Tensor,
     ) -> None:
         extra_cache, extra_idx, extra_len = self._decode_extra(
             flashmla_metadata, swa_metadata
         )
         assert swa_metadata.decode_swa_indices is not None
-        out_fp8, out_sf, _ = flash_mla_fused_sparse_decode(
+        flash_mla_fused_sparse_decode(
             dsv41_q_layout(q, self.padded_heads, "fused"),
             self.swa_cache_layer.kv_cache.unsqueeze(-2),
             swa_metadata.decode_swa_indices.view(q.shape[0], -1),
@@ -299,8 +321,9 @@ class DeepseekV4FlashMLAFusedAttention(DeepseekV4FlashMLAAttention):
             extra_k_cache=extra_cache,
             extra_indices=extra_idx,
             extra_topk_length=extra_len,
+            out_fp8=out_fp8,
+            out_sf=out_sf,
         )
-        self._wo_a_einsum(out_fp8, out_sf, z)
 
     def _forward_decode_split_kv(
         self,
@@ -308,7 +331,8 @@ class DeepseekV4FlashMLAFusedAttention(DeepseekV4FlashMLAAttention):
         positions: torch.Tensor,
         flashmla_metadata: DeepseekV4FlashMLAMetadata | None,
         swa_metadata: "DeepseekSparseSWAMetadata",
-        z: torch.Tensor,
+        out_fp8: torch.Tensor,
+        out_sf: torch.Tensor,
     ) -> None:
         extra_cache, extra_idx, extra_len = self._decode_extra(
             flashmla_metadata, swa_metadata
@@ -357,7 +381,8 @@ class DeepseekV4FlashMLAFusedAttention(DeepseekV4FlashMLAAttention):
             tma_aligned_scales=True,
             permuted_output=True,
         )
-        self._wo_a_einsum(o_fp8, o_sf, z)
+        out_fp8[:, : self.n_local_groups].copy_(o_fp8)
+        out_sf[:, : self.n_local_groups].copy_(o_sf)
 
     def _forward_prefill_fused(
         self,
@@ -365,7 +390,8 @@ class DeepseekV4FlashMLAFusedAttention(DeepseekV4FlashMLAAttention):
         positions_int32: torch.Tensor,
         flashmla_metadata: DeepseekV4FlashMLAMetadata | None,
         swa_metadata: "DeepseekSparseSWAMetadata",
-        z: torch.Tensor,
+        out_fp8: torch.Tensor,
+        out_sf: torch.Tensor,
     ) -> None:
         swa_only = self.compress_ratio == 0
         num_decodes = swa_metadata.num_decodes
@@ -453,7 +479,7 @@ class DeepseekV4FlashMLAFusedAttention(DeepseekV4FlashMLAAttention):
                 ),
                 max_image_tokens=self.max_image_tokens,
             )
-            out_fp8, out_sf, _, _ = flash_mla_fused_sparse_prefill(
+            flash_mla_fused_sparse_prefill(
                 q_pad[qs:qe],
                 kv_ws.view(-1, 1, q.shape[-1]),
                 combined_indices.unsqueeze(1),
@@ -463,5 +489,6 @@ class DeepseekV4FlashMLAFusedAttention(DeepseekV4FlashMLAAttention):
                 self.n_wv_group,
                 attn_sink=self.attn_sink,
                 topk_length=combined_lens,
+                out_fp8=out_fp8[qs:qe],
+                out_sf=out_sf[qs:qe],
             )
-            self._wo_a_einsum(out_fp8, out_sf, z[qs:qe])
