@@ -42,6 +42,31 @@ In short, for decode context parallel, try to increase `-tp` size until you get 
 
 Decode context parallel is supported in vLLM, for both MLA and GQA models. Some attention backends also support the combination of decode context parallel and MTP (multi-token prediction) to further accelerate the decoding phase.
 
+## DeepSeek V4.1
+
+DeepSeek V4.1 supports an initial eager DCP path with Model Runner V2 and the NVIDIA FlashMLA backend. DCP shards the shared main KV and index caches by logical record; sliding-window caches and compression state remain replicated. This path uses explicit communication and makes no serving-speedup guarantee.
+
+The supported configuration uses DCP size 2 or 4, interleave size 1, text-only input, and disabled prefix caching. CUDA graphs, PCP, pipeline parallelism, DBO, speculative decoding, and other attention backends are not supported by this path.
+
+For example, the following configuration uses four GPUs and a fixed cache budget per GPU:
+
+```bash
+VLLM_USE_V2_MODEL_RUNNER=1 vllm serve deepseek-ai/DeepSeek-V4.1-Flash \
+    --tensor-parallel-size 4 \
+    --decode-context-parallel-size 2 \
+    --language-model-only \
+    --enforce-eager \
+    --no-enable-prefix-caching \
+    --attention-config '{"backend":"FLASHMLA_SPARSE_DSV41"}' \
+    --cp-kv-cache-interleave-size 1 \
+    --max-model-len 32768 \
+    --max-num-batched-tokens 1024 \
+    --max-num-seqs 4 \
+    --kv-cache-memory-bytes 536870912
+```
+
+Increase the cache budget according to the available device memory and required concurrency. The fixed budget above is the bounded validation configuration, not a general capacity recommendation.
+
 ## Technical Discussions
 
 The main discussions happen in the `#sig-context-parallel` channel of [vLLM Slack](https://slack.vllm.ai/).
