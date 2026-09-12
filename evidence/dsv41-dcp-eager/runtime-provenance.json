@@ -1,0 +1,21 @@
+{
+  "versions": {
+    "torch": "2.13.0",
+    "flashinfer-python": "0.6.18.post1",
+    "flashinfer-cubin": "0.6.18.post1",
+    "flashinfer-jit-cache": "0.6.18.post1+cu130",
+    "apache-tvm-ffi": "0.1.11",
+    "tilelang": "0.1.12",
+    "nvidia-cutlass-dsl": "4.6.2",
+    "deep-gemm": "2.6.1+8b1392b"
+  },
+  "sources": {
+    "vllm": "/workspace/vllm_dsv41/vllm-dcp/vllm/__init__.py",
+    "deep_gemm": "/workspace/vllm_dsv41/runtime-deps/deep_gemm/__init__.py",
+    "flashinfer": "/workspace/vllm_dsv41/runtime-deps/flashinfer/__init__.py",
+    "cutlass": "/workspace/vllm_dsv41/runtime-deps/nvidia_cutlass_dsl/dsl_packages/cutlass/__init__.py"
+  },
+  "vllm_head": "1fb799121a8ac5737496900ed8d828558faff6c7",
+  "native_flashmla": "/workspace/vllm_dsv41/native-dcp/vllm/_flashmla_C.abi3.so",
+  "native_core": "/workspace/vllm_dsv41/native-dcp/vllm/_C_stable_libtorch.abi3.so"
+}

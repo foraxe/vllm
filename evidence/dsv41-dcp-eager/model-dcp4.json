@@ -1,0 +1,1637 @@
+{
+  "dcp": 4,
+  "groups": [
+    {
+      "rank": 0,
+      "groups": [
+        {
+          "layers": [
+            "language_model.model.layers.0.attn.swa_cache",
+            "language_model.model.layers.4.attn.swa_cache",
+            "language_model.model.layers.8.attn.swa_cache",
+            "language_model.model.layers.12.attn.swa_cache",
+            "language_model.model.layers.16.attn.swa_cache",
+            "language_model.model.layers.20.attn.swa_cache",
+            "language_model.model.layers.24.attn.swa_cache",
+            "language_model.model.layers.28.attn.swa_cache",
+            "language_model.model.layers.32.attn.swa_cache",
+            "language_model.model.layers.36.attn.swa_cache"
+          ],
+          "specs": [
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            }
+          ]
+        },
+        {
+          "layers": [
+            "language_model.model.layers.1.attn.swa_cache",
+            "language_model.model.layers.5.attn.swa_cache",
+            "language_model.model.layers.9.attn.swa_cache",
+            "language_model.model.layers.13.attn.swa_cache",
+            "language_model.model.layers.17.attn.swa_cache",
+            "language_model.model.layers.21.attn.swa_cache",
+            "language_model.model.layers.25.attn.swa_cache",
+            "language_model.model.layers.29.attn.swa_cache",
+            "language_model.model.layers.33.attn.swa_cache",
+            "language_model.model.layers.37.attn.swa_cache"
+          ],
+          "specs": [
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            }
+          ]
+        },
+        {
+          "layers": [
+            "language_model.model.layers.2.attn.swa_cache",
+            "language_model.model.layers.6.attn.swa_cache",
+            "language_model.model.layers.10.attn.swa_cache",
+            "language_model.model.layers.14.attn.swa_cache",
+            "language_model.model.layers.18.attn.swa_cache",
+            "language_model.model.layers.22.attn.swa_cache",
+            "language_model.model.layers.26.attn.swa_cache",
+            "language_model.model.layers.30.attn.swa_cache",
+            "language_model.model.layers.34.attn.swa_cache",
+            "language_model.model.layers.38.attn.swa_cache"
+          ],
+          "specs": [
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            }
+          ]
+        },
+        {
+          "layers": [
+            "language_model.model.layers.3.attn.swa_cache",
+            "language_model.model.layers.7.attn.swa_cache",
+            "language_model.model.layers.11.attn.swa_cache",
+            "language_model.model.layers.15.attn.swa_cache",
+            "language_model.model.layers.19.attn.swa_cache",
+            "language_model.model.layers.23.attn.swa_cache",
+            "language_model.model.layers.27.attn.swa_cache",
+            "language_model.model.layers.31.attn.swa_cache",
+            "language_model.model.layers.35.attn.swa_cache",
+            "language_model.model.layers.39.attn.swa_cache"
+          ],
+          "specs": [
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            }
+          ]
+        },
+        {
+          "layers": [
+            "language_model.model.layers.2.attn",
+            "language_model.model.layers.2.attn.indexer.k_cache",
+            "language_model.model.layers.8.attn",
+            "language_model.model.layers.8.attn.indexer.k_cache",
+            "language_model.model.layers.14.attn",
+            "language_model.model.layers.14.attn.indexer.k_cache",
+            "language_model.model.layers.20.attn",
+            "language_model.model.layers.20.attn.indexer.k_cache"
+          ],
+          "specs": [
+            {
+              "spec": "MLAAttentionSpec",
+              "placement": "KVCacheDCPPlacement.SHARDED",
+              "ratio": "2",
+              "block_size": 128
+            },
+            {
+              "spec": "MLAAttentionSpec",
+              "placement": "KVCacheDCPPlacement.SHARDED",
+              "ratio": "2",
+              "block_size": 128
+            },
+            {
+              "spec": "MLAAttentionSpec",
+              "placement": "KVCacheDCPPlacement.SHARDED",
+              "ratio": "2",
+              "block_size": 128
+            },
+            {
+              "spec": "MLAAttentionSpec",
+              "placement": "KVCacheDCPPlacement.SHARDED",
+              "ratio": "2",
+              "block_size": 128
+            },
+            {
+              "spec": "MLAAttentionSpec",
+              "placement": "KVCacheDCPPlacement.SHARDED",
+              "ratio": "2",
+              "block_size": 128
+            },
+            {
+              "spec": "MLAAttentionSpec",
+              "placement": "KVCacheDCPPlacement.SHARDED",
+              "ratio": "2",
+              "block_size": 128
+            },
+            {
+              "spec": "MLAAttentionSpec",
+              "placement": "KVCacheDCPPlacement.SHARDED",
+              "ratio": "1",
+              "block_size": 128
+            },
+            {
+              "spec": "MLAAttentionSpec",
+              "placement": "KVCacheDCPPlacement.SHARDED",
+              "ratio": "1",
+              "block_size": 128
+            }
+          ]
+        },
+        {
+          "layers": [
+            "language_model.model.layers.2.attn.compressor.state_cache",
+            "language_model.model.layers.8.attn.compressor.state_cache",
+            "language_model.model.layers.14.attn.compressor.state_cache"
+          ],
+          "specs": [
+            {
+              "spec": "CircularBufferSpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 8
+            },
+            {
+              "spec": "CircularBufferSpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 8
+            },
+            {
+              "spec": "CircularBufferSpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 8
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "rank": 1,
+      "groups": [
+        {
+          "layers": [
+            "language_model.model.layers.0.attn.swa_cache",
+            "language_model.model.layers.4.attn.swa_cache",
+            "language_model.model.layers.8.attn.swa_cache",
+            "language_model.model.layers.12.attn.swa_cache",
+            "language_model.model.layers.16.attn.swa_cache",
+            "language_model.model.layers.20.attn.swa_cache",
+            "language_model.model.layers.24.attn.swa_cache",
+            "language_model.model.layers.28.attn.swa_cache",
+            "language_model.model.layers.32.attn.swa_cache",
+            "language_model.model.layers.36.attn.swa_cache"
+          ],
+          "specs": [
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            }
+          ]
+        },
+        {
+          "layers": [
+            "language_model.model.layers.1.attn.swa_cache",
+            "language_model.model.layers.5.attn.swa_cache",
+            "language_model.model.layers.9.attn.swa_cache",
+            "language_model.model.layers.13.attn.swa_cache",
+            "language_model.model.layers.17.attn.swa_cache",
+            "language_model.model.layers.21.attn.swa_cache",
+            "language_model.model.layers.25.attn.swa_cache",
+            "language_model.model.layers.29.attn.swa_cache",
+            "language_model.model.layers.33.attn.swa_cache",
+            "language_model.model.layers.37.attn.swa_cache"
+          ],
+          "specs": [
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            }
+          ]
+        },
+        {
+          "layers": [
+            "language_model.model.layers.2.attn.swa_cache",
+            "language_model.model.layers.6.attn.swa_cache",
+            "language_model.model.layers.10.attn.swa_cache",
+            "language_model.model.layers.14.attn.swa_cache",
+            "language_model.model.layers.18.attn.swa_cache",
+            "language_model.model.layers.22.attn.swa_cache",
+            "language_model.model.layers.26.attn.swa_cache",
+            "language_model.model.layers.30.attn.swa_cache",
+            "language_model.model.layers.34.attn.swa_cache",
+            "language_model.model.layers.38.attn.swa_cache"
+          ],
+          "specs": [
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            }
+          ]
+        },
+        {
+          "layers": [
+            "language_model.model.layers.3.attn.swa_cache",
+            "language_model.model.layers.7.attn.swa_cache",
+            "language_model.model.layers.11.attn.swa_cache",
+            "language_model.model.layers.15.attn.swa_cache",
+            "language_model.model.layers.19.attn.swa_cache",
+            "language_model.model.layers.23.attn.swa_cache",
+            "language_model.model.layers.27.attn.swa_cache",
+            "language_model.model.layers.31.attn.swa_cache",
+            "language_model.model.layers.35.attn.swa_cache",
+            "language_model.model.layers.39.attn.swa_cache"
+          ],
+          "specs": [
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            }
+          ]
+        },
+        {
+          "layers": [
+            "language_model.model.layers.2.attn",
+            "language_model.model.layers.2.attn.indexer.k_cache",
+            "language_model.model.layers.8.attn",
+            "language_model.model.layers.8.attn.indexer.k_cache",
+            "language_model.model.layers.14.attn",
+            "language_model.model.layers.14.attn.indexer.k_cache",
+            "language_model.model.layers.20.attn",
+            "language_model.model.layers.20.attn.indexer.k_cache"
+          ],
+          "specs": [
+            {
+              "spec": "MLAAttentionSpec",
+              "placement": "KVCacheDCPPlacement.SHARDED",
+              "ratio": "2",
+              "block_size": 128
+            },
+            {
+              "spec": "MLAAttentionSpec",
+              "placement": "KVCacheDCPPlacement.SHARDED",
+              "ratio": "2",
+              "block_size": 128
+            },
+            {
+              "spec": "MLAAttentionSpec",
+              "placement": "KVCacheDCPPlacement.SHARDED",
+              "ratio": "2",
+              "block_size": 128
+            },
+            {
+              "spec": "MLAAttentionSpec",
+              "placement": "KVCacheDCPPlacement.SHARDED",
+              "ratio": "2",
+              "block_size": 128
+            },
+            {
+              "spec": "MLAAttentionSpec",
+              "placement": "KVCacheDCPPlacement.SHARDED",
+              "ratio": "2",
+              "block_size": 128
+            },
+            {
+              "spec": "MLAAttentionSpec",
+              "placement": "KVCacheDCPPlacement.SHARDED",
+              "ratio": "2",
+              "block_size": 128
+            },
+            {
+              "spec": "MLAAttentionSpec",
+              "placement": "KVCacheDCPPlacement.SHARDED",
+              "ratio": "1",
+              "block_size": 128
+            },
+            {
+              "spec": "MLAAttentionSpec",
+              "placement": "KVCacheDCPPlacement.SHARDED",
+              "ratio": "1",
+              "block_size": 128
+            }
+          ]
+        },
+        {
+          "layers": [
+            "language_model.model.layers.2.attn.compressor.state_cache",
+            "language_model.model.layers.8.attn.compressor.state_cache",
+            "language_model.model.layers.14.attn.compressor.state_cache"
+          ],
+          "specs": [
+            {
+              "spec": "CircularBufferSpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 8
+            },
+            {
+              "spec": "CircularBufferSpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 8
+            },
+            {
+              "spec": "CircularBufferSpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 8
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "rank": 2,
+      "groups": [
+        {
+          "layers": [
+            "language_model.model.layers.0.attn.swa_cache",
+            "language_model.model.layers.4.attn.swa_cache",
+            "language_model.model.layers.8.attn.swa_cache",
+            "language_model.model.layers.12.attn.swa_cache",
+            "language_model.model.layers.16.attn.swa_cache",
+            "language_model.model.layers.20.attn.swa_cache",
+            "language_model.model.layers.24.attn.swa_cache",
+            "language_model.model.layers.28.attn.swa_cache",
+            "language_model.model.layers.32.attn.swa_cache",
+            "language_model.model.layers.36.attn.swa_cache"
+          ],
+          "specs": [
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            }
+          ]
+        },
+        {
+          "layers": [
+            "language_model.model.layers.1.attn.swa_cache",
+            "language_model.model.layers.5.attn.swa_cache",
+            "language_model.model.layers.9.attn.swa_cache",
+            "language_model.model.layers.13.attn.swa_cache",
+            "language_model.model.layers.17.attn.swa_cache",
+            "language_model.model.layers.21.attn.swa_cache",
+            "language_model.model.layers.25.attn.swa_cache",
+            "language_model.model.layers.29.attn.swa_cache",
+            "language_model.model.layers.33.attn.swa_cache",
+            "language_model.model.layers.37.attn.swa_cache"
+          ],
+          "specs": [
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            }
+          ]
+        },
+        {
+          "layers": [
+            "language_model.model.layers.2.attn.swa_cache",
+            "language_model.model.layers.6.attn.swa_cache",
+            "language_model.model.layers.10.attn.swa_cache",
+            "language_model.model.layers.14.attn.swa_cache",
+            "language_model.model.layers.18.attn.swa_cache",
+            "language_model.model.layers.22.attn.swa_cache",
+            "language_model.model.layers.26.attn.swa_cache",
+            "language_model.model.layers.30.attn.swa_cache",
+            "language_model.model.layers.34.attn.swa_cache",
+            "language_model.model.layers.38.attn.swa_cache"
+          ],
+          "specs": [
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            }
+          ]
+        },
+        {
+          "layers": [
+            "language_model.model.layers.3.attn.swa_cache",
+            "language_model.model.layers.7.attn.swa_cache",
+            "language_model.model.layers.11.attn.swa_cache",
+            "language_model.model.layers.15.attn.swa_cache",
+            "language_model.model.layers.19.attn.swa_cache",
+            "language_model.model.layers.23.attn.swa_cache",
+            "language_model.model.layers.27.attn.swa_cache",
+            "language_model.model.layers.31.attn.swa_cache",
+            "language_model.model.layers.35.attn.swa_cache",
+            "language_model.model.layers.39.attn.swa_cache"
+          ],
+          "specs": [
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            }
+          ]
+        },
+        {
+          "layers": [
+            "language_model.model.layers.2.attn",
+            "language_model.model.layers.2.attn.indexer.k_cache",
+            "language_model.model.layers.8.attn",
+            "language_model.model.layers.8.attn.indexer.k_cache",
+            "language_model.model.layers.14.attn",
+            "language_model.model.layers.14.attn.indexer.k_cache",
+            "language_model.model.layers.20.attn",
+            "language_model.model.layers.20.attn.indexer.k_cache"
+          ],
+          "specs": [
+            {
+              "spec": "MLAAttentionSpec",
+              "placement": "KVCacheDCPPlacement.SHARDED",
+              "ratio": "2",
+              "block_size": 128
+            },
+            {
+              "spec": "MLAAttentionSpec",
+              "placement": "KVCacheDCPPlacement.SHARDED",
+              "ratio": "2",
+              "block_size": 128
+            },
+            {
+              "spec": "MLAAttentionSpec",
+              "placement": "KVCacheDCPPlacement.SHARDED",
+              "ratio": "2",
+              "block_size": 128
+            },
+            {
+              "spec": "MLAAttentionSpec",
+              "placement": "KVCacheDCPPlacement.SHARDED",
+              "ratio": "2",
+              "block_size": 128
+            },
+            {
+              "spec": "MLAAttentionSpec",
+              "placement": "KVCacheDCPPlacement.SHARDED",
+              "ratio": "2",
+              "block_size": 128
+            },
+            {
+              "spec": "MLAAttentionSpec",
+              "placement": "KVCacheDCPPlacement.SHARDED",
+              "ratio": "2",
+              "block_size": 128
+            },
+            {
+              "spec": "MLAAttentionSpec",
+              "placement": "KVCacheDCPPlacement.SHARDED",
+              "ratio": "1",
+              "block_size": 128
+            },
+            {
+              "spec": "MLAAttentionSpec",
+              "placement": "KVCacheDCPPlacement.SHARDED",
+              "ratio": "1",
+              "block_size": 128
+            }
+          ]
+        },
+        {
+          "layers": [
+            "language_model.model.layers.2.attn.compressor.state_cache",
+            "language_model.model.layers.8.attn.compressor.state_cache",
+            "language_model.model.layers.14.attn.compressor.state_cache"
+          ],
+          "specs": [
+            {
+              "spec": "CircularBufferSpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 8
+            },
+            {
+              "spec": "CircularBufferSpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 8
+            },
+            {
+              "spec": "CircularBufferSpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 8
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "rank": 3,
+      "groups": [
+        {
+          "layers": [
+            "language_model.model.layers.0.attn.swa_cache",
+            "language_model.model.layers.4.attn.swa_cache",
+            "language_model.model.layers.8.attn.swa_cache",
+            "language_model.model.layers.12.attn.swa_cache",
+            "language_model.model.layers.16.attn.swa_cache",
+            "language_model.model.layers.20.attn.swa_cache",
+            "language_model.model.layers.24.attn.swa_cache",
+            "language_model.model.layers.28.attn.swa_cache",
+            "language_model.model.layers.32.attn.swa_cache",
+            "language_model.model.layers.36.attn.swa_cache"
+          ],
+          "specs": [
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            }
+          ]
+        },
+        {
+          "layers": [
+            "language_model.model.layers.1.attn.swa_cache",
+            "language_model.model.layers.5.attn.swa_cache",
+            "language_model.model.layers.9.attn.swa_cache",
+            "language_model.model.layers.13.attn.swa_cache",
+            "language_model.model.layers.17.attn.swa_cache",
+            "language_model.model.layers.21.attn.swa_cache",
+            "language_model.model.layers.25.attn.swa_cache",
+            "language_model.model.layers.29.attn.swa_cache",
+            "language_model.model.layers.33.attn.swa_cache",
+            "language_model.model.layers.37.attn.swa_cache"
+          ],
+          "specs": [
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            }
+          ]
+        },
+        {
+          "layers": [
+            "language_model.model.layers.2.attn.swa_cache",
+            "language_model.model.layers.6.attn.swa_cache",
+            "language_model.model.layers.10.attn.swa_cache",
+            "language_model.model.layers.14.attn.swa_cache",
+            "language_model.model.layers.18.attn.swa_cache",
+            "language_model.model.layers.22.attn.swa_cache",
+            "language_model.model.layers.26.attn.swa_cache",
+            "language_model.model.layers.30.attn.swa_cache",
+            "language_model.model.layers.34.attn.swa_cache",
+            "language_model.model.layers.38.attn.swa_cache"
+          ],
+          "specs": [
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            }
+          ]
+        },
+        {
+          "layers": [
+            "language_model.model.layers.3.attn.swa_cache",
+            "language_model.model.layers.7.attn.swa_cache",
+            "language_model.model.layers.11.attn.swa_cache",
+            "language_model.model.layers.15.attn.swa_cache",
+            "language_model.model.layers.19.attn.swa_cache",
+            "language_model.model.layers.23.attn.swa_cache",
+            "language_model.model.layers.27.attn.swa_cache",
+            "language_model.model.layers.31.attn.swa_cache",
+            "language_model.model.layers.35.attn.swa_cache",
+            "language_model.model.layers.39.attn.swa_cache"
+          ],
+          "specs": [
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            },
+            {
+              "spec": "SlidingWindowMLASpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 32
+            }
+          ]
+        },
+        {
+          "layers": [
+            "language_model.model.layers.2.attn",
+            "language_model.model.layers.2.attn.indexer.k_cache",
+            "language_model.model.layers.8.attn",
+            "language_model.model.layers.8.attn.indexer.k_cache",
+            "language_model.model.layers.14.attn",
+            "language_model.model.layers.14.attn.indexer.k_cache",
+            "language_model.model.layers.20.attn",
+            "language_model.model.layers.20.attn.indexer.k_cache"
+          ],
+          "specs": [
+            {
+              "spec": "MLAAttentionSpec",
+              "placement": "KVCacheDCPPlacement.SHARDED",
+              "ratio": "2",
+              "block_size": 128
+            },
+            {
+              "spec": "MLAAttentionSpec",
+              "placement": "KVCacheDCPPlacement.SHARDED",
+              "ratio": "2",
+              "block_size": 128
+            },
+            {
+              "spec": "MLAAttentionSpec",
+              "placement": "KVCacheDCPPlacement.SHARDED",
+              "ratio": "2",
+              "block_size": 128
+            },
+            {
+              "spec": "MLAAttentionSpec",
+              "placement": "KVCacheDCPPlacement.SHARDED",
+              "ratio": "2",
+              "block_size": 128
+            },
+            {
+              "spec": "MLAAttentionSpec",
+              "placement": "KVCacheDCPPlacement.SHARDED",
+              "ratio": "2",
+              "block_size": 128
+            },
+            {
+              "spec": "MLAAttentionSpec",
+              "placement": "KVCacheDCPPlacement.SHARDED",
+              "ratio": "2",
+              "block_size": 128
+            },
+            {
+              "spec": "MLAAttentionSpec",
+              "placement": "KVCacheDCPPlacement.SHARDED",
+              "ratio": "1",
+              "block_size": 128
+            },
+            {
+              "spec": "MLAAttentionSpec",
+              "placement": "KVCacheDCPPlacement.SHARDED",
+              "ratio": "1",
+              "block_size": 128
+            }
+          ]
+        },
+        {
+          "layers": [
+            "language_model.model.layers.2.attn.compressor.state_cache",
+            "language_model.model.layers.8.attn.compressor.state_cache",
+            "language_model.model.layers.14.attn.compressor.state_cache"
+          ],
+          "specs": [
+            {
+              "spec": "CircularBufferSpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 8
+            },
+            {
+              "spec": "CircularBufferSpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 8
+            },
+            {
+              "spec": "CircularBufferSpec",
+              "placement": "KVCacheDCPPlacement.REPLICATED",
+              "ratio": "1",
+              "block_size": 8
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "outputs": [
+    {
+      "prompt_len": 17,
+      "text": "323",
+      "tokens": [
+        18033,
+        1
+      ],
+      "expected": "323"
+    },
+    {
+      "prompt_len": 17,
+      "text": "91",
+      "tokens": [
+        6207,
+        1
+      ],
+      "expected": "91"
+    },
+    {
+      "prompt_len": 2363,
+      "text": "314159",
+      "tokens": [
+        18321,
+        10969,
+        1
+      ],
+      "expected": "314159"
+    },
+    {
+      "prompt_len": 2365,
+      "text": "271828",
+      "tokens": [
+        17508,
+        29788,
+        1
+      ],
+      "expected": "271828"
+    }
+  ]
+}

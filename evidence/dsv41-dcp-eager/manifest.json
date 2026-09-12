@@ -1,0 +1,118 @@
+{
+  "feature": "1fb799121a8ac5737496900ed8d828558faff6c7",
+  "implementation": "93216d877e8f2af7ed590da7ae75a8202085cc69",
+  "base": "485421b1c3572597a4cfaece04836a843537435a",
+  "model_revision": "dba1be0a40aa45a94ad051997016db3960a90277",
+  "source_path": "/workspace/vllm_dsv41/vllm-dcp",
+  "evidence_level": "GPU components plus actual MRV2 TP4/DCP1/2/4 model smoke, 23K retrieval and 32-question GSM8K subset; no serving-speedup claim",
+  "files": [
+    {
+      "name": "DCP_RESULTS.md",
+      "sha256": "23a4896809d88c81cfac5e46b09b8d1fee1273052551ccc47f25d68b823ad17b"
+    },
+    {
+      "name": "README.md",
+      "sha256": "ac5a84415197b921762d8b2663d4712e34eaf46940b07264190637154e981fe8"
+    },
+    {
+      "name": "accelerator-hook.log",
+      "sha256": "81e441629bce1b38da15d00fb3c822a98d32d915f139c2aa40f5e75997f166eb"
+    },
+    {
+      "name": "cache-utils-final.log",
+      "sha256": "b901f0c53f7b46f035b65d4353a2a6c92bfff70736fe64d24eb1489b3a30678d"
+    },
+    {
+      "name": "cache-utils-pp-final.log",
+      "sha256": "69213ee70035686b0e7506f24bdaade9f8f635c23a29fa5a90437ac3310ccd0f"
+    },
+    {
+      "name": "candidate-distributed.log",
+      "sha256": "2c858a430ae05b89dbd5f52c148ce4a165dd0123b66efb610fa8db428c764efd"
+    },
+    {
+      "name": "commit.log",
+      "sha256": "4a3f9303d9a4ea0d0c0b168748b9cb02bca5270bc4bc5cb0a3c88fc6d7c4957f"
+    },
+    {
+      "name": "compare_eval.py",
+      "sha256": "22703f5fc7df2e6182d3dd78a9cb140458becb1b5f7b946ff10a2c7ad2a12c47"
+    },
+    {
+      "name": "docs-commit.log",
+      "sha256": "ae2e7d44b8a72e88199093d606e941a6bf50d63345e21d6c04dca8e38a9b6946"
+    },
+    {
+      "name": "eval-dcp1.json",
+      "sha256": "9283bfeaf921a960060e47755ca061dac6a0c3cca7c2fde571255f9617f91f06"
+    },
+    {
+      "name": "eval-dcp2.json",
+      "sha256": "efb738f93bd4b59ab36a98eb2a2019e69f95b8a3e12f03c73c518c31004e0cd7"
+    },
+    {
+      "name": "eval-dcp4.json",
+      "sha256": "be3d7cc85972190e0522a40389034c4c27595bf2de52f98c9d1b321823f4f7d1"
+    },
+    {
+      "name": "eval-summary.json",
+      "sha256": "c9dd5b6939dc391968fc89c9c0f45da27e22513ae14fc0fbf27d5d49e015eb4b"
+    },
+    {
+      "name": "eval_gsm8k.py",
+      "sha256": "f18b43b00ba4813d8b70a6f200009334445d012481107bfb50e9f793b6ddee4c"
+    },
+    {
+      "name": "fetch_gsm8k.py",
+      "sha256": "082bafafb32788f33790c1c32329f8cfbc73a449e21e9e1b3e565cdc7b2ddf92"
+    },
+    {
+      "name": "gsm8k-revision.txt",
+      "sha256": "49d4b53ae550a44573fd525533066132c9d811bb7a72d830db35c08d2e271f41"
+    },
+    {
+      "name": "layers-final.log",
+      "sha256": "fdcbf7fee90fefba8c59daac35362a1776555644467877acf3466a203faeb38a"
+    },
+    {
+      "name": "model-dcp1.json",
+      "sha256": "c250f152fc8d066bdf82e84130a17816ec0dedeeecb5461a5b0e843fd82e5e01"
+    },
+    {
+      "name": "model-dcp2.json",
+      "sha256": "dcf4b395eb25300d315b71f79b7abaede42cd4127626efebc41d8795804fe123"
+    },
+    {
+      "name": "model-dcp4.json",
+      "sha256": "f3ee56f5d96dc40287718cb6f8bd352757e0317225a8c65895524b7efbebc970"
+    },
+    {
+      "name": "model_check.py",
+      "sha256": "8430279b0aebc16b8409a00a715f8a5c83dd11bba8be100a0685b7312a8ec66e"
+    },
+    {
+      "name": "native-provenance.json",
+      "sha256": "37dd8df168e6dd4e4be511f680075be1baee0b37eea8b9bcc19337599cb30904"
+    },
+    {
+      "name": "placement-gpu.log",
+      "sha256": "32dae1d1429ed41f0eb9283a3768f154672ae4c71a04cd3255af530a335d4102"
+    },
+    {
+      "name": "record-gpu.log",
+      "sha256": "1940f11c610d4dcccb71f8f424de52e09f293ce6f52987937df06cbd350b8dc8"
+    },
+    {
+      "name": "record-kernels.log",
+      "sha256": "c10f36e99b3efa44e8c25c5d6daf521e04be6de919b57fa953163f246ef3afa3"
+    },
+    {
+      "name": "runtime-provenance.json",
+      "sha256": "b5247a64dcaa1ede95af16b8cd81d9ad4fa88f30e3448c0a1066ed2c644a18c3"
+    },
+    {
+      "name": "scope-commit.log",
+      "sha256": "1af7714cb5373145fb10838ecf218de119a919f258ed828f84e9d4c096f6902d"
+    }
+  ]
+}

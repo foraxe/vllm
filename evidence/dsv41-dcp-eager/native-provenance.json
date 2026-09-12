@@ -1,0 +1,7 @@
+{
+  "wheel_url": "https://wheels.vllm.ai/46d2b23ac5047a813ebb082122166e4ae09b5f39/vllm-0.1.1.dev39%2Bg46d2b23ac-cp38-abi3-manylinux_2_28_aarch64.whl",
+  "wheel_sha256": "3c784ec38f687033d5921ab77f88fb2ee17429aeb1450043807a6556130c1d1b",
+  "wheel_commit": "46d2b23ac5047a813ebb082122166e4ae09b5f39",
+  "source_base": "485421b1c3572597a4cfaece04836a843537435a",
+  "native_source_diff": "cmake/external_projects/tml_fa4.cmake\n"
+}

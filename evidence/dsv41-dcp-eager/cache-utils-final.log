@@ -1,0 +1,72 @@
+...........................................................FF........... [ 67%]
+..................................                                       [100%]
+=================================== FAILURES ===================================
+______ test_get_kv_cache_config_mamba_hybrid_sharing_pp_group_count_bump _______
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0xfff994eaab70>
+
+    def test_get_kv_cache_config_mamba_hybrid_sharing_pp_group_count_bump(monkeypatch):
+        """PP=4's default partition [11,11,12,11] leaves stage 0 with 2 MLA
+        layers but a round-robin slice of 3 under the minimum 4 mamba groups;
+        grouping bumps to 5 groups so every stage's projection keeps sharing
+        on instead of silently falling back on stage 0."""
+        from vllm.config import ParallelConfig
+        from vllm.distributed.utils import get_pp_indices
+    
+        monkeypatch.setattr(ModelConfig, "get_total_num_hidden_layers", lambda self: 45)
+        vllm_config = VllmConfig(
+            model_config=ModelConfig(max_model_len=8192),
+>           parallel_config=ParallelConfig(pipeline_parallel_size=4),
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        )
+E       pydantic_core._pydantic_core.ValidationError: 1 validation error for ParallelConfig
+E         Value error, World size (4) is larger than the number of available GPUs (1) in this node. If this is intentional and you are using:
+E       - ray, set '--distributed-executor-backend ray'.
+E       - multiprocessing, set '--nnodes' appropriately. [type=value_error, input_value=ArgsKwargs((), {'pipeline_parallel_size': 4}), input_type=ArgsKwargs]
+E           For further information visit https://errors.pydantic.dev/2.13/v/value_error
+
+vllm-dcp/tests/v1/core/test_kv_cache_utils.py:2643: ValidationError
+----------------------------- Captured stdout call -----------------------------
+INFO 09-11 23:09:41 [model.py:692] Resolved architecture: Qwen3ForCausalLM
+INFO 09-11 23:09:41 [model.py:2030] Using max model len 8192
+------------------------------ Captured log call -------------------------------
+INFO     vllm.config.model:model.py:692 Resolved architecture: Qwen3ForCausalLM
+INFO     vllm.config.model:model.py:2030 Using max model len 8192
+________ test_get_kv_cache_config_mamba_hybrid_sharing_pp_starved_stage ________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0xfff99486c260>
+
+    def test_get_kv_cache_config_mamba_hybrid_sharing_pp_starved_stage(monkeypatch):
+        """Reject PP stages whose Mamba layers have no MLA slot to share."""
+        from vllm.config import ParallelConfig
+    
+        monkeypatch.setattr(ModelConfig, "get_total_num_hidden_layers", lambda self: 45)
+        monkeypatch.setenv("VLLM_PP_LAYER_PARTITION", "3,42")
+        vllm_config = VllmConfig(
+            model_config=ModelConfig(max_model_len=8192),
+>           parallel_config=ParallelConfig(pipeline_parallel_size=2),
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        )
+E       pydantic_core._pydantic_core.ValidationError: 1 validation error for ParallelConfig
+E         Value error, World size (2) is larger than the number of available GPUs (1) in this node. If this is intentional and you are using:
+E       - ray, set '--distributed-executor-backend ray'.
+E       - multiprocessing, set '--nnodes' appropriately. [type=value_error, input_value=ArgsKwargs((), {'pipeline_parallel_size': 2}), input_type=ArgsKwargs]
+E           For further information visit https://errors.pydantic.dev/2.13/v/value_error
+
+vllm-dcp/tests/v1/core/test_kv_cache_utils.py:2674: ValidationError
+----------------------------- Captured stdout call -----------------------------
+INFO 09-11 23:09:42 [model.py:692] Resolved architecture: Qwen3ForCausalLM
+INFO 09-11 23:09:42 [model.py:2030] Using max model len 8192
+------------------------------ Captured log call -------------------------------
+INFO     vllm.config.model:model.py:692 Resolved architecture: Qwen3ForCausalLM
+INFO     vllm.config.model:model.py:2030 Using max model len 8192
+=============================== warnings summary ===============================
+vllm-dcp/.venv/lib/python3.12/site-packages/torch/jit/_script.py:365: 14 warnings
+  /workspace/vllm_dsv41/vllm-dcp/.venv/lib/python3.12/site-packages/torch/jit/_script.py:365: DeprecationWarning: `torch.jit.script_method` is deprecated. Please switch to `torch.compile` or `torch.export`.
+    warnings.warn(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED vllm-dcp/tests/v1/core/test_kv_cache_utils.py::test_get_kv_cache_config_mamba_hybrid_sharing_pp_group_count_bump
+FAILED vllm-dcp/tests/v1/core/test_kv_cache_utils.py::test_get_kv_cache_config_mamba_hybrid_sharing_pp_starved_stage
+2 failed, 104 passed, 14 warnings in 49.93s
