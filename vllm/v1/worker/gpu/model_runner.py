@@ -31,7 +31,7 @@ import torch.nn as nn
 import vllm.envs as envs
 from vllm.compilation.counter import compilation_counter
 from vllm.compilation.cuda_graph import CUDAGraphStat
-from vllm.config import VllmConfig
+from vllm.config import VllmConfig, set_current_vllm_config
 from vllm.config.compilation import CUDAGraphMode
 from vllm.distributed.parallel_state import (
     get_dcp_group,
@@ -105,6 +105,8 @@ from vllm.v1.worker.gpu.cp_utils import maybe_prepare_dcp_local_seq_lens
 from vllm.v1.worker.gpu.cudagraph_utils import (
     BatchExecutionDescriptor,
     ModelCudaGraphManager,
+    _init_minimal_kv_cache_for_profiling,
+    _teardown_profiling_state,
     has_compiled_submodule,
     make_cudagraph_stats,
 )
@@ -917,6 +919,36 @@ class GPUModelRunner(LoRAModelRunnerMixin):
 
     @torch.inference_mode()
     def profile_run(self) -> None:
+        # Mixed DCP layouts retain sizeable per-group metadata. Initialize it
+        # before measuring activation peaks, then discard the temporary cache.
+        profile_metadata = (
+            self.dcp_size > 1
+            and self.cache_config.kv_cache_memory_bytes is None
+            and any(
+                getattr(spec, "dcp_kv_cache_placement", None)
+                == KVCacheDCPPlacement.REPLICATED
+                for spec in self.get_kv_cache_spec().values()
+            )
+        )
+        try:
+            if profile_metadata:
+                with set_current_vllm_config(self.vllm_config):
+                    _init_minimal_kv_cache_for_profiling(self, min_blocks=1)
+                # Small batches may initialize a different communicator/GEMM
+                # workspace. Keep it resident while measuring the largest batch.
+                _, sample_hidden_states = self._dummy_run(
+                    1, skip_attn=True, is_profile=True
+                )
+                if self.is_last_pp_rank and self.pooling_runner is None:
+                    assert sample_hidden_states is not None
+                    self._dummy_sampler_run(sample_hidden_states)
+                del sample_hidden_states
+            self._profile_run()
+        finally:
+            if profile_metadata:
+                _teardown_profiling_state(self)
+
+    def _profile_run(self) -> None:
         if self.supports_mm_inputs and self.is_first_pp_rank:
             mm_config = self.model_config.multimodal_config
             if mm_config is not None and not mm_config.skip_mm_profiling:

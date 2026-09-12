@@ -132,12 +132,41 @@ class DeepseekV4FlashMLAAttention(DeepseekV4Attention):
             combined_topk = round_up(
                 top_k + self.window_size + self.max_image_tokens, 128
             )
-            current_workspace_manager().get_simultaneous(
+            workspace = current_workspace_manager().get_simultaneous(
                 ((self.PREFILL_CHUNK_SIZE, M, q.shape[-1]), torch.bfloat16),
                 ((self.max_num_batched_tokens, combined_topk), torch.int32),
                 ((self.max_num_batched_tokens,), torch.int32),
             )
             output.zero_()
+            if self.dcp_world_size > 1 and not swa_only:
+                # Profile the real exchange/merge scratch and lazy communicator
+                # allocations before the automatic KV budget is selected.
+                gathered_q = gather_query(q, self.n_local_heads)
+                profile_topk = round_up(top_k + self.window_size, 128)
+                indices = torch.full(
+                    (q.shape[0], 1, profile_topk),
+                    -1,
+                    dtype=torch.int32,
+                    device=q.device,
+                )
+                valid_counts = torch.zeros(
+                    gathered_q.shape[0], dtype=torch.int32, device=q.device
+                )
+                _, max_logits, lse = flash_mla_sparse_fwd(
+                    q=gathered_q,
+                    kv=workspace[0].view(-1, 1, q.shape[-1]),
+                    indices=indices,
+                    sm_scale=self.scale,
+                    attn_sink=None,
+                    out=output,
+                )
+                # Keep native outputs and indices live through the merge, as in
+                # prefill. Empty rows avoid reading the dummy KV workspace.
+                merge_partial_output(
+                    output, lse, valid_counts, self.n_local_heads, self.attn_sink
+                )
+                del max_logits
+                output.zero_()
             return
 
         assert isinstance(attn_metadata, dict)

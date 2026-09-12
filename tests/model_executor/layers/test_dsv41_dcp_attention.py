@@ -124,3 +124,71 @@ def test_merge_normalizes_empty_native_lse_and_applies_sink_once(monkeypatch, ra
     expected = (scores - den[:, None]).exp() @ values
     expected = torch.stack([expected[rank * 2 : rank * 2 + 2], torch.zeros(2, 3)])
     torch.testing.assert_close(result, expected)
+
+
+@pytest.mark.skipif(not torch.accelerator.is_available(), reason="accelerator required")
+def test_dummy_attention_profiles_dcp_temporary_memory(monkeypatch):
+    """Automatic KV sizing must observe the FP32 DCP merge, not a zero-only stub."""
+    from types import SimpleNamespace
+
+    from vllm.models.deepseek_v4_1.nvidia import flashmla
+
+    class Group:
+        world_size = 2
+        rank_in_group = 0
+
+        def all_gather(self, tensor, dim):
+            return torch.cat([tensor, tensor], dim=dim)
+
+        def all_reduce(self, tensor):
+            return tensor.clone()
+
+    monkeypatch.setattr(dcp, "get_dcp_group", lambda: Group())
+    monkeypatch.setattr(
+        flashmla, "get_forward_context", lambda: SimpleNamespace(attn_metadata=None)
+    )
+    monkeypatch.setattr(
+        flashmla,
+        "current_workspace_manager",
+        lambda: SimpleNamespace(
+            get_simultaneous=lambda *args: (
+                torch.empty(1, 1, 512, device="cuda", dtype=torch.bfloat16),
+            )
+        ),
+    )
+
+    def native_stub(q, kv, indices, sm_scale, attn_sink, out):
+        return (
+            out,
+            torch.zeros(q.shape[:2], device=q.device),
+            torch.full(q.shape[:2], torch.inf, device=q.device),
+        )
+
+    monkeypatch.setattr(flashmla, "flash_mla_sparse_fwd", native_stub)
+    q = torch.zeros(128, 64, 512, dtype=torch.bfloat16, device="cuda")
+    output = torch.empty_like(q)
+    layer = SimpleNamespace(
+        compress_ratio=1,
+        max_model_len=32,
+        window_size=128,
+        max_num_batched_tokens=128,
+        topk_indices_buffer=torch.empty(128, 512, dtype=torch.int32, device="cuda"),
+        max_image_tokens=0,
+        PREFILL_CHUNK_SIZE=4,
+        dcp_world_size=2,
+        n_local_heads=2,
+        scale=512**-0.5,
+        attn_sink=torch.zeros(64, device="cuda"),
+    )
+    torch.accelerator.synchronize()
+    torch.accelerator.reset_peak_memory_stats()
+    before = torch.accelerator.memory_stats()["allocated_bytes.all.current"]
+    flashmla.DeepseekV4FlashMLAAttention.forward_mqa(
+        layer, q, q, torch.empty(0, device="cuda"), output
+    )
+    torch.accelerator.synchronize()
+    peak = torch.accelerator.memory_stats()["allocated_bytes.all.peak"]
+    # Two full FP32 buffers are a lower bound on live merge scratch. The old
+    # profiling path allocated neither and left the KV budget too large.
+    assert peak - before >= 2 * output.numel() * 4
+    assert torch.count_nonzero(output) == 0
