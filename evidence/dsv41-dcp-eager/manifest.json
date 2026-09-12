@@ -1,18 +1,18 @@
 {
-  "feature": "1fb799121a8ac5737496900ed8d828558faff6c7",
+  "feature": "936c40f2ee078a20b86acc43cd665c91ed8649c4",
   "implementation": "93216d877e8f2af7ed590da7ae75a8202085cc69",
-  "base": "485421b1c3572597a4cfaece04836a843537435a",
+  "base": "eed1f3d0c6043bd494424a22443ee198dd56f657",
   "model_revision": "dba1be0a40aa45a94ad051997016db3960a90277",
   "source_path": "/workspace/vllm_dsv41/vllm-dcp",
-  "evidence_level": "GPU components plus actual MRV2 TP4/DCP1/2/4 model smoke, 23K retrieval and 32-question GSM8K subset; no serving-speedup claim",
+  "evidence_level": "GPU components and MRV2 TP4/DCP1/2/4 stress, 23K retrieval, pinned32 GSM8K; bounded auto-sizing check; no serving-speedup claim",
   "files": [
     {
       "name": "DCP_RESULTS.md",
-      "sha256": "23a4896809d88c81cfac5e46b09b8d1fee1273052551ccc47f25d68b823ad17b"
+      "sha256": "2ab7d032bd21c9a5c17379984dcd20ddf4a2ab4b62ade05cecd48e6e8f8f0b4a"
     },
     {
       "name": "README.md",
-      "sha256": "ac5a84415197b921762d8b2663d4712e34eaf46940b07264190637154e981fe8"
+      "sha256": "c4f1e4279d08bea4e9a93d4ee4fadc6809a93860d6430c5dbab4c2549dcd90db"
     },
     {
       "name": "accelerator-hook.log",
@@ -107,12 +107,61 @@
       "sha256": "c10f36e99b3efa44e8c25c5d6daf521e04be6de919b57fa953163f246ef3afa3"
     },
     {
+      "name": "runtime-471/check_v4_metadata_local_config.py",
+      "sha256": "db5aebc99c4d5e360dddf1d9f2da215236a24ead008706590ebf22a0e9762d5c"
+    },
+    {
+      "name": "runtime-471/final-dcp1-auto.json",
+      "sha256": "080887967b342d6b17128d73f1ad59070d26e6f0f7df9313faaeaa351e319d13"
+    },
+    {
+      "name": "runtime-471/final-dcp1-auto.log",
+      "sha256": "e594f7dd302ed9c4bb973ec013d80dafb26393973132bb641027694d43cb3cb6"
+    },
+    {
+      "name": "runtime-471/final-dcp2-auto.json",
+      "sha256": "2c11a697c476507a73bfa1d05b6a9ae0579b54f2fd7d7976d646b59e9a0590b5"
+    },
+    {
+      "name": "runtime-471/final-dcp2-auto.log",
+      "sha256": "f730d97c4b4b62de5b2985b8f0bfdee9b16b8069f0f1bee70204a18826d0b643"
+    },
+    {
+      "name": "runtime-471/final-dcp4-auto.json",
+      "sha256": "486d8b0c9811dbe6e7e9e1ee58934e8b70169329b31de513e006b19c16fdeb02"
+    },
+    {
+      "name": "runtime-471/final-dcp4-auto.log",
+      "sha256": "d53b0c29de859c3ea91a68cbc16db99b4190e1569ca07b5162cb16beba2bdaee"
+    },
+    {
+      "name": "runtime-471/final-focused.log",
+      "sha256": "034ab94059c5e6ac76f7bb265bff042939da607cc0946c27dc7aeb643de11860"
+    },
+    {
+      "name": "runtime-471/final-hooks.log",
+      "sha256": "0f66465c7157747da6c4373c8234973cd3666e11adefde969b05b8861e02ac7c"
+    },
+    {
+      "name": "runtime-471/native-provenance.json",
+      "sha256": "4df637d3d9218c8ffaebca54c433f803f792b8511aa76b4848f62f79489d69a3"
+    },
+    {
+      "name": "runtime-471/v4-local-config.log",
+      "sha256": "bd11c608a26795f8daafe55fbcc3b5073cacc2973e220879dfb9dfacee4b70ad"
+    },
+    {
       "name": "runtime-provenance.json",
       "sha256": "b5247a64dcaa1ede95af16b8cd81d9ad4fa88f30e3448c0a1066ed2c644a18c3"
+    },
+    {
+      "name": "runtime_qualification.py",
+      "sha256": "d81f49088336751802d270782ddf16701230c6321839d33153c35f77da242e25"
     },
     {
       "name": "scope-commit.log",
       "sha256": "1af7714cb5373145fb10838ecf218de119a919f258ed828f84e9d4c096f6902d"
     }
-  ]
+  ],
+  "earlier_feature": "1fb799121a8ac5737496900ed8d828558faff6c7"
 }

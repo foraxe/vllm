@@ -1,0 +1,670 @@
+........................................................................ [ 38%]
+........................................................................ [ 76%]
+...........................................F                             [100%]
+=================================== FAILURES ===================================
+___ test_indexer_builder_deepseek_v4_compressed_slot_mapping_uses_num_states ___
+
+response = <Response [401 Unauthorized]>, endpoint_name = None
+
+    def hf_raise_for_status(response: httpx.Response, endpoint_name: str | None = None) -> None:
+        """
+        Internal version of `response.raise_for_status()` that will refine a potential HTTPError.
+        Raised exception will be an instance of [`~errors.HfHubHTTPError`].
+    
+        This helper is meant to be the unique method to raise_for_status when making a call to the Hugging Face Hub.
+    
+        Args:
+            response (`Response`):
+                Response from the server.
+            endpoint_name (`str`, *optional*):
+                Name of the endpoint that has been called. If provided, the error message will be more complete.
+    
+        > [!WARNING]
+        > Raises when the request has failed:
+        >
+        >     - [`~utils.RepositoryNotFoundError`]
+        >         If the repository to download from cannot be found. This may be because it
+        >         doesn't exist, because `repo_type` is not set correctly, or because the repo
+        >         is `private` and you do not have access.
+        >     - [`~utils.GatedRepoError`]
+        >         If the repository exists but is gated and the user is not on the authorized
+        >         list.
+        >     - [`~utils.RevisionNotFoundError`]
+        >         If the repository exists but the revision couldn't be found.
+        >     - [`~utils.EntryNotFoundError`]
+        >         If the repository exists but the entry (e.g. the requested file) couldn't be
+        >         find.
+        >     - [`~utils.BadRequestError`]
+        >         If request failed with a HTTP 400 BadRequest error.
+        >     - [`~utils.HfHubHTTPError`]
+        >         If request failed for a reason not listed above.
+        """
+        try:
+            _warn_on_warning_headers(response)
+        except Exception:
+            # Never raise on warning parsing
+            logger.debug("Failed to parse warning headers", exc_info=True)
+    
+        try:
+>           response.raise_for_status()
+
+.venv/lib/python3.12/site-packages/huggingface_hub/utils/_http.py:795: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <Response [401 Unauthorized]>
+
+    def raise_for_status(self) -> Response:
+        """
+        Raise the `HTTPStatusError` if one occurred.
+        """
+        request = self._request
+        if request is None:
+            raise RuntimeError(
+                "Cannot call `raise_for_status` as the request "
+                "instance has not been set on this response."
+            )
+    
+        if self.is_success:
+            return self
+    
+        if self.has_redirect_location:
+            message = (
+                "{error_type} '{0.status_code} {0.reason_phrase}' for url '{0.url}'\n"
+                "Redirect location: '{0.headers[location]}'\n"
+                "For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/{0.status_code}"
+            )
+        else:
+            message = (
+                "{error_type} '{0.status_code} {0.reason_phrase}' for url '{0.url}'\n"
+                "For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/{0.status_code}"
+            )
+    
+        status_class = self.status_code // 100
+        error_types = {
+            1: "Informational response",
+            3: "Redirect response",
+            4: "Client error",
+            5: "Server error",
+        }
+        error_type = error_types.get(status_class, "Invalid status code")
+        message = message.format(self, error_type=error_type)
+>       raise HTTPStatusError(message, request=request, response=self)
+E       httpx.HTTPStatusError: Client error '401 Unauthorized' for url 'https://huggingface.co/meta-llama/Meta-Llama-3-8B/resolve/main/config.json'
+E       For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/401
+
+.venv/lib/python3.12/site-packages/httpx/_models.py:829: HTTPStatusError
+
+The above exception was the direct cause of the following exception:
+
+path_or_repo_id = 'meta-llama/Meta-Llama-3-8B', filenames = ['config.json']
+cache_dir = '/root/.cache/huggingface/hub', force_download = False
+proxies = None, token = None, revision = None, local_files_only = False
+subfolder = '', repo_type = None
+user_agent = 'transformers/5.14.1; python/3.12.13; session_id/ab9895402b7d419aba593b804a7eb0ee; torch/2.13.0; file_type/config; from_auto_class/False'
+_raise_exceptions_for_gated_repo = True
+_raise_exceptions_for_missing_entries = True
+_raise_exceptions_for_connection_errors = True, _commit_hash = None
+tqdm_class = None, deprecated_kwargs = {}
+
+    def cached_files(
+        path_or_repo_id: str | os.PathLike,
+        filenames: list[str],
+        cache_dir: str | os.PathLike | None = None,
+        force_download: bool = False,
+        proxies: dict[str, str] | None = None,
+        token: bool | str | None = None,
+        revision: str | None = None,
+        local_files_only: bool = False,
+        subfolder: str = "",
+        repo_type: str | None = None,
+        user_agent: str | dict[str, str] | None = None,
+        _raise_exceptions_for_gated_repo: bool = True,
+        _raise_exceptions_for_missing_entries: bool = True,
+        _raise_exceptions_for_connection_errors: bool = True,
+        _commit_hash: str | None = None,
+        tqdm_class: type | None = None,
+        **deprecated_kwargs,
+    ) -> list[str] | None:
+        """
+        Tries to locate several files in a local folder and repo, downloads and cache them if necessary.
+    
+        Args:
+            path_or_repo_id (`str` or `os.PathLike`):
+                This can be either:
+                - a string, the *model id* of a model repo on huggingface.co.
+                - a path to a *directory* potentially containing the file.
+            filenames (`list[str]`):
+                The name of all the files to locate in `path_or_repo`.
+            cache_dir (`str` or `os.PathLike`, *optional*):
+                Path to a directory in which a downloaded pretrained model configuration should be cached if the standard
+                cache should not be used.
+            force_download (`bool`, *optional*, defaults to `False`):
+                Whether or not to force to (re-)download the configuration files and override the cached versions if they
+                exist.
+            proxies (`dict[str, str]`, *optional*):
+                A dictionary of proxy servers to use by protocol or endpoint, e.g., `{'http': 'foo.bar:3128',
+                'http://hostname': 'foo.bar:4012'}.` The proxies are used on each request.
+            token (`str` or *bool*, *optional*):
+                The token to use as HTTP bearer authorization for remote files. If `True`, will use the token generated
+                when running `hf auth login` (stored in `~/.huggingface`).
+            revision (`str`, *optional*, defaults to `"main"`):
+                The specific model version to use. It can be a branch name, a tag name, or a commit id, since we use a
+                git-based system for storing models and other artifacts on huggingface.co, so `revision` can be any
+                identifier allowed by git.
+            local_files_only (`bool`, *optional*, defaults to `False`):
+                If `True`, will only try to load the tokenizer configuration from local files.
+            subfolder (`str`, *optional*, defaults to `""`):
+                In case the relevant files are located inside a subfolder of the model repo on huggingface.co, you can
+                specify the folder name here.
+            repo_type (`str`, *optional*):
+                Specify the repo type (useful when downloading from a space for instance).
+    
+        Private args:
+            _raise_exceptions_for_gated_repo (`bool`):
+                if False, do not raise an exception for gated repo error but return None.
+            _raise_exceptions_for_missing_entries (`bool`):
+                if False, do not raise an exception for missing entries but return None.
+            _raise_exceptions_for_connection_errors (`bool`):
+                if False, do not raise an exception for connection errors but return None.
+            _commit_hash (`str`, *optional*):
+                passed when we are chaining several calls to various files (e.g. when loading a tokenizer or
+                a pipeline). If files are cached for this commit hash, avoid calls to head and get from the cache.
+    
+        <Tip>
+    
+        Passing `token=True` is required when you want to use a private model.
+    
+        </Tip>
+    
+        Returns:
+            `Optional[str]`: Returns the resolved file (to the cache folder if downloaded from a repo).
+    
+        Examples:
+    
+        ```python
+        # Download a model weight from the Hub and cache it.
+        model_weights_file = cached_file("google-bert/bert-base-uncased", "pytorch_model.bin")
+        ```
+        """
+        if is_offline_mode() and not local_files_only:
+            logger.info("Offline mode: forcing local_files_only=True")
+            local_files_only = True
+        if subfolder is None:
+            subfolder = ""
+    
+        # Add folder to filenames
+        full_filenames = [os.path.join(subfolder, file) for file in filenames]
+    
+        path_or_repo_id = str(path_or_repo_id)
+        existing_files = []
+        for filename in full_filenames:
+            if os.path.isdir(path_or_repo_id):
+                resolved_file = os.path.join(path_or_repo_id, filename)
+                if not os.path.isfile(resolved_file):
+                    if _raise_exceptions_for_missing_entries and filename != os.path.join(subfolder, "config.json"):
+                        revision_ = "main" if revision is None else revision
+                        raise OSError(
+                            f"{path_or_repo_id} does not appear to have a file named {filename}. Checkout "
+                            f"'https://huggingface.co/{path_or_repo_id}/tree/{revision_}' for available files."
+                        )
+                    else:
+                        continue
+                existing_files.append(resolved_file)
+    
+        if os.path.isdir(path_or_repo_id):
+            return existing_files if existing_files else None
+    
+        if cache_dir is None:
+            cache_dir = constants.HF_HUB_CACHE
+        if isinstance(cache_dir, Path):
+            cache_dir = str(cache_dir)
+    
+        existing_files = []
+        file_counter = 0
+        if _commit_hash is not None and not force_download:
+            for filename in full_filenames:
+                # If the file is cached under that commit hash, we return it directly.
+                resolved_file = try_to_load_from_cache(
+                    path_or_repo_id, filename, cache_dir=cache_dir, revision=_commit_hash, repo_type=repo_type
+                )
+                if resolved_file is not None:
+                    if resolved_file is not _CACHED_NO_EXIST:
+                        file_counter += 1
+                        existing_files.append(resolved_file)
+                    elif not _raise_exceptions_for_missing_entries:
+                        file_counter += 1
+                    else:
+                        raise OSError(f"Could not locate {filename} inside {path_or_repo_id}.")
+    
+        # Either all the files were found, or some were _CACHED_NO_EXIST but we do not raise for missing entries
+        if file_counter == len(full_filenames):
+            return existing_files if len(existing_files) > 0 else None
+    
+        user_agent = http_user_agent(user_agent)
+        # download the files if needed
+        try:
+            if len(full_filenames) == 1:
+                # This is slightly better for only 1 file
+>               hf_hub_download(
+                    path_or_repo_id,
+                    filenames[0],
+                    subfolder=None if len(subfolder) == 0 else subfolder,
+                    repo_type=repo_type,
+                    revision=revision,
+                    cache_dir=cache_dir,
+                    user_agent=user_agent,
+                    force_download=force_download,
+                    proxies=proxies,
+                    token=token,
+                    local_files_only=local_files_only,
+                    tqdm_class=tqdm_class,
+                )
+
+.venv/lib/python3.12/site-packages/transformers/utils/hub.py:437: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+.venv/lib/python3.12/site-packages/huggingface_hub/utils/_validators.py:88: in _inner_fn
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.12/site-packages/huggingface_hub/file_download.py:1013: in hf_hub_download
+    return _hf_hub_download_to_cache_dir(
+.venv/lib/python3.12/site-packages/huggingface_hub/file_download.py:1165: in _hf_hub_download_to_cache_dir
+    _raise_on_head_call_error(head_call_error, force_download, local_files_only)
+.venv/lib/python3.12/site-packages/huggingface_hub/file_download.py:1869: in _raise_on_head_call_error
+    raise head_call_error
+.venv/lib/python3.12/site-packages/huggingface_hub/file_download.py:1712: in _get_metadata_or_catch_error
+    metadata = get_hf_file_metadata(
+.venv/lib/python3.12/site-packages/huggingface_hub/utils/_validators.py:88: in _inner_fn
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.12/site-packages/huggingface_hub/file_download.py:1620: in get_hf_file_metadata
+    response = _httpx_follow_relative_redirects_with_backoff(
+.venv/lib/python3.12/site-packages/huggingface_hub/utils/_http.py:726: in _httpx_follow_relative_redirects_with_backoff
+    hf_raise_for_status(response)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+response = <Response [401 Unauthorized]>, endpoint_name = None
+
+    def hf_raise_for_status(response: httpx.Response, endpoint_name: str | None = None) -> None:
+        """
+        Internal version of `response.raise_for_status()` that will refine a potential HTTPError.
+        Raised exception will be an instance of [`~errors.HfHubHTTPError`].
+    
+        This helper is meant to be the unique method to raise_for_status when making a call to the Hugging Face Hub.
+    
+        Args:
+            response (`Response`):
+                Response from the server.
+            endpoint_name (`str`, *optional*):
+                Name of the endpoint that has been called. If provided, the error message will be more complete.
+    
+        > [!WARNING]
+        > Raises when the request has failed:
+        >
+        >     - [`~utils.RepositoryNotFoundError`]
+        >         If the repository to download from cannot be found. This may be because it
+        >         doesn't exist, because `repo_type` is not set correctly, or because the repo
+        >         is `private` and you do not have access.
+        >     - [`~utils.GatedRepoError`]
+        >         If the repository exists but is gated and the user is not on the authorized
+        >         list.
+        >     - [`~utils.RevisionNotFoundError`]
+        >         If the repository exists but the revision couldn't be found.
+        >     - [`~utils.EntryNotFoundError`]
+        >         If the repository exists but the entry (e.g. the requested file) couldn't be
+        >         find.
+        >     - [`~utils.BadRequestError`]
+        >         If request failed with a HTTP 400 BadRequest error.
+        >     - [`~utils.HfHubHTTPError`]
+        >         If request failed for a reason not listed above.
+        """
+        try:
+            _warn_on_warning_headers(response)
+        except Exception:
+            # Never raise on warning parsing
+            logger.debug("Failed to parse warning headers", exc_info=True)
+    
+        try:
+            response.raise_for_status()
+        except httpx.HTTPStatusError as e:
+            if response.status_code // 100 == 3:
+                return  # Do not raise on redirects to stay consistent with `requests`
+    
+            error_code = response.headers.get("X-Error-Code")
+            error_message = response.headers.get("X-Error-Message")
+    
+            # Parse repo info from request URL (used to enrich errors below)
+            request_url = (
+                str(response.request.url) if response.request is not None and response.request.url is not None else None
+            )
+            repo_type, repo_id = _parse_repo_info_from_url(request_url) if request_url else (None, None)
+    
+            if error_code == "RevisionNotFound":
+                message = f"{response.status_code} Client Error." + "\n\n" + f"Revision Not Found for url: {response.url}."
+                raise _format(RevisionNotFoundError, message, response, repo_type=repo_type, repo_id=repo_id) from e
+    
+            elif error_code == "EntryNotFound":
+                message = f"{response.status_code} Client Error." + "\n\n" + f"Entry Not Found for url: {response.url}."
+                raise _format(RemoteEntryNotFoundError, message, response, repo_type=repo_type, repo_id=repo_id) from e
+    
+            elif error_code == "GatedRepo":
+                message = (
+                    f"{response.status_code} Client Error." + "\n\n" + f"Cannot access gated repo for url {response.url}."
+                )
+>               raise _format(GatedRepoError, message, response, repo_type=repo_type, repo_id=repo_id) from e
+E               huggingface_hub.errors.GatedRepoError: 401 Client Error. (Request ID: Root=1-6aa4fb42-363e42223b3d1332716f64db;14a1cebb-572b-448c-9b4b-02fc66369da6)
+E               
+E               Cannot access gated repo for url https://huggingface.co/meta-llama/Meta-Llama-3-8B/resolve/main/config.json.
+E               Access to model meta-llama/Meta-Llama-3-8B is restricted. You must have access to it and be authenticated to access it. Please log in.
+
+.venv/lib/python3.12/site-packages/huggingface_hub/utils/_http.py:821: GatedRepoError
+
+The above exception was the direct cause of the following exception:
+
+    @pytest.mark.skipif(not torch.cuda.is_available(), reason="requires CUDA")
+    def test_indexer_builder_deepseek_v4_compressed_slot_mapping_uses_num_states():
+        """Regression test: DeepseekV4 compression path must compute slot_mapping from
+        compressed positions, not reuse the uncompressed common metadata mapping.
+        """
+        device = torch.device("cuda")
+    
+        # num_states = block_size // tokens_per_state = 256 // 4 = 64
+        kv_cache_spec = MLAAttentionSpec(
+            block_size=256,
+            num_kv_heads=1,
+            head_size=128,
+            dtype=torch.bfloat16,
+            tokens_per_state=4,
+        )
+>       vllm_config = create_vllm_config(max_model_len=1024)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/v1/attention/test_indexer_deepseek_v4_slot_mapping.py:216: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/v1/attention/utils.py:197: in create_vllm_config
+    model_config = ModelConfig(
+vllm/config/model.py:628: in __post_init__
+    hf_config = get_config(
+vllm/transformers_utils/config.py:805: in get_config
+    config_dict, config = with_retry(
+vllm/transformers_utils/repo_utils.py:112: in with_retry
+    return func()
+           ^^^^^^
+vllm/transformers_utils/config.py:806: in <lambda>
+    lambda: config_parser.parse(
+vllm/transformers_utils/config.py:277: in parse
+    config_dict, _ = PretrainedConfig.get_config_dict(
+.venv/lib/python3.12/site-packages/transformers/configuration_utils.py:721: in get_config_dict
+    config_dict, kwargs = cls._get_config_dict(pretrained_model_name_or_path, **kwargs)
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.12/site-packages/transformers/configuration_utils.py:776: in _get_config_dict
+    resolved_config_file = cached_file(
+.venv/lib/python3.12/site-packages/transformers/utils/hub.py:293: in cached_file
+    file = cached_files(path_or_repo_id=path_or_repo_id, filenames=[filename], **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+path_or_repo_id = 'meta-llama/Meta-Llama-3-8B', filenames = ['config.json']
+cache_dir = '/root/.cache/huggingface/hub', force_download = False
+proxies = None, token = None, revision = None, local_files_only = False
+subfolder = '', repo_type = None
+user_agent = 'transformers/5.14.1; python/3.12.13; session_id/ab9895402b7d419aba593b804a7eb0ee; torch/2.13.0; file_type/config; from_auto_class/False'
+_raise_exceptions_for_gated_repo = True
+_raise_exceptions_for_missing_entries = True
+_raise_exceptions_for_connection_errors = True, _commit_hash = None
+tqdm_class = None, deprecated_kwargs = {}
+
+    def cached_files(
+        path_or_repo_id: str | os.PathLike,
+        filenames: list[str],
+        cache_dir: str | os.PathLike | None = None,
+        force_download: bool = False,
+        proxies: dict[str, str] | None = None,
+        token: bool | str | None = None,
+        revision: str | None = None,
+        local_files_only: bool = False,
+        subfolder: str = "",
+        repo_type: str | None = None,
+        user_agent: str | dict[str, str] | None = None,
+        _raise_exceptions_for_gated_repo: bool = True,
+        _raise_exceptions_for_missing_entries: bool = True,
+        _raise_exceptions_for_connection_errors: bool = True,
+        _commit_hash: str | None = None,
+        tqdm_class: type | None = None,
+        **deprecated_kwargs,
+    ) -> list[str] | None:
+        """
+        Tries to locate several files in a local folder and repo, downloads and cache them if necessary.
+    
+        Args:
+            path_or_repo_id (`str` or `os.PathLike`):
+                This can be either:
+                - a string, the *model id* of a model repo on huggingface.co.
+                - a path to a *directory* potentially containing the file.
+            filenames (`list[str]`):
+                The name of all the files to locate in `path_or_repo`.
+            cache_dir (`str` or `os.PathLike`, *optional*):
+                Path to a directory in which a downloaded pretrained model configuration should be cached if the standard
+                cache should not be used.
+            force_download (`bool`, *optional*, defaults to `False`):
+                Whether or not to force to (re-)download the configuration files and override the cached versions if they
+                exist.
+            proxies (`dict[str, str]`, *optional*):
+                A dictionary of proxy servers to use by protocol or endpoint, e.g., `{'http': 'foo.bar:3128',
+                'http://hostname': 'foo.bar:4012'}.` The proxies are used on each request.
+            token (`str` or *bool*, *optional*):
+                The token to use as HTTP bearer authorization for remote files. If `True`, will use the token generated
+                when running `hf auth login` (stored in `~/.huggingface`).
+            revision (`str`, *optional*, defaults to `"main"`):
+                The specific model version to use. It can be a branch name, a tag name, or a commit id, since we use a
+                git-based system for storing models and other artifacts on huggingface.co, so `revision` can be any
+                identifier allowed by git.
+            local_files_only (`bool`, *optional*, defaults to `False`):
+                If `True`, will only try to load the tokenizer configuration from local files.
+            subfolder (`str`, *optional*, defaults to `""`):
+                In case the relevant files are located inside a subfolder of the model repo on huggingface.co, you can
+                specify the folder name here.
+            repo_type (`str`, *optional*):
+                Specify the repo type (useful when downloading from a space for instance).
+    
+        Private args:
+            _raise_exceptions_for_gated_repo (`bool`):
+                if False, do not raise an exception for gated repo error but return None.
+            _raise_exceptions_for_missing_entries (`bool`):
+                if False, do not raise an exception for missing entries but return None.
+            _raise_exceptions_for_connection_errors (`bool`):
+                if False, do not raise an exception for connection errors but return None.
+            _commit_hash (`str`, *optional*):
+                passed when we are chaining several calls to various files (e.g. when loading a tokenizer or
+                a pipeline). If files are cached for this commit hash, avoid calls to head and get from the cache.
+    
+        <Tip>
+    
+        Passing `token=True` is required when you want to use a private model.
+    
+        </Tip>
+    
+        Returns:
+            `Optional[str]`: Returns the resolved file (to the cache folder if downloaded from a repo).
+    
+        Examples:
+    
+        ```python
+        # Download a model weight from the Hub and cache it.
+        model_weights_file = cached_file("google-bert/bert-base-uncased", "pytorch_model.bin")
+        ```
+        """
+        if is_offline_mode() and not local_files_only:
+            logger.info("Offline mode: forcing local_files_only=True")
+            local_files_only = True
+        if subfolder is None:
+            subfolder = ""
+    
+        # Add folder to filenames
+        full_filenames = [os.path.join(subfolder, file) for file in filenames]
+    
+        path_or_repo_id = str(path_or_repo_id)
+        existing_files = []
+        for filename in full_filenames:
+            if os.path.isdir(path_or_repo_id):
+                resolved_file = os.path.join(path_or_repo_id, filename)
+                if not os.path.isfile(resolved_file):
+                    if _raise_exceptions_for_missing_entries and filename != os.path.join(subfolder, "config.json"):
+                        revision_ = "main" if revision is None else revision
+                        raise OSError(
+                            f"{path_or_repo_id} does not appear to have a file named {filename}. Checkout "
+                            f"'https://huggingface.co/{path_or_repo_id}/tree/{revision_}' for available files."
+                        )
+                    else:
+                        continue
+                existing_files.append(resolved_file)
+    
+        if os.path.isdir(path_or_repo_id):
+            return existing_files if existing_files else None
+    
+        if cache_dir is None:
+            cache_dir = constants.HF_HUB_CACHE
+        if isinstance(cache_dir, Path):
+            cache_dir = str(cache_dir)
+    
+        existing_files = []
+        file_counter = 0
+        if _commit_hash is not None and not force_download:
+            for filename in full_filenames:
+                # If the file is cached under that commit hash, we return it directly.
+                resolved_file = try_to_load_from_cache(
+                    path_or_repo_id, filename, cache_dir=cache_dir, revision=_commit_hash, repo_type=repo_type
+                )
+                if resolved_file is not None:
+                    if resolved_file is not _CACHED_NO_EXIST:
+                        file_counter += 1
+                        existing_files.append(resolved_file)
+                    elif not _raise_exceptions_for_missing_entries:
+                        file_counter += 1
+                    else:
+                        raise OSError(f"Could not locate {filename} inside {path_or_repo_id}.")
+    
+        # Either all the files were found, or some were _CACHED_NO_EXIST but we do not raise for missing entries
+        if file_counter == len(full_filenames):
+            return existing_files if len(existing_files) > 0 else None
+    
+        user_agent = http_user_agent(user_agent)
+        # download the files if needed
+        try:
+            if len(full_filenames) == 1:
+                # This is slightly better for only 1 file
+                hf_hub_download(
+                    path_or_repo_id,
+                    filenames[0],
+                    subfolder=None if len(subfolder) == 0 else subfolder,
+                    repo_type=repo_type,
+                    revision=revision,
+                    cache_dir=cache_dir,
+                    user_agent=user_agent,
+                    force_download=force_download,
+                    proxies=proxies,
+                    token=token,
+                    local_files_only=local_files_only,
+                    tqdm_class=tqdm_class,
+                )
+            else:
+                snapshot_download(
+                    path_or_repo_id,
+                    allow_patterns=full_filenames,
+                    repo_type=repo_type,
+                    revision=revision,
+                    cache_dir=cache_dir,
+                    user_agent=user_agent,
+                    force_download=force_download,
+                    proxies=proxies,
+                    token=token,
+                    local_files_only=local_files_only,
+                    tqdm_class=tqdm_class,
+                )
+    
+        except Exception as e:
+            # We cannot recover from them
+            if isinstance(e, RepositoryNotFoundError) and not isinstance(e, GatedRepoError):
+                raise OSError(
+                    f"{path_or_repo_id} is not a local folder and is not a valid model identifier "
+                    "listed on 'https://huggingface.co/models'\nIf this is a private repository, make sure to pass a token "
+                    "having permission to this repo either by logging in with `hf auth login` or by passing "
+                    "`token=<your_token>`"
+                ) from e
+            elif isinstance(e, RevisionNotFoundError):
+                raise OSError(
+                    f"{revision} is not a valid git identifier (branch name, tag name or commit id) that exists "
+                    "for this model name. Check the model page at "
+                    f"'https://huggingface.co/{path_or_repo_id}' for available revisions."
+                ) from e
+            elif isinstance(e, PermissionError):
+                raise OSError(
+                    f"PermissionError at {e.filename} when downloading {path_or_repo_id}. "
+                    "Check cache directory permissions. Common causes: 1) another user is downloading the same model (please wait); "
+                    "2) a previous download was canceled and the lock file needs manual removal."
+                ) from e
+            elif isinstance(e, ValueError):
+                raise OSError(f"{e}") from e
+    
+            # Now we try to recover if we can find all files correctly in the cache
+            resolved_files = [
+                _get_cache_file_to_return(path_or_repo_id, filename, cache_dir, revision, repo_type)
+                for filename in full_filenames
+            ]
+            if all(file is not None for file in resolved_files):
+                return resolved_files
+    
+            # Raise based on the flags. Note that we will raise for missing entries at the very end, even when
+            # not entering this Except block, as it may also happen when `snapshot_download` does not raise
+            if isinstance(e, GatedRepoError):
+                if not _raise_exceptions_for_gated_repo:
+                    return None
+>               raise OSError(
+                    "You are trying to access a gated repo.\nMake sure to have access to it at "
+                    f"https://huggingface.co/{path_or_repo_id}.\n{str(e)}"
+E                   OSError: You are trying to access a gated repo.
+E                   Make sure to have access to it at https://huggingface.co/meta-llama/Meta-Llama-3-8B.
+E                   401 Client Error. (Request ID: Root=1-6aa4fb42-363e42223b3d1332716f64db;14a1cebb-572b-448c-9b4b-02fc66369da6)
+E                   
+E                   Cannot access gated repo for url https://huggingface.co/meta-llama/Meta-Llama-3-8B/resolve/main/config.json.
+E                   Access to model meta-llama/Meta-Llama-3-8B is restricted. You must have access to it and be authenticated to access it. Please log in.
+
+.venv/lib/python3.12/site-packages/transformers/utils/hub.py:503: OSError
+----------------------------- Captured stdout call -----------------------------
+ERROR 09-12 02:12:00 [repo_utils.py:119] Error parsing config for meta-llama/Meta-Llama-3-8B: You are trying to access a gated repo.
+ERROR 09-12 02:12:00 [repo_utils.py:119] Make sure to have access to it at https://huggingface.co/meta-llama/Meta-Llama-3-8B.
+ERROR 09-12 02:12:00 [repo_utils.py:119] 401 Client Error. (Request ID: Root=1-6aa4fb40-3b5127c2446906a41bc3d12c;3910f172-06b8-467e-967d-587b67b25acb)
+ERROR 09-12 02:12:00 [repo_utils.py:119] 
+ERROR 09-12 02:12:00 [repo_utils.py:119] Cannot access gated repo for url https://huggingface.co/meta-llama/Meta-Llama-3-8B/resolve/main/config.json.
+ERROR 09-12 02:12:00 [repo_utils.py:119] Access to model meta-llama/Meta-Llama-3-8B is restricted. You must have access to it and be authenticated to access it. Please log in., retrying 1 of 2
+ERROR 09-12 02:12:02 [repo_utils.py:117] Error parsing config for meta-llama/Meta-Llama-3-8B: You are trying to access a gated repo.
+ERROR 09-12 02:12:02 [repo_utils.py:117] Make sure to have access to it at https://huggingface.co/meta-llama/Meta-Llama-3-8B.
+ERROR 09-12 02:12:02 [repo_utils.py:117] 401 Client Error. (Request ID: Root=1-6aa4fb42-363e42223b3d1332716f64db;14a1cebb-572b-448c-9b4b-02fc66369da6)
+ERROR 09-12 02:12:02 [repo_utils.py:117] 
+ERROR 09-12 02:12:02 [repo_utils.py:117] Cannot access gated repo for url https://huggingface.co/meta-llama/Meta-Llama-3-8B/resolve/main/config.json.
+ERROR 09-12 02:12:02 [repo_utils.py:117] Access to model meta-llama/Meta-Llama-3-8B is restricted. You must have access to it and be authenticated to access it. Please log in.
+------------------------------ Captured log call -------------------------------
+ERROR    vllm.transformers_utils.repo_utils:repo_utils.py:119 Error parsing config for meta-llama/Meta-Llama-3-8B: You are trying to access a gated repo.
+Make sure to have access to it at https://huggingface.co/meta-llama/Meta-Llama-3-8B.
+401 Client Error. (Request ID: Root=1-6aa4fb40-3b5127c2446906a41bc3d12c;3910f172-06b8-467e-967d-587b67b25acb)
+
+Cannot access gated repo for url https://huggingface.co/meta-llama/Meta-Llama-3-8B/resolve/main/config.json.
+Access to model meta-llama/Meta-Llama-3-8B is restricted. You must have access to it and be authenticated to access it. Please log in., retrying 1 of 2
+ERROR    vllm.transformers_utils.repo_utils:repo_utils.py:117 Error parsing config for meta-llama/Meta-Llama-3-8B: You are trying to access a gated repo.
+Make sure to have access to it at https://huggingface.co/meta-llama/Meta-Llama-3-8B.
+401 Client Error. (Request ID: Root=1-6aa4fb42-363e42223b3d1332716f64db;14a1cebb-572b-448c-9b4b-02fc66369da6)
+
+Cannot access gated repo for url https://huggingface.co/meta-llama/Meta-Llama-3-8B/resolve/main/config.json.
+Access to model meta-llama/Meta-Llama-3-8B is restricted. You must have access to it and be authenticated to access it. Please log in.
+=============================== warnings summary ===============================
+.venv/lib/python3.12/site-packages/torch/jit/_script.py:365: 14 warnings
+  /workspace/vllm_dsv41/vllm-dcp/.venv/lib/python3.12/site-packages/torch/jit/_script.py:365: DeprecationWarning: `torch.jit.script_method` is deprecated. Please switch to `torch.compile` or `torch.export`.
+    warnings.warn(
+
+../runtime-deps/flashinfer/cute_dsl/availability.py:135
+  /workspace/vllm_dsv41/runtime-deps/flashinfer/cute_dsl/availability.py:135: DeprecationWarning: Arch from arch.py is deprecated. Use Arch from enums.py instead.
+    from cutlass.base_dsl.arch import Arch
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/v1/attention/test_indexer_deepseek_v4_slot_mapping.py::test_indexer_builder_deepseek_v4_compressed_slot_mapping_uses_num_states
+1 failed, 187 passed, 15 warnings in 128.04s (0:02:08)

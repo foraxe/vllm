@@ -1,0 +1,7 @@
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+INFO 09-12 10:14:33 [model.py:692] Resolved architecture: OPTForCausalLM
+INFO 09-12 10:14:33 [model.py:2030] Using max model len 1024
+INFO 09-12 10:14:33 [scheduler.py:288] Chunked prefill is enabled with max_num_batched_tokens=8192.
+INFO 09-12 10:14:34 [kernel.py:370] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['native'], fused_add_rms_norm=['native'])
+INFO 09-12 10:14:34 [indexer.py:716] DSA indexer decode path: use_flattening=False supports_varlen=True (next_n=1, use_fp4_cache=False)
+PASS: existing V4 compressed-slot metadata assertion, OPT config fixture

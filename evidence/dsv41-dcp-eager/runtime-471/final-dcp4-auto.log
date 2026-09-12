@@ -1,0 +1,146 @@
+INFO 09-12 01:58:42 [api_utils.py:286] non-default args: {'tokenizer_mode': 'deepseek_v41', 'max_model_len': 32768, 'tensor_parallel_size': 4, 'decode_context_parallel_size': 4, 'enable_prefix_caching': False, 'gpu_memory_utilization': 0.55, 'max_num_batched_tokens': 8192, 'max_num_seqs': 4, 'disable_log_stats': True, 'enforce_eager': True, 'language_model_only': True, 'attention_config': AttentionConfig(backend=<AttentionBackendEnum.FLASHMLA_SPARSE_DSV41: 'vllm.models.deepseek_v4_1.sparse_mla.DeepseekV4FlashMLABackend'>, minimax_m3_msa_decode_backend='triton', backend_per_kind={}, flash_attn_version=None, flash_attn_max_num_splits_for_cuda_graph=32, tq_max_kv_splits_for_cuda_graph=32, use_trtllm_attention=None, disable_flashinfer_q_quantization=False, mla_prefill_backend=None, use_prefill_query_quantization=False, indexer_kv_dtype='fp8', hisparse_config=None, use_non_causal=False, sparse_mla_force_mqa=False, flex_attn_block_m=None, flex_attn_block_n=None, flex_attn_q_block_size=None, flex_attn_kv_block_size=None), 'kernel_config': KernelConfig(ir_op_priority=IrOpPriorityConfig(rms_norm=[], fused_add_rms_norm=[]), enable_flashinfer_autotune=False, enable_cutedsl_warmup=False, enable_jit_warmup=False, moe_backend='auto', linear_backend='auto'), 'worker_cls': 'runtime_qualification.QualificationWorker', 'model': '/data/models/DeepSeek-V4.1-Flash'}
+INFO 09-12 01:58:42 [config.py:849] Detected quantization_config.scale_fmt=ue8m0; enabling UE8M0 for DeepGEMM.
+INFO 09-12 01:58:42 [model.py:692] Resolved architecture: DeepseekV41ForCausalLM
+INFO 09-12 01:58:42 [model.py:2030] Using max model len 32768
+WARNING 09-12 01:58:42 [model.py:994] Model does not support mm_device_do_normalize, forcing mm_device_do_normalize = False.
+INFO 09-12 01:58:43 [registry.py:146] All limits of multimodal modalities supported by the model are set to 0, running in text-only mode.
+INFO 09-12 01:58:43 [model.py:900] Disabled mm_prefix attention mode because multimodal inputs are configuration-disabled. Attention backends without mm_prefix support may now be selected.
+INFO 09-12 01:58:43 [scheduler.py:288] Chunked prefill is enabled with max_num_batched_tokens=8192.
+WARNING 09-12 01:58:43 [vllm.py:1472] Enforce eager set, disabling torch.compile and CUDAGraphs. This is equivalent to setting -cc.mode=none -cc.cudagraph_mode=none
+INFO 09-12 01:58:43 [vllm.py:755] Auto-enabling VLLM_USE_BREAKABLE_CUDAGRAPH=1. Set VLLM_USE_BREAKABLE_CUDAGRAPH=0 to opt out.
+INFO 09-12 01:58:43 [kernel.py:370] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+INFO 09-12 01:58:43 [vllm.py:1710] Cudagraph is disabled under eager mode
+INFO 09-12 01:58:45 [compilation.py:336] Enabled custom fusions: norm_quant, act_quant, allreduce_rms
+WARNING 09-12 01:58:45 [system_utils.py:157] We must use the `spawn` multiprocessing start method. Overriding VLLM_WORKER_MULTIPROC_METHOD to 'spawn'. See https://docs.vllm.ai/en/latest/usage/troubleshooting.html#python-multiprocessing for more information. Reasons: CUDA is initialized
+(EngineCore pid=452734) INFO 09-12 01:58:52 [core.py:123] Initializing a V1 LLM engine (v0.1.1.dev50+geed1f3d0c) with config: model='/data/models/DeepSeek-V4.1-Flash', speculative_config=None, tokenizer='/data/models/DeepSeek-V4.1-Flash', skip_tokenizer_init=False, tokenizer_mode=deepseek_v41, revision=None, tokenizer_revision=None, trust_remote_code=False, dtype=torch.bfloat16, max_seq_len=32768, download_dir=None, load_format=auto, tensor_parallel_size=4, pipeline_parallel_size=1, data_parallel_size=1, decode_context_parallel_size=4, dcp_comm_backend=ag_rs, disable_custom_all_reduce=False, quantization=deepseek_v4_fp8, quantization_config=None, enforce_eager=True, enable_return_routed_experts=False, kv_cache_dtype=auto, device_config=cuda, structured_outputs_config=StructuredOutputsConfig(backend='auto', disable_any_whitespace=False, disable_additional_properties=False, reasoning_parser='', reasoning_parser_plugin='', enable_in_reasoning=False), observability_config=ObservabilityConfig(show_hidden_metrics_for_version=None, otlp_traces_endpoint=None, collect_detailed_traces=None, per_request_spec_decode_metrics='none', kv_cache_metrics=False, kv_cache_metrics_sample=0.01, cudagraph_metrics=False, enable_layerwise_nvtx_tracing=False, enable_mfu_metrics=False, enable_mm_processor_stats=False, enable_logging_iteration_details=False, jit_monitor_mode='warn', jit_monitor_verbose=False), seed=0, served_model_name=/data/models/DeepSeek-V4.1-Flash, enable_prefix_caching=False, enable_chunked_prefill=True, pooler_config=None, compilation_config={'mode': <CompilationMode.NONE: 0>, 'debug_dump_path': None, 'cache_dir': '', 'compile_cache_save_format': 'binary', 'backend': 'inductor', 'custom_ops': ['+quant_fp8', 'all', '+quant_fp8'], 'ir_enable_torch_wrap': False, 'splitting_ops': [], 'compile_mm_encoder': False, 'cudagraph_mm_encoder': False, 'encoder_cudagraph_token_budgets': [], 'encoder_cudagraph_max_vision_items_per_batch': 0, 'encoder_cudagraph_max_frames_per_batch': None, 'compile_sizes': [], 'compile_ranges_endpoints': [3276, 8192], 'inductor_compile_config': {'enable_auto_functionalized_v2': False, 'combo_kernels': True, 'benchmark_combo_kernel': True}, 'inductor_passes': {}, 'cudagraph_mode': <CUDAGraphMode.NONE: 0>, 'cudagraph_num_of_warmups': 0, 'cudagraph_capture_sizes': [], 'cudagraph_copy_inputs': False, 'cudagraph_specialize_lora': True, 'use_inductor_graph_partition': False, 'pass_config': {'fuse_norm_quant': True, 'fuse_act_quant': True, 'fuse_attn_quant': False, 'enable_sp': False, 'fuse_gemm_comms': False, 'fuse_allreduce_rms': True, 'enable_qk_norm_rope_fusion': False, 'fuse_rope_kvcache_cat_mla': False, 'fuse_act_padding': False, 'fuse_qk_norm_rope_kvcache': False}, 'max_cudagraph_capture_size': 0, 'dynamic_shapes_config': {'type': <DynamicShapesType.BACKED: 'backed'>, 'evaluate_guards': False, 'assume_32_bit_indexing': False}, 'local_cache_dir': None, 'fast_moe_cold_start': False, 'static_all_moe_layers': []}, kernel_config=KernelConfig(ir_op_priority=IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native']), enable_flashinfer_autotune=False, enable_cutedsl_warmup=False, enable_jit_warmup=False, moe_backend='auto', linear_backend='auto')
+(EngineCore pid=452734) INFO 09-12 01:58:52 [multiproc_executor.py:153] DP group leader: node_rank=0, node_rank_within_dp=0, master_addr=127.0.0.1, mq_connect_ip=10.192.3.161 (local), world_size=4, local_world_size=4
+INFO 09-12 01:59:01 [registry.py:146] All limits of multimodal modalities supported by the model are set to 0, running in text-only mode.
+INFO 09-12 01:59:01 [registry.py:146] All limits of multimodal modalities supported by the model are set to 0, running in text-only mode.
+(Worker pid=453262) INFO 09-12 01:59:01 [parallel_state.py:1809] world_size=4 rank=0 local_rank=0 distributed_init_method=file:///tmp/vllm_dist_7e7de1f37be241e4906b8fd2f78ffc28 backend=nccl
+INFO 09-12 01:59:01 [registry.py:146] All limits of multimodal modalities supported by the model are set to 0, running in text-only mode.
+INFO 09-12 01:59:01 [registry.py:146] All limits of multimodal modalities supported by the model are set to 0, running in text-only mode.
+(Worker pid=453264) INFO 09-12 01:59:02 [parallel_state.py:1809] world_size=4 rank=2 local_rank=2 distributed_init_method=file:///tmp/vllm_dist_7e7de1f37be241e4906b8fd2f78ffc28 backend=nccl
+(Worker pid=453263) INFO 09-12 01:59:02 [parallel_state.py:1809] world_size=4 rank=1 local_rank=1 distributed_init_method=file:///tmp/vllm_dist_7e7de1f37be241e4906b8fd2f78ffc28 backend=nccl
+(Worker pid=453265) INFO 09-12 01:59:02 [parallel_state.py:1809] world_size=4 rank=3 local_rank=3 distributed_init_method=file:///tmp/vllm_dist_7e7de1f37be241e4906b8fd2f78ffc28 backend=nccl
+(Worker pid=453262) INFO 09-12 01:59:03 [pynccl.py:120] vLLM is using nccl==2.29.7
+(Worker pid=453262) INFO 09-12 01:59:05 [cuda_communicator.py:318] Using ['FLASHINFER', 'CUSTOM', 'SYMM_MEM', 'PYNCCL'] all-reduce backends (in dispatch order) for group 'tp:0' out of potential backends: ['FLASHINFER_PCIE_IPC', 'FLASHINFER', 'NCCL_SYMM_MEM', 'QUICK_REDUCE', 'AITER_CUSTOM', 'CUSTOM', 'SYMM_MEM', 'PYNCCL'].
+(Worker pid=453262) INFO 09-12 01:59:06 [cuda_communicator.py:318] Using ['PYNCCL'] all-reduce backends (in dispatch order) for group 'dcp:0' out of potential backends: ['FLASHINFER_PCIE_IPC', 'FLASHINFER', 'NCCL_SYMM_MEM', 'QUICK_REDUCE', 'AITER_CUSTOM', 'CUSTOM', 'SYMM_MEM', 'PYNCCL'].
+(Worker pid=453262) INFO 09-12 01:59:07 [cuda_communicator.py:318] Using ['PYNCCL'] all-reduce backends (in dispatch order) for group 'ep:0' out of potential backends: ['FLASHINFER_PCIE_IPC', 'FLASHINFER', 'NCCL_SYMM_MEM', 'QUICK_REDUCE', 'AITER_CUSTOM', 'CUSTOM', 'SYMM_MEM', 'PYNCCL'].
+(Worker pid=453262) INFO 09-12 01:59:07 [parallel_state.py:2175] rank 0 in world size 4 is assigned as DP rank 0, PP rank 0, PCP rank 0, TP rank 0, ETP rank 0, EP rank 0, EPLB rank N/A
+(Worker pid=453262) INFO 09-12 01:59:07 [gpu_worker.py:438] Using V2 Model Runner
+(Worker_TP0_DCP0 pid=453262) INFO 09-12 01:59:08 [model_runner.py:398] Loading model from scratch...
+(Worker_TP0_DCP0 pid=453262) INFO 09-12 01:59:08 [cuda.py:587] Using backend AttentionBackendEnum.FLASH_ATTN for vit attention
+(Worker_TP0_DCP0 pid=453262) INFO 09-12 01:59:08 [mm_encoder_attention.py:372] Using AttentionBackendEnum.FLASH_ATTN for MMEncoderAttention.
+(Worker_TP0_DCP0 pid=453262) INFO 09-12 01:59:09 [quant_config.py:79] DeepSeek V4 expert_dtype resolved to 'fp4'
+(Worker_TP0_DCP0 pid=453262) INFO 09-12 01:59:09 [__init__.py:898] Using FlashInferCutedslMxfp8LinearKernel for MXFP8 GEMM
+(Worker_TP0_DCP0 pid=453262) INFO 09-12 01:59:09 [attention.py:141] Using DeepSeek's fp8_ds_mla KV cache format.
+(Worker_TP0_DCP0 pid=453262) INFO 09-12 01:59:09 [mxfp4.py:713] Using 'FLASHINFER_TRTLLM_MXFP4_MXFP8' Mxfp4 MoE backend.
+(Worker_TP3_DCP3 pid=453265) INFO 09-12 01:59:09 [engram.py:690] Engram table offloaded to pinned host memory: 96002514 rows x 256, 23.60 GiB per rank
+(Worker_TP2_DCP2 pid=453264) INFO 09-12 01:59:09 [engram.py:690] Engram table offloaded to pinned host memory: 96001914 rows x 256, 23.60 GiB per rank
+(Worker_TP1_DCP1 pid=453263) INFO 09-12 01:59:10 [engram.py:690] Engram table offloaded to pinned host memory: 96001176 rows x 256, 23.60 GiB per rank
+(Worker_TP0_DCP0 pid=453262) INFO 09-12 01:59:10 [engram.py:690] Engram table offloaded to pinned host memory: 96000564 rows x 256, 23.60 GiB per rank
+(Worker_TP0_DCP0 pid=453262) INFO 09-12 01:59:10 [attention.py:1098] Using FP8 indexer cache for Lightning Indexer.
+(Worker_TP2_DCP2 pid=453264) INFO 09-12 01:59:10 [engram.py:690] Engram table offloaded to pinned host memory: 96004548 rows x 256, 23.60 GiB per rank
+(Worker_TP3_DCP3 pid=453265) INFO 09-12 01:59:10 [engram.py:690] Engram table offloaded to pinned host memory: 96005118 rows x 256, 23.60 GiB per rank
+(Worker_TP1_DCP1 pid=453263) INFO 09-12 01:59:11 [engram.py:690] Engram table offloaded to pinned host memory: 96003962 rows x 256, 23.60 GiB per rank
+(Worker_TP0_DCP0 pid=453262) INFO 09-12 01:59:11 [engram.py:690] Engram table offloaded to pinned host memory: 96003054 rows x 256, 23.60 GiB per rank
+(Worker_TP2_DCP2 pid=453264) INFO 09-12 01:59:12 [engram.py:432] Built engram token map (129280 -> 99092 ids) for layers (1, 14)
+(Worker_TP3_DCP3 pid=453265) INFO 09-12 01:59:12 [engram.py:432] Built engram token map (129280 -> 99092 ids) for layers (1, 14)
+(Worker_TP1_DCP1 pid=453263) INFO 09-12 01:59:12 [engram.py:432] Built engram token map (129280 -> 99092 ids) for layers (1, 14)
+(Worker_TP0_DCP0 pid=453262) INFO 09-12 01:59:12 [engram.py:432] Built engram token map (129280 -> 99092 ids) for layers (1, 14)
+(Worker_TP0_DCP0 pid=453262) WARNING 09-12 01:59:12 [compilation.py:1361] Op 'quant_fp8' not present in model, enabling with '+quant_fp8' has no effect
+(Worker_TP0_DCP0 pid=453262) INFO 09-12 01:59:13 [weight_utils.py:895] Filesystem type for checkpoints: EXT4. Checkpoint size: 475.25 GiB. Available RAM: 500.96 GiB.
+(Worker_TP0_DCP0 pid=453262) INFO 09-12 01:59:13 [weight_utils.py:925] Auto-prefetch is disabled because the filesystem (EXT4) is not a recognized network FS (NFS/Lustre) and the checkpoint size (475.25 GiB) exceeds 90% of available RAM (500.96 GiB).
+(Worker_TP0_DCP0 pid=453262) Loading safetensors checkpoint shards:   0% Completed | 0/48 [00:00<?, ?it/s]
+(Worker_TP0_DCP0 pid=453262) Loading safetensors checkpoint shards:   8% Completed | 4/48 [00:00<00:01, 26.96it/s]
+(Worker_TP0_DCP0 pid=453262) Loading safetensors checkpoint shards:  15% Completed | 7/48 [00:00<00:02, 19.63it/s]
+(Worker_TP0_DCP0 pid=453262) Loading safetensors checkpoint shards:  21% Completed | 10/48 [00:00<00:02, 18.16it/s]
+(Worker_TP0_DCP0 pid=453262) Loading safetensors checkpoint shards:  25% Completed | 12/48 [00:00<00:02, 17.51it/s]
+(Worker_TP0_DCP0 pid=453262) Loading safetensors checkpoint shards:  29% Completed | 14/48 [00:00<00:01, 17.07it/s]
+(Worker_TP0_DCP0 pid=453262) Loading safetensors checkpoint shards:  33% Completed | 16/48 [00:00<00:01, 16.98it/s]
+(Worker_TP0_DCP0 pid=453262) Loading safetensors checkpoint shards:  38% Completed | 18/48 [00:01<00:01, 16.89it/s]
+(Worker_TP0_DCP0 pid=453262) Loading safetensors checkpoint shards:  42% Completed | 20/48 [00:01<00:01, 16.73it/s]
+(Worker_TP0_DCP0 pid=453262) Loading safetensors checkpoint shards:  46% Completed | 22/48 [00:01<00:03,  6.51it/s]
+(Worker_TP0_DCP0 pid=453262) Loading safetensors checkpoint shards:  50% Completed | 24/48 [00:02<00:03,  7.52it/s]
+(Worker_TP0_DCP0 pid=453262) Loading safetensors checkpoint shards:  54% Completed | 26/48 [00:02<00:02,  8.76it/s]
+(Worker_TP0_DCP0 pid=453262) Loading safetensors checkpoint shards:  58% Completed | 28/48 [00:02<00:01, 10.07it/s]
+(Worker_TP0_DCP0 pid=453262) Loading safetensors checkpoint shards:  62% Completed | 30/48 [00:02<00:01, 11.33it/s]
+(Worker_TP0_DCP0 pid=453262) Loading safetensors checkpoint shards:  67% Completed | 32/48 [00:02<00:01, 12.41it/s]
+(Worker_TP0_DCP0 pid=453262) Loading safetensors checkpoint shards:  71% Completed | 34/48 [00:02<00:01, 13.31it/s]
+(Worker_TP0_DCP0 pid=453262) Loading safetensors checkpoint shards:  75% Completed | 36/48 [00:02<00:00, 13.73it/s]
+(Worker_TP0_DCP0 pid=453262) Loading safetensors checkpoint shards:  79% Completed | 38/48 [00:02<00:00, 14.01it/s]
+(Worker_TP0_DCP0 pid=453262) Loading safetensors checkpoint shards:  83% Completed | 40/48 [00:03<00:00, 13.94it/s]
+(Worker_TP0_DCP0 pid=453262) Loading safetensors checkpoint shards:  88% Completed | 42/48 [00:03<00:00, 13.85it/s]
+(Worker_TP0_DCP0 pid=453262) Loading safetensors checkpoint shards: 100% Completed | 48/48 [00:03<00:00, 14.41it/s]
+(Worker_TP0_DCP0 pid=453262) 
+(Worker_TP3_DCP3 pid=453265) INFO 09-12 01:59:38 [model_runner.py:430] Model loading took 78.56 GiB memory and 30.362105 seconds
+(Worker_TP3_DCP3 pid=453265) INFO 09-12 01:59:38 [interface.py:635] Setting kv cache block size to 128 for FLASHMLA_SPARSE_DSV41 backend.
+(Worker_TP2_DCP2 pid=453264) INFO 09-12 01:59:42 [model_runner.py:430] Model loading took 78.56 GiB memory and 34.607149 seconds
+(Worker_TP2_DCP2 pid=453264) INFO 09-12 01:59:42 [interface.py:635] Setting kv cache block size to 128 for FLASHMLA_SPARSE_DSV41 backend.
+(Worker_TP0_DCP0 pid=453262) INFO 09-12 01:59:44 [default_loader.py:430] Loading weights took 31.46 seconds
+(Worker_TP0_DCP0 pid=453262) INFO 09-12 01:59:44 [__init__.py:898] Using DeepGemmMxfp8BmmLinearKernel for MXFP8 GEMM
+(Worker_TP0_DCP0 pid=453262) INFO 09-12 01:59:44 [deep_gemm.py:218] DeepGEMM PDL enabled on deep_gemm.
+(Worker_TP0_DCP0 pid=453262) INFO 09-12 01:59:44 [deep_gemm.py:136] DeepGEMM E8M0 enabled on current platform.
+(Worker_TP0_DCP0 pid=453262) INFO 09-12 01:59:44 [mxfp4.py:1996] Using MoEPrepareAndFinalizeNoDPEPModular
+(Worker_TP0_DCP0 pid=453262) INFO 09-12 01:59:44 [mxfp4.py:1997] Using TrtLlmMxfp4ExpertsModular
+(Worker_TP0_DCP0 pid=453262) INFO 09-12 01:59:46 [model_runner.py:430] Model loading took 78.56 GiB memory and 37.924964 seconds
+(Worker_TP0_DCP0 pid=453262) INFO 09-12 01:59:46 [topk_topp_sampler.py:62] Using FlashInfer for top-p & top-k sampling.
+(Worker_TP0_DCP0 pid=453262) INFO 09-12 01:59:46 [interface.py:635] Setting kv cache block size to 128 for FLASHMLA_SPARSE_DSV41 backend.
+(Worker_TP1_DCP1 pid=453263) INFO 09-12 01:59:46 [model_runner.py:430] Model loading took 78.56 GiB memory and 38.375712 seconds
+(Worker_TP1_DCP1 pid=453263) INFO 09-12 01:59:46 [interface.py:635] Setting kv cache block size to 128 for FLASHMLA_SPARSE_DSV41 backend.
+(EngineCore pid=452734) INFO 09-12 01:59:46 [torch_utils.py:287] Reducing Torch threads from 36 to 1 for serving. Set OMP_NUM_THREADS in the external environment to override.
+(EngineCore pid=452734) INFO 09-12 01:59:46 [utils.py:306] Using BLHNC KV cache layout.
+(Worker_TP0_DCP0 pid=453262) INFO 09-12 01:59:47 [indexer.py:716] DSA indexer decode path: use_flattening=False supports_varlen=True (next_n=1, use_fp4_cache=False)
+(Worker_TP0_DCP0 pid=453262) WARNING 09-12 01:59:47 [flashinfer_all_reduce.py:107] Failed to initialize FlashInfer All Reduce workspace: CUDA error code=800(b'CUDA_ERROR_NOT_PERMITTED').
+(Worker_TP0_DCP0 pid=453262) WARNING 09-12 01:59:47 [flashinfer_all_reduce.py:208] FlashInfer mnnvl allreduce workspace unavailable (likely no NVSwitch multicast support); falling back to trtllm backend for single node.
+(Worker_TP0_DCP0 pid=453262) WARNING 09-12 01:59:47 [flashinfer_all_reduce.py:107] Failed to initialize FlashInfer All Reduce workspace: CUDA error code=800(b'CUDA_ERROR_NOT_PERMITTED').
+(Worker_TP0_DCP0 pid=453262) ERROR 09-12 01:59:47 [flashinfer_all_reduce.py:221] Failed to initialize FlashInfer Allreduce norm fusion workspace with backend=trtllm
+(Worker_TP0_DCP0 pid=453262) INFO 09-12 01:59:54 [gpu_worker.py:637] Available KV cache memory: 16.31 GiB
+(EngineCore pid=452734) INFO 09-12 01:59:54 [kv_cache_utils.py:2381] GPU KV cache size: 1,167,696 tokens, Maximum concurrency for 32,768 tokens per request: 35.64x
+(Worker_TP0_DCP0 pid=453262) INFO 09-12 01:59:55 [kernel_warmup.py:98] Warming up ll_bf16 router GEMM kernels for shapes: ((5120, 384),).
+(Worker_TP1_DCP1 pid=453263) INFO 09-12 01:59:56 [flashinfer_sparse_mla_warmup.py:267] Warming up DeepSeek V4 sparse MLA attention for mixed tokens=16.
+(Worker_TP0_DCP0 pid=453262) INFO 09-12 01:59:56 [flashinfer_sparse_mla_warmup.py:267] Warming up DeepSeek V4 sparse MLA attention for mixed tokens=16.
+(Worker_TP3_DCP3 pid=453265) INFO 09-12 01:59:56 [flashinfer_sparse_mla_warmup.py:267] Warming up DeepSeek V4 sparse MLA attention for mixed tokens=16.
+(Worker_TP2_DCP2 pid=453264) INFO 09-12 01:59:56 [flashinfer_sparse_mla_warmup.py:267] Warming up DeepSeek V4 sparse MLA attention for mixed tokens=16.
+(Worker_TP0_DCP0 pid=453262) INFO 09-12 01:59:58 [kernel_warmup.py:264] Skipping FlashInfer autotune because it is disabled.
+(Worker_TP1_DCP1 pid=453263) INFO 09-12 01:59:59 [gpu_worker.py:876] Free memory on device (181.18/184.31 GiB) on startup. Desired GPU memory utilization is (0.55, 101.37 GiB). Actual usage is 79.47 GiB for consumed memory (weights + non-torch), 5.59 GiB for peak activation, and 0.0 GiB for CUDAGraph memory. Replace gpu_memory_utilization config with `--kv-cache-memory=17355547649` (16.16 GiB) to fit into requested memory, or `--kv-cache-memory=103053698048` (95.98 GiB) to fully utilize gpu memory. Current kv cache memory in use is 16.31 GiB.
+(Worker_TP0_DCP0 pid=453262) INFO 09-12 01:59:59 [gpu_worker.py:876] Free memory on device (181.18/184.31 GiB) on startup. Desired GPU memory utilization is (0.55, 101.37 GiB). Actual usage is 79.47 GiB for consumed memory (weights + non-torch), 5.59 GiB for peak activation, and 0.0 GiB for CUDAGraph memory. Replace gpu_memory_utilization config with `--kv-cache-memory=17355557889` (16.16 GiB) to fit into requested memory, or `--kv-cache-memory=103053708288` (95.98 GiB) to fully utilize gpu memory. Current kv cache memory in use is 16.31 GiB.
+(Worker_TP3_DCP3 pid=453265) INFO 09-12 01:59:59 [gpu_worker.py:876] Free memory on device (181.18/184.31 GiB) on startup. Desired GPU memory utilization is (0.55, 101.37 GiB). Actual usage is 79.47 GiB for consumed memory (weights + non-torch), 5.59 GiB for peak activation, and 0.0 GiB for CUDAGraph memory. Replace gpu_memory_utilization config with `--kv-cache-memory=17355547649` (16.16 GiB) to fit into requested memory, or `--kv-cache-memory=103053698048` (95.98 GiB) to fully utilize gpu memory. Current kv cache memory in use is 16.31 GiB.
+(Worker_TP2_DCP2 pid=453264) INFO 09-12 01:59:59 [gpu_worker.py:876] Free memory on device (181.18/184.31 GiB) on startup. Desired GPU memory utilization is (0.55, 101.37 GiB). Actual usage is 79.47 GiB for consumed memory (weights + non-torch), 5.59 GiB for peak activation, and 0.0 GiB for CUDAGraph memory. Replace gpu_memory_utilization config with `--kv-cache-memory=17355547649` (16.16 GiB) to fit into requested memory, or `--kv-cache-memory=103053698048` (95.98 GiB) to fully utilize gpu memory. Current kv cache memory in use is 16.31 GiB.
+(Worker_TP1_DCP1 pid=453263) INFO 09-12 01:59:59 [jit_monitor.py:85] Kernel JIT monitor activated; monitored JIT compilations during inference will use mode=warn.
+(Worker_TP3_DCP3 pid=453265) INFO 09-12 01:59:59 [jit_monitor.py:85] Kernel JIT monitor activated; monitored JIT compilations during inference will use mode=warn.
+(Worker_TP0_DCP0 pid=453262) INFO 09-12 01:59:59 [jit_monitor.py:85] Kernel JIT monitor activated; monitored JIT compilations during inference will use mode=warn.
+(Worker_TP2_DCP2 pid=453264) INFO 09-12 01:59:59 [jit_monitor.py:85] Kernel JIT monitor activated; monitored JIT compilations during inference will use mode=warn.
+(Worker_TP0_DCP0 pid=453262) INFO 09-12 02:00:00 [torch_utils.py:287] Reducing Torch threads from 36 to 1 for serving. Set OMP_NUM_THREADS in the external environment to override.
+(EngineCore pid=452734) INFO 09-12 02:00:00 [core.py:379] init engine (profile, create kv cache, warmup model) took 13.24 s
+(EngineCore pid=452734) INFO 09-12 02:00:00 [kv_cache_utils.py:759] kv cache group sizes [32, 32, 32, 32, 512, 8]
+(EngineCore pid=452734) INFO 09-12 02:00:00 [kv_cache_utils.py:760] kv lcm block sizes 512
+(EngineCore pid=452734) INFO 09-12 02:00:00 [registry.py:146] All limits of multimodal modalities supported by the model are set to 0, running in text-only mode.
+(EngineCore pid=452734) WARNING 09-12 02:00:00 [vllm.py:1472] Enforce eager set, disabling torch.compile and CUDAGraphs. This is equivalent to setting -cc.mode=none -cc.cudagraph_mode=none
+(EngineCore pid=452734) INFO 09-12 02:00:00 [kernel.py:370] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+(EngineCore pid=452734) INFO 09-12 02:00:00 [vllm.py:1710] Cudagraph is disabled under eager mode
+(EngineCore pid=452734) INFO 09-12 02:00:01 [compilation.py:336] Enabled custom fusions: norm_quant, act_quant, allreduce_rms
+(Worker_TP0_DCP0 pid=453262) WARNING 09-12 02:00:01 [jit_monitor.py:141] Triton kernel JIT compilation during inference: _engram_lookup_kernel. This causes a latency spike; consider extending warmup to cover this shape/config.
+(Worker_TP0_DCP0 pid=453262) WARNING 09-12 02:00:01 [jit_monitor.py:141] CuTeDSL JIT compilation during inference: wrapper. This causes a latency spike; consider extending warmup to cover this shape/config.
+(Worker_TP0_DCP0 pid=453262) WARNING 09-12 02:00:02 [jit_monitor.py:141] CuTeDSL JIT compilation during inference: MXFP8QuantizeSwizzledKernel. This causes a latency spike; consider extending warmup to cover this shape/config.
+(Worker_TP0_DCP0 pid=453262) WARNING 09-12 02:00:02 [jit_monitor.py:141] Triton kernel JIT compilation during inference: PackDCPTopkCandidatesKernel.kernel. This causes a latency spike; consider extending warmup to cover this shape/config.
+(Worker_TP0_DCP0 pid=453262) WARNING 09-12 02:00:02 [jit_monitor.py:141] CuTeDSL JIT compilation during inference: host_entrypoint. This causes a latency spike; consider extending warmup to cover this shape/config.
+(Worker_TP0_DCP0 pid=453262) WARNING 09-12 02:00:03 [jit_monitor.py:141] Triton kernel JIT compilation during inference: _dcp_block_scores_kernel. This causes a latency spike; consider extending warmup to cover this shape/config.
+(Worker_TP0_DCP0 pid=453262) WARNING 09-12 02:00:03 [jit_monitor.py:141] Triton kernel JIT compilation during inference: _candidate_flags_kernel. This causes a latency spike; consider extending warmup to cover this shape/config.
+(Worker_TP0_DCP0 pid=453262) WARNING 09-12 02:00:03 [jit_monitor.py:141] Triton kernel JIT compilation during inference: _mask_candidates_kernel. This causes a latency spike; consider extending warmup to cover this shape/config.
+(Worker_TP0_DCP0 pid=453262) WARNING 09-12 02:00:03 [jit_monitor.py:141] Triton kernel JIT compilation during inference: BuildPrefillChunkMetadataKernel.kernel. This causes a latency spike; consider extending warmup to cover this shape/config.
+(Worker_TP0_DCP0 pid=453262) WARNING 09-12 02:00:04 [jit_monitor.py:141] Triton kernel JIT compilation during inference: ComputePrefillMetadataKernel.kernel. This causes a latency spike; consider extending warmup to cover this shape/config.
+MEMORY {"sizing_ok": true, "excess_MiB": [-147.771484375, -147.78271484375, -147.78271484375, -147.78271484375]}
+GSM8K {"correct": 32, "truncated": 0}
+INFO 09-12 02:03:47 [utils.py:620] [shutdown] Process manager: send sigterm to process EngineCore
+(EngineCore pid=452734) INFO 09-12 02:03:47 [core.py:1342] [shutdown] EngineCore: trigger received signal=SIGTERM
+(EngineCore pid=452734) INFO 09-12 02:03:47 [core.py:1493] [shutdown] EngineCore: start mode=abort timeout=0s
+(EngineCore pid=452734) INFO 09-12 02:03:47 [core.py:1524] [shutdown] EngineCore: request processing complete; starting resource teardown
+(EngineCore pid=452734) INFO 09-12 02:03:47 [core.py:1355] [shutdown] EngineCore: exiting busy loop
+(Worker_TP0_DCP0 pid=453262) INFO 09-12 02:03:47 [multiproc_executor.py:836] Parent process exited, terminating worker queues
+(EngineCore pid=452734) INFO 09-12 02:03:47 [multiproc_executor.py:472] [shutdown] Executor: waiting for worker exit count=4
+WARNING 09-12 02:03:52 [utils.py:640] [shutdown] Process manager: force killing remaining processes count=1
+WARNING 09-12 02:03:52 [utils.py:645] [shutdown] Process manager: force killing remaining process EngineCore pid 452734
+(EngineCore pid=452734) WARNING 09-12 02:03:52 [multiproc_executor.py:484] [shutdown] Executor: workers still running after grace period; sending SIGTERM count=2
+/root/.local/share/uv/python/cpython-3.12.13-linux-aarch64-gnu/lib/python3.12/multiprocessing/resource_tracker.py:279: UserWarning: resource_tracker: There appear to be 1 leaked shared_memory objects to clean up at shutdown
+  warnings.warn('resource_tracker: There appear to be %d '

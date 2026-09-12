@@ -1,0 +1,7 @@
+{
+  "wheel": "artifacts/dcp/vllm-eed1f3d-aarch64.whl",
+  "wheel_sha256": "a542622166880eeb9a18c85629b4008e217c26c14f319a696b5f9201b93b2e4b",
+  "wheel_commit": "eed1f3d0c6043bd494424a22443ee198dd56f657",
+  "source_head": "936c40f",
+  "native_source_diff": ""
+}

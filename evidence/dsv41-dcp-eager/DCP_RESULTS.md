@@ -2,18 +2,25 @@
 
 ## Result
 
-The initial explicit-communication DCP path runs the real DeepSeek-V4.1-Flash
-model with MRV2 on four GB200 GPUs. TP4/DCP1, TP4/DCP2 and TP4/DCP4 produce identical
-tokens on four mixed-batch fixed-answer prompts. A 23,023-token retrieval prompt
-also returns identical correct tokens in all three configurations and exercises
-candidate pruning beyond the 16K-record candidate budget.
+The initial NVIDIA FlashMLA DCP feature is implemented at 936c40f on upstream
+eed1f3d, using MRV2 eager execution and FP8 indexer caches. The current-runtime
+qualification uses native binaries from that exact upstream base and the source
+pin CuTeDSL 4.7.1. TP4/DCP1,2,4 pass all four fixed-answer stress requests,
+including two 23K-token retrieval requests. The pinned 32-question five-shot
+GSM8K scores are 31/32, 31/32, 32/32; no truncation or newly incorrect answer.
 
-A pinned 32-question, five-shot GSM8K subset scores 31/32 for DCP1 and 32/32 for
-both DCP2 and DCP4, with no truncated responses or newly incorrect answers.
-This is bounded no-regression evidence, not an accuracy-improvement claim.
-Generated explanations differ: only 5/32 complete sequences match the control in
-each DCP configuration. No general bitwise-parity, throughput or measured-capacity
-claim is made.
+Automatic cache sizing initially underprofiled DCP4 by 3.22 GiB/rank at batch 8192.
+The feature now profiles native sparse-attention auxiliaries, query exchange,
+FP32 merging, mixed-layout metadata, and small-batch lazy workspaces before
+selecting the KV budget. DCP2 and DCP4 stay 151 MiB and 148 MiB below the predicted
+budget on the bounded stress workload. The unchanged DCP1 path exceeds its
+budget by 448 MiB; that upstream limitation remains explicit. This is a sizing
+correctness check at concurrency 4, not a throughput or broad capacity claim.
+
+Earlier fixed 512 MiB KV-budget qualification is retained below with its own
+runtime and workload. Those runs produced exact smoke/retrieval tokens across
+DCP1/2/4 and scored 31/32, 32/32, 32/32. Neither evaluation establishes general
+bitwise parity or an accuracy improvement.
 
 ## Implementation and scope
 
@@ -41,7 +48,7 @@ This extends the validated design in designs/dsv41-dcp/DESIGN.md. It does not po
 V4.0's ratio-4/128 compressor or claim the historical V4.0 DCP results from #44573.
 No competing open V4.1 DCP implementation was found in the refreshed PR search.
 
-## Validation
+## Earlier fixed-budget validation
 
 | Check | Result |
 | --- | --- |
@@ -70,7 +77,7 @@ The first DCP2 startup rejected the checkpoint's vision capability even with
 language-model-only mode selected. The guard now checks whether vision execution
 is enabled. The first GSM8K control used max_tokens256 and truncated one response;
 those artifacts are retained separately and excluded from the accepted comparison.
-The accepted runs all use max_tokens1024.
+The accepted runs all use max_tokens 1024.
 
 ## Model workload and numerics
 
@@ -97,7 +104,7 @@ change numerical execution; these results do not establish bitwise equality or
 explain every token divergence. Larger accuracy evaluation remains a merge gate
 for broader qualification.
 
-## Revisions and runtime
+## Earlier revisions and runtime
 
 Code implementation: 93216d877e8f2af7ed590da7ae75a8202085cc69.
 Feature base: 485421b1c3572597a4cfaece04836a843537435a.
@@ -138,5 +145,53 @@ scheduler work and uncontended GPUs. Graphs, PCP, DBO, speculation, prefix cachi
 MXFP4 indexer cache and other attention backends remain separate work. Existing
 peer-memory optimizations are not enabled in this control implementation.
 
-All GPU jobs completed and the lease was released. The new feature diff requires
-its own human line review and relevant test rerun before a draft upstream PR.
+The feature diff requires its own human line review and relevant test rerun
+before a draft upstream PR.
+
+## Current-runtime automatic-sizing qualification (2026-09-12)
+
+Source 936c40f, base eed1f3d0c6043bd494424a22443ee198dd56f657; all core native
+sources and external pins match the wheel. Wheel SHA256:
+a542622166880eeb9a18c85629b4008e217c26c14f319a696b5f9201b93b2e4b.
+The isolated dcp-runtime-deps overlay uses CuTeDSL 4.7.1 and retains
+NumPy 2.3.5/protobuf 6.33.6. Existing runtime-deps remains intact.
+
+Matched settings: TP4, MRV2 eager, maxlen 32768, maxbatch 8192, maxseq 4,
+gpu_memory_utilization 0.55, no fixed KV bytes, APC disabled, FP8 indexer,
+FlashMLA, seed 0. Stress prompts contain 17, 23023, 23024, 17 tokens and return
+323, 654321, 271828, 91 exactly in all arms. Evaluation uses the same pinned
+first 32 test questions/first 5 train examples, greedy, thinking False,
+max_tokens 1024, without logprob collection. Q12 is the sole incorrect answer
+in DCP1/2 (12 instead of 13); DCP4 answers all 32 correctly.
+
+| DCP | GSM8K | Truncated | Runtime peak minus profiled budget, per rank |
+| --- | --- | --- | --- |
+| 1 | 31/32 | 0 | +448.36MiB (unchanged upstream underprofiling) |
+| 2 | 31/32 | 0 | -151.00 to -151.01MiB |
+| 4 | 32/32 | 0 | -147.77 to -147.78MiB |
+
+Runtime peak is estimated from free memory after emptying the allocator cache
+plus Torch peak-minus-current live allocation. KVCacheConfig descriptors alias
+one backing tensor: count that allocation once, not the sum of descriptor sizes.
+The acceptance threshold was the requested budget plus 64 MiB; DCP2/4 are below
+the budget itself. This workload does not qualify higher concurrency or other
+batch sizes. The native collective fallback warnings are retained in raw logs;
+no serving performance is claimed.
+
+```bash
+export CUDA_VISIBLE_DEVICES=0,1,2,3
+export VLLM_USE_V2_MODEL_RUNNER=1
+export VLLM_DEEP_GEMM_WARMUP=skip
+export PYTHONPATH=$PWD/artifacts/dcp:$PWD/dcp-runtime-deps/nvidia_cutlass_dsl/dsl_packages:$PWD/dcp-runtime-deps:$PWD/runtime-deps:$PWD/vllm-dcp
+vllm-dcp/.venv/bin/python artifacts/dcp/runtime_qualification.py --dcp 2 --output artifacts/dcp/runtime-471/final-dcp2-auto.json
+```
+
+Use DCP1/4 for the other arms. Raw JSON/logs and exact native provenance are in
+artifacts/dcp/runtime-471/. The interrupted pre-native-refresh DCP1 run and
+profiling development attempts are retained separately and excluded from the
+matched final comparison. Post-merge attention/runner-profiling checks passed 24
+cases. Final focused suite: 187 passed; one existing V4 metadata case failed on a
+gated Llama config fetch (HTTP401). Its unchanged slot-mapping assertions pass
+with the helper selecting the accessible OPT-125m config. No model weights are
+loaded by that supplemental check. Both logs and the fixture adapter are retained.
+All final feature-file hooks, including mypy, pass.
