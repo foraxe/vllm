@@ -225,6 +225,8 @@ class DeepseekV4Attention(nn.Module, AttentionLayerBase, ABC):
         if vllm_config.parallel_config.decode_context_parallel_size > 1:
             parallel = vllm_config.parallel_config
             unsupported = []
+            if dsa_indexer_uses_fp4(vllm_config):
+                unsupported.append("MXFP4 indexer cache")
             if parallel.decode_context_parallel_size not in (2, 4):
                 unsupported.append("DCP sizes other than two or four")
             if cache_config is not None and cache_config.enable_prefix_caching:

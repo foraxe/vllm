@@ -46,7 +46,7 @@ Decode context parallel is supported in vLLM, for both MLA and GQA models. Some 
 
 DeepSeek V4.1 supports an initial eager DCP path with Model Runner V2 and the NVIDIA FlashMLA backend. DCP shards the shared main KV and index caches by logical record; sliding-window caches and compression state remain replicated. This path uses explicit communication and makes no serving-speedup guarantee.
 
-The supported configuration uses DCP size 2 or 4, interleave size 1, text-only input, and disabled prefix caching. CUDA graphs, PCP, pipeline parallelism, DBO, speculative decoding, and other attention backends are not supported by this path.
+The supported configuration uses DCP size 2 or 4, interleave size 1, FP8 indexer caches, text-only input, and disabled prefix caching. CUDA graphs, PCP, pipeline parallelism, DBO, speculative decoding, and other attention backends are not supported by this path.
 
 For example, the following configuration uses four GPUs and a fixed cache budget per GPU:
 
@@ -57,7 +57,7 @@ VLLM_USE_V2_MODEL_RUNNER=1 vllm serve deepseek-ai/DeepSeek-V4.1-Flash \
     --language-model-only \
     --enforce-eager \
     --no-enable-prefix-caching \
-    --attention-config '{"backend":"FLASHMLA_SPARSE_DSV41"}' \
+    --attention-config '{"backend":"FLASHMLA_SPARSE_DSV41","indexer_kv_dtype":"fp8"}' \
     --cp-kv-cache-interleave-size 1 \
     --max-model-len 32768 \
     --max-num-batched-tokens 1024 \
