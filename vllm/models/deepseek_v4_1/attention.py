@@ -64,6 +64,7 @@ from vllm.v1.attention.backends.mla.indexer import (
 )
 from vllm.v1.attention.backends.mla.sparse_swa import DeepseekV4SWACache
 from vllm.v1.kv_cache_interface import (
+    KVCacheDCPPlacement,
     KVCacheSpec,
     MLAAttentionSpec,
     get_kv_quant_mode,
@@ -220,6 +221,40 @@ class DeepseekV4Attention(nn.Module, AttentionLayerBase, ABC):
         tp_size = get_tensor_model_parallel_world_size()
         layer_id = extract_layer_index(prefix)
         self.layer_id = layer_id
+
+        if vllm_config.parallel_config.decode_context_parallel_size > 1:
+            parallel = vllm_config.parallel_config
+            unsupported = []
+            if parallel.decode_context_parallel_size not in (2, 4):
+                unsupported.append("DCP sizes other than two or four")
+            if cache_config is not None and cache_config.enable_prefix_caching:
+                unsupported.append("prefix caching")
+            if not vllm_config.use_v2_model_runner:
+                unsupported.append("MRV1")
+            if not vllm_config.model_config.enforce_eager:
+                unsupported.append("CUDA graphs")
+            if parallel.prefill_context_parallel_size > 1:
+                unsupported.append("PCP")
+            if parallel.pipeline_parallel_size > 1:
+                unsupported.append("pipeline parallelism")
+            if parallel.enable_dbo:
+                unsupported.append("DBO")
+            if vllm_config.speculative_config is not None:
+                unsupported.append("speculative decoding")
+            if parallel.cp_kv_cache_interleave_size != 1:
+                unsupported.append("record interleave other than one")
+            if self.backend_cls.get_name() != "FLASHMLA_SPARSE_DSV41":
+                unsupported.append("attention backends other than FlashMLA")
+            if (
+                getattr(config, "vision_n_layers", 0) > 0
+                and vllm_config.model_config.multimodal_config is not None
+                and not vllm_config.model_config.multimodal_config.language_model_only
+            ):
+                unsupported.append("vision")
+            if unsupported:
+                raise NotImplementedError(
+                    "DeepSeek V4.1 DCP does not support " + ", ".join(unsupported)
+                )
 
         self.prefix = prefix  # Alias for compatibility with compressor
         self.hidden_size = config.hidden_size
@@ -454,6 +489,7 @@ class DeepseekV4Attention(nn.Module, AttentionLayerBase, ABC):
             cache_config=cache_config,
             backend_cls=self.swa_backend_cls,
             block_size=32,
+            dcp_kv_cache_placement=KVCacheDCPPlacement.REPLICATED,
         )
 
         # The attention layer itself was already registered with the
@@ -944,6 +980,7 @@ class DeepseekV4Attention(nn.Module, AttentionLayerBase, ABC):
             head_size=self.head_dim,
             dtype=torch.uint8 if uses_fp8_ds_mla_layout else self.kv_cache_torch_dtype,
             tokens_per_state=self.compress_ratio,
+            dcp_kv_cache_placement=KVCacheDCPPlacement.SHARDED,
             cache_dtype_str=self.kv_cache_dtype,
             alignment=576 if uses_fp8_ds_mla_layout else 512,
             model_version="deepseek_v4",
@@ -998,6 +1035,7 @@ class DeepseekV4IndexerCache(torch.nn.Module, AttentionLayerBase):
             head_size=self.head_dim,
             dtype=self.dtype,
             tokens_per_state=self.compress_ratio,
+            dcp_kv_cache_placement=KVCacheDCPPlacement.SHARDED,
             # 576B for FlashMLA packing; 512B for FlashInfer sparse (#44577).
             alignment=576 if uses_fp8_ds_mla_layout else 512,
         )

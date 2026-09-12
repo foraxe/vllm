@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, ClassVar, cast
 
 import torch
 
+from vllm.distributed import get_dcp_group
 from vllm.forward_context import get_forward_context
 from vllm.models.deepseek_v4.nvidia.ops.o_proj import (
     compute_fp8_einsum_recipe,
@@ -16,6 +17,12 @@ from vllm.models.deepseek_v4_1.common.ops import (
     compute_global_topk_indices_and_lens,
     dequantize_and_gather_k_cache,
 )
+from vllm.models.deepseek_v4_1.nvidia.dcp import (
+    gather_query,
+    localize_topk,
+    merge_partial_output,
+    prefill_indices,
+)
 from vllm.models.deepseek_v4_1.sparse_mla import (
     DeepseekV4FlashMLABackend,
     DeepseekV4FlashMLAMetadata,
@@ -25,6 +32,7 @@ from vllm.utils.math_utils import round_up
 from vllm.v1.attention.backend import AttentionCGSupport
 from vllm.v1.attention.backends.mla.sparse_swa import DeepseekSparseSWABackend
 from vllm.v1.attention.ops.flashmla import (
+    FlashMLASchedMeta,
     flash_mla_sparse_fwd,
     flash_mla_with_kvcache,
 )
@@ -54,6 +62,8 @@ class DeepseekV4FlashMLAAttention(DeepseekV4Attention):
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
+        self.dcp_world_size = get_dcp_group().world_size
+        self.dcp_rank = get_dcp_group().rank_in_group
         self._einsum_recipe, self._tma_aligned_scales = compute_fp8_einsum_recipe(
             self._o_proj_block_size
         )
@@ -198,8 +208,13 @@ class DeepseekV4FlashMLAAttention(DeepseekV4Attention):
             assert self.topk_indices_buffer is not None
             block_size = attn_metadata.block_size // self.compress_ratio
             is_valid = swa_metadata.is_valid_token[:num_decode_tokens]
+            record_indices = self.topk_indices_buffer[:num_decode_tokens]
+            if self.dcp_world_size > 1:
+                record_indices, _ = localize_topk(
+                    record_indices, self.dcp_rank, self.dcp_world_size
+                )
             global_indices, topk_lens = compute_global_topk_indices_and_lens(
-                self.topk_indices_buffer[:num_decode_tokens],
+                record_indices,
                 swa_metadata.token_to_req_indices,
                 attn_metadata.block_table[:num_decodes],
                 block_size,
@@ -209,6 +224,12 @@ class DeepseekV4FlashMLAAttention(DeepseekV4Attention):
 
         swa_indices = swa_metadata.decode_swa_indices
         swa_lens = swa_metadata.decode_swa_lens
+        use_dcp = self.dcp_world_size > 1 and not swa_only
+        if use_dcp:
+            q = gather_query(q, self.n_local_heads)
+            if self.dcp_rank != 0:
+                swa_indices = torch.full_like(swa_indices, -1)
+                swa_lens = torch.zeros_like(swa_lens)
 
         # We treat queries in the same seq as different queries
         # and later we only attend by generated indices.
@@ -240,7 +261,10 @@ class DeepseekV4FlashMLAAttention(DeepseekV4Attention):
             "allocate one for this layer type."
         )
 
-        out, _ = flash_mla_with_kvcache(
+        if use_dcp:
+            # Owner-local counts can differ between index-source epochs.
+            tile_metadata = FlashMLASchedMeta()
+        out, lse = flash_mla_with_kvcache(
             q=q,
             k_cache=swa_cache,
             block_table=None,
@@ -251,12 +275,23 @@ class DeepseekV4FlashMLAAttention(DeepseekV4Attention):
             indices=swa_indices,
             topk_length=swa_lens,
             softmax_scale=self.scale,
-            attn_sink=self.attn_sink,
+            attn_sink=None if use_dcp else self.attn_sink,
             extra_k_cache=kv_cache if not swa_only else None,
             extra_indices_in_kvcache=topk_indices,
             extra_topk_length=topk_lens,
             out=output.unsqueeze(1),
         )
+        if use_dcp:
+            assert topk_lens is not None
+            merged = merge_partial_output(
+                out.squeeze(1),
+                lse.squeeze(-1),
+                swa_lens + topk_lens,
+                self.n_local_heads,
+                self.attn_sink,
+            )
+            output.zero_()
+            output[:, : self.n_local_heads].copy_(merged)
 
     def _forward_prefill(
         self,
@@ -269,6 +304,9 @@ class DeepseekV4FlashMLAAttention(DeepseekV4Attention):
         swa_metadata: "DeepseekSparseSWAMetadata",
     ) -> None:
         swa_only = self.compress_ratio == 0
+        use_dcp = self.dcp_world_size > 1 and not swa_only
+        if use_dcp:
+            q = gather_query(q, self.n_local_heads)
 
         num_prefill_tokens = swa_metadata.num_prefill_tokens
         num_decodes = swa_metadata.num_decodes
@@ -315,10 +353,15 @@ class DeepseekV4FlashMLAAttention(DeepseekV4Attention):
                 # Gather compressed KV
                 assert attn_metadata is not None
                 block_table = attn_metadata.block_table[num_decodes:]
+                compressed_lens = seq_lens[chunk_start:chunk_end] // self.compress_ratio
+                if use_dcp:
+                    compressed_lens = (
+                        compressed_lens + self.dcp_world_size - 1 - self.dcp_rank
+                    ) // self.dcp_world_size
                 dequantize_and_gather_k_cache(
                     kv[:chunk_size],
                     compressed_k_cache,
-                    seq_lens=seq_lens[chunk_start:chunk_end] // self.compress_ratio,
+                    seq_lens=compressed_lens,
                     gather_lens=None,
                     block_table=block_table[chunk_start:chunk_end],
                     block_size=attn_metadata.block_size // self.compress_ratio,
@@ -347,41 +390,70 @@ class DeepseekV4FlashMLAAttention(DeepseekV4Attention):
             combined_indices_out = combined_indices_out[: query_end - query_start]
             combined_lens_out = combined_lens_out[: query_end - query_start]
 
-            combined_indices, combined_lens = combine_topk_swa_indices(
-                topk_indices[query_start:query_end],
-                query_start_loc[
-                    num_decodes + chunk_start : num_decodes + chunk_end + 1
-                ],
-                seq_lens[chunk_start:chunk_end],
-                gather_lens[chunk_start:chunk_end],
-                self.window_size,
-                self.compress_ratio,
-                top_k,
-                chunk_M,
-                chunk_N,
-                out=(combined_indices_out, combined_lens_out),
-                left_visible=(
-                    swa_metadata.prefill_left_visible[
-                        num_decode_tokens + query_start : num_decode_tokens + query_end
-                    ]
-                    if swa_metadata.prefill_left_visible is not None
-                    else None
-                ),
-                right_visible=(
-                    swa_metadata.prefill_right_visible[
-                        num_decode_tokens + query_start : num_decode_tokens + query_end
-                    ]
-                    if swa_metadata.prefill_right_visible is not None
-                    else None
-                ),
-                max_image_tokens=self.max_image_tokens,
+            token_slice = slice(
+                num_decode_tokens + query_start, num_decode_tokens + query_end
             )
-            flash_mla_sparse_fwd(
+            valid_counts = None
+            if use_dcp:
+                assert attn_metadata is not None
+                request_indices = attn_metadata.req_id_per_token[
+                    num_decode_tokens + query_start : num_decode_tokens + query_end
+                ] - (num_decodes + chunk_start)
+                combined_indices, valid_counts = prefill_indices(
+                    topk_indices[query_start:query_end],
+                    positions[query_start:query_end],
+                    request_indices,
+                    seq_lens[chunk_start:chunk_end],
+                    gather_lens[chunk_start:chunk_end],
+                    rank=self.dcp_rank,
+                    world_size=self.dcp_world_size,
+                    ratio=self.compress_ratio,
+                    window=self.window_size,
+                    request_stride=chunk_M,
+                    swa_offset=chunk_N,
+                )
+                # Ownership filtering leaves holes; scan the complete padded row.
+                combined_lens = None
+            else:
+                combined_indices, combined_lens = combine_topk_swa_indices(
+                    topk_indices[query_start:query_end],
+                    query_start_loc[
+                        num_decodes + chunk_start : num_decodes + chunk_end + 1
+                    ],
+                    seq_lens[chunk_start:chunk_end],
+                    gather_lens[chunk_start:chunk_end],
+                    self.window_size,
+                    self.compress_ratio,
+                    top_k,
+                    chunk_M,
+                    chunk_N,
+                    out=(combined_indices_out, combined_lens_out),
+                    left_visible=(
+                        swa_metadata.prefill_left_visible[token_slice]
+                        if swa_metadata.prefill_left_visible is not None
+                        else None
+                    ),
+                    right_visible=(
+                        swa_metadata.prefill_right_visible[token_slice]
+                        if swa_metadata.prefill_right_visible is not None
+                        else None
+                    ),
+                    max_image_tokens=self.max_image_tokens,
+                )
+            result, _, lse = flash_mla_sparse_fwd(
                 q=q[query_start:query_end],
                 kv=kv.view(-1, 1, q.shape[-1]),
                 indices=combined_indices.unsqueeze(1),
                 sm_scale=self.scale,
-                attn_sink=self.attn_sink,
+                attn_sink=None if use_dcp else self.attn_sink,
                 topk_length=combined_lens,
                 out=output[query_start:query_end],
             )
+            if use_dcp:
+                assert valid_counts is not None
+                merged = merge_partial_output(
+                    result, lse, valid_counts, self.n_local_heads, self.attn_sink
+                )
+                target = output[query_start:query_end]
+                target.zero_()
+                target[:, : self.n_local_heads].copy_(merged)

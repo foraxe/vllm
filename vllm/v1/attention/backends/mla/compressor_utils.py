@@ -38,6 +38,9 @@ class CompressedSlotMappingKernel(
         compress_ratio: int
         triton_block_size: int
         block_size: int
+        dcp_rank: int
+        dcp_world_size: int
+        dcp_interleave: int
 
     @staticmethod
     @triton.jit(do_not_specialize=["block_table_stride"])
@@ -52,6 +55,9 @@ class CompressedSlotMappingKernel(
         block_table_ptr,
         block_table_stride,
         block_size,
+        DCP_RANK: tl.constexpr,
+        DCP_WORLD_SIZE: tl.constexpr,
+        DCP_INTERLEAVE: tl.constexpr,
         COMPRESS_RATIO: tl.constexpr,
         PAD_ID: tl.constexpr,
         TRITON_BLOCK_SIZE: tl.constexpr,
@@ -71,7 +77,12 @@ class CompressedSlotMappingKernel(
 
             pos = start_pos + i + tl.arange(0, TRITON_BLOCK_SIZE)
             is_valid = (pos + 1) % COMPRESS_RATIO == 0
-            pos_after_compress = pos // COMPRESS_RATIO
+            global_record = pos // COMPRESS_RATIO
+            owner = (global_record // DCP_INTERLEAVE) % DCP_WORLD_SIZE
+            group_round = global_record // (DCP_INTERLEAVE * DCP_WORLD_SIZE)
+            group_offset = global_record % DCP_INTERLEAVE
+            pos_after_compress = group_round * DCP_INTERLEAVE + group_offset
+            is_valid &= owner == DCP_RANK
 
             block_ids = pos_after_compress // block_size
             block_numbers = tl.load(
@@ -89,11 +100,17 @@ class CompressedSlotMappingKernel(
         *,
         compress_ratio: int,
         block_size: int,
+        dcp_rank: int = 0,
+        dcp_world_size: int = 1,
+        dcp_interleave: int = 1,
     ) -> CompileKey:
         return self.CompileKey(
             compress_ratio=compress_ratio,
             triton_block_size=self.TRITON_BLOCK_SIZE,
             block_size=triton_scalar_specialization_rep(block_size),
+            dcp_rank=triton_scalar_specialization_rep(dcp_rank),
+            dcp_world_size=triton_scalar_specialization_rep(dcp_world_size),
+            dcp_interleave=triton_scalar_specialization_rep(dcp_interleave),
         )
 
     def get_warmup_keys(self, vllm_config: Any) -> list[CompileKey]:
@@ -107,12 +124,19 @@ class CompressedSlotMappingKernel(
         )
         if not compress_ratios:
             return []
+        parallel_config = getattr(vllm_config, "parallel_config", None)
+        dcp_world_size = getattr(parallel_config, "decode_context_parallel_size", 1)
+        dcp_rank = 0
+        dcp_interleave = getattr(parallel_config, "cp_kv_cache_interleave_size", 1)
         return self._trace_dispatch(self.dispatch)(
             zip_inputs(
                 *(
                     dict(
                         compress_ratio=ratio,
                         block_size=vllm_config.cache_config.block_size // ratio,
+                        dcp_rank=dcp_rank,
+                        dcp_world_size=dcp_world_size,
+                        dcp_interleave=dcp_interleave,
                     )
                     for ratio in compress_ratios
                 )
@@ -128,6 +152,9 @@ class CompressedSlotMappingKernel(
             block_table=int32_ptr,
             block_size=compile_key.block_size,
             compress_ratio=compile_key.compress_ratio,
+            dcp_rank=compile_key.dcp_rank,
+            dcp_world_size=compile_key.dcp_world_size,
+            dcp_interleave=compile_key.dcp_interleave,
         )
 
     @kernel_launcher
@@ -139,9 +166,15 @@ class CompressedSlotMappingKernel(
         block_table: torch.Tensor,
         block_size: int,
         compress_ratio: int,
+        dcp_rank: int = 0,
+        dcp_world_size: int = 1,
+        dcp_interleave: int = 1,
     ) -> LaunchSpec:
         return (block_table.shape[0],), dict(
             block_table_stride=block_table.stride(0),
+            DCP_RANK=dcp_rank,
+            DCP_WORLD_SIZE=dcp_world_size,
+            DCP_INTERLEAVE=dcp_interleave,
             COMPRESS_RATIO=compress_ratio,
             PAD_ID=-1,
             TRITON_BLOCK_SIZE=self.TRITON_BLOCK_SIZE,
@@ -156,6 +189,9 @@ def get_compressed_slot_mapping(
     block_size: int,
     compress_ratio: int,
     out: torch.Tensor | None = None,
+    dcp_rank: int = 0,
+    dcp_world_size: int = 1,
+    dcp_interleave: int = 1,
 ) -> torch.Tensor:
     if out is not None:
         # Guard: for padded / invalid sequences.
@@ -176,8 +212,29 @@ def get_compressed_slot_mapping(
         block_table,
         block_size,
         compress_ratio,
+        dcp_rank,
+        dcp_world_size,
+        dcp_interleave,
     )
     return slot_mapping
+
+
+def get_compressed_record_owner_and_local(
+    position: int,
+    compress_ratio: int,
+    dcp_world_size: int,
+    dcp_interleave: int = 1,
+) -> tuple[int, int] | None:
+    """Return the owner and owner-local record for an emitted raw position."""
+    if (position + 1) % compress_ratio != 0:
+        return None
+    record = position // compress_ratio
+    owner = (record // dcp_interleave) % dcp_world_size
+    local = (
+        record // (dcp_interleave * dcp_world_size) * dcp_interleave
+        + record % dcp_interleave
+    )
+    return owner, local
 
 
 _COMPRESSED_SLOT_MAPPING_KERNEL = CompressedSlotMappingKernel()

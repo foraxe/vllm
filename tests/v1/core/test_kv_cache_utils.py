@@ -58,6 +58,7 @@ from vllm.v1.kv_cache_interface import (
     HiddenStateCacheSpec,
     KpoolTailSpec,
     KVCacheConfig,
+    KVCacheDCPPlacement,
     KVCacheGroupSpec,
     KVCacheSpec,
     KVCacheSpecKind,
@@ -1341,6 +1342,47 @@ def test_dcp_world_size_for_kv_cache_spec_shards_full_attention_only():
     assert kv_cache_utils.dcp_world_size_for_kv_cache_spec(uniform_mla, dcp) == dcp
     assert kv_cache_utils.dcp_world_size_for_kv_cache_spec(mamba, dcp) == 1
     assert kv_cache_utils.dcp_world_size_for_kv_cache_spec(full, 1) == 1
+
+
+def test_explicit_dcp_cache_placement_controls_accounting_and_grouping():
+    dcp = 4
+    vllm_config = SimpleNamespace(
+        model_config=SimpleNamespace(max_model_len=1024),
+        parallel_config=SimpleNamespace(decode_context_parallel_size=dcp),
+        max_in_flight_tokens=256,
+    )
+    common = dict(block_size=16, num_kv_heads=1, head_size=8, dtype=torch.float32)
+    sharded = MLAAttentionSpec(
+        **common, dcp_kv_cache_placement=KVCacheDCPPlacement.SHARDED
+    )
+    replicated = MLAAttentionSpec(
+        **common, dcp_kv_cache_placement=KVCacheDCPPlacement.REPLICATED
+    )
+
+    assert sharded.max_num_blocks_per_req(vllm_config, 1024) == 16
+    assert replicated.max_num_blocks_per_req(vllm_config, 1024) == 64
+    assert sharded.max_memory_usage_bytes(vllm_config) * dcp == (
+        replicated.max_memory_usage_bytes(vllm_config)
+    )
+    assert kv_cache_utils.dcp_world_size_for_kv_cache_spec(sharded, dcp) == dcp
+    assert kv_cache_utils.dcp_world_size_for_kv_cache_spec(replicated, dcp) == 1
+    assert not UniformTypeKVCacheSpecs.is_uniform_type(
+        {"sharded": sharded, "replicated": replicated}
+    )
+
+    replicated_swa = SlidingWindowMLASpec(
+        **common,
+        sliding_window=128,
+        dcp_kv_cache_placement=KVCacheDCPPlacement.REPLICATED,
+    )
+    expected_blocks = replicated_swa.max_admission_blocks_per_request(
+        vllm_config.max_in_flight_tokens,
+        vllm_config.model_config.max_model_len,
+    )
+    assert replicated_swa.max_num_blocks_per_req(vllm_config, 1024) == 64
+    assert replicated_swa.max_memory_usage_bytes(vllm_config) == (
+        expected_blocks * replicated_swa.page_size_bytes
+    )
 
 
 @pytest.mark.parametrize(

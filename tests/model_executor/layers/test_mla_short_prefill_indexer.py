@@ -315,6 +315,91 @@ def test_select_candidate_blocks_tolerates_empty_rows():
     assert (out[0] >= 0).all() and (out[2, :2] >= 0).all()
 
 
+def test_merge_dcp_block_scores_propagates_nan_and_pins_newest():
+    """Global block selection merges owner maxima without duplicating blocks."""
+    from vllm.model_executor.kernels.attention.dsa.candidate_blocks import (
+        merge_dcp_block_score_shards,
+    )
+
+    shard_scores = torch.tensor(
+        [
+            [[1.0, 8.0, 2.0], [4.0, 3.0, -torch.inf]],
+            [[7.0, 5.0, 6.0], [2.0, 9.0, -torch.inf]],
+        ]
+    )
+    nan_flags = torch.zeros_like(shard_scores, dtype=torch.uint8)
+    nan_flags[1, 0, 2] = 1
+    scores, ids = merge_dcp_block_score_shards(
+        shard_scores,
+        nan_flags,
+        torch.tensor([16, 9]),
+        block_start=0,
+        topk_blocks=2,
+        block_size=8,
+    )
+
+    assert set(ids[0].tolist()) == {1, 2}
+    assert torch.isnan(scores[0, ids[0] == 2]).all()
+    assert set(ids[1].tolist()) == {0, 1}
+    assert torch.isposinf(scores[1, ids[1] == 1]).all()
+
+
+def test_merge_dcp_block_scores_keeps_topk_across_bounded_chunks():
+    """Chunking preserves global IDs and drops unavailable padded blocks."""
+    from vllm.model_executor.kernels.attention.dsa.candidate_blocks import (
+        merge_dcp_block_score_shards,
+    )
+
+    first_scores, first_ids = merge_dcp_block_score_shards(
+        torch.tensor([[[1.0, 4.0]], [[3.0, 2.0]]]),
+        torch.zeros(2, 1, 2, dtype=torch.uint8),
+        torch.tensor([25]),
+        block_start=0,
+        topk_blocks=2,
+        block_size=8,
+    )
+    scores, ids = merge_dcp_block_score_shards(
+        torch.tensor([[[9.0, -torch.inf]], [[8.0, -torch.inf]]]),
+        torch.zeros(2, 1, 2, dtype=torch.uint8),
+        torch.tensor([25]),
+        block_start=2,
+        topk_blocks=2,
+        block_size=8,
+        prior_scores=first_scores,
+        prior_ids=first_ids,
+    )
+
+    assert set(ids[0].tolist()) == {2, 3}
+    assert torch.isposinf(scores[0, ids[0] == 3]).all()
+
+
+def test_merge_dcp_block_scores_uses_lower_global_id_for_cross_chunk_ties():
+    from vllm.model_executor.kernels.attention.dsa.candidate_blocks import (
+        merge_dcp_block_score_shards,
+    )
+
+    first_scores, first_ids = merge_dcp_block_score_shards(
+        torch.tensor([[[7.0, 7.0]]]),
+        torch.zeros(1, 1, 2, dtype=torch.uint8),
+        torch.tensor([80]),
+        block_start=2,
+        topk_blocks=2,
+        block_size=8,
+    )
+    _, ids = merge_dcp_block_score_shards(
+        torch.tensor([[[7.0, 7.0]]]),
+        torch.zeros(1, 1, 2, dtype=torch.uint8),
+        torch.tensor([80]),
+        block_start=6,
+        topk_blocks=2,
+        block_size=8,
+        prior_scores=first_scores,
+        prior_ids=first_ids,
+    )
+
+    assert ids.tolist() == [[2, 3]]
+
+
 @pytest.mark.skipif(not torch.cuda.is_available(), reason="CUDA required")
 @pytest.mark.parametrize(
     "width,block_size,k,decode",
@@ -400,3 +485,35 @@ def test_candidate_kernels_preserve_packed_bounds_and_padding(
         keep = valid & (block >= 0) & ((cols - ks[:, None]) // block_size == block)
         reference = torch.where(keep, 3.0, -torch.inf)
         torch.testing.assert_close(logits, reference, rtol=0, atol=0)
+
+
+@pytest.mark.skipif(not torch.cuda.is_available(), reason="CUDA required")
+@pytest.mark.parametrize("world", [2, 4])
+def test_dcp_candidate_mask_maps_local_records_to_global_blocks(world):
+    """G=1 DCP masking consumes shared global block IDs on every owner."""
+    from vllm.model_executor.kernels.attention.dsa.candidate_blocks import (
+        apply_candidate_mask,
+    )
+
+    block_size = 8
+    global_len = 41
+    candidate_ids = torch.tensor([[1, 4]], dtype=torch.int32, device="cuda")
+    for rank in range(world):
+        local_len = (global_len + world - 1 - rank) // world
+        logits = torch.arange(local_len, dtype=torch.float32, device="cuda")[None]
+        original = logits.clone()
+        ends = torch.tensor([local_len], dtype=torch.int32, device="cuda")
+        apply_candidate_mask(
+            logits,
+            None,
+            ends,
+            candidate_ids,
+            block_size,
+            dcp_rank=rank,
+            dcp_world_size=world,
+            global_max_len=global_len,
+        )
+        global_records = torch.arange(local_len, device="cuda") * world + rank
+        keep = (global_records // block_size == 1) | (global_records // block_size == 4)
+        expected = original.masked_fill(~keep[None], -torch.inf)
+        torch.testing.assert_close(logits, expected, rtol=0, atol=0)

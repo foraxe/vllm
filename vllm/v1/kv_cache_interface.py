@@ -147,6 +147,13 @@ class KVCacheSpecKind(str, Enum):
     UNKNOWN = "unknown"
 
 
+class KVCacheDCPPlacement(str, Enum):
+    """How a cache group's states are placed across DCP ranks."""
+
+    SHARDED = "sharded"
+    REPLICATED = "replicated"
+
+
 @dataclass(frozen=True)
 class KVCacheSpec:
     """
@@ -401,6 +408,8 @@ class AttentionSpec(KVCacheSpec):
     """Tokens covered by one stored state. Ints > 1 compress multiple tokens
     into one state (DSv4 sparse MLA); fractions < 1 store multiple states per
     token (Whisper block pooling: ``Fraction(1, block_pool_size)``)."""
+    dcp_kv_cache_placement: KVCacheDCPPlacement | None = None
+    """Explicit per-group DCP placement. None preserves legacy inference."""
 
     def __post_init__(self):
         if self.head_size_v is None:
@@ -437,9 +446,20 @@ class AttentionSpec(KVCacheSpec):
         """
         return self.unpadded_page_size_bytes
 
+    @property
+    def is_dcp_kv_cache_sharded(self) -> bool:
+        placement = self.dcp_kv_cache_placement
+        if placement is not None:
+            return placement == KVCacheDCPPlacement.SHARDED
+        return isinstance(self, FullAttentionSpec)
+
     def max_num_blocks_per_req(self, vllm_config: VllmConfig, max_len: int) -> int:
         parallel_config = vllm_config.parallel_config
-        kv_shard_count = parallel_config.decode_context_parallel_size
+        kv_shard_count = (
+            parallel_config.decode_context_parallel_size
+            if self.is_dcp_kv_cache_sharded
+            else 1
+        )
         return cdiv(max_len, self.block_size * kv_shard_count)
 
 
@@ -472,7 +492,7 @@ class FullAttentionSpec(AttentionSpec):
     def max_memory_usage_bytes(self, vllm_config: VllmConfig) -> int:
         max_model_len = vllm_config.model_config.max_model_len
         dcp_world_size = vllm_config.parallel_config.decode_context_parallel_size
-        if dcp_world_size > 1:
+        if dcp_world_size > 1 and self.is_dcp_kv_cache_sharded:
             max_model_len = cdiv(max_model_len, dcp_world_size)
         return cdiv(max_model_len, self.block_size) * self.page_size_bytes
 
@@ -520,6 +540,7 @@ class FullAttentionSpec(AttentionSpec):
             num_head_slots=specs[0].num_head_slots,
             state_content_bytes=specs[0].state_content_bytes,
             tokens_per_state=specs[0].tokens_per_state,
+            dcp_kv_cache_placement=specs[0].dcp_kv_cache_placement,
             sliding_window=cls.merge_window_sizes(sliding_window),
             attention_chunk_size=cls.merge_window_sizes(attention_chunk_size),
             # If any layer in the group is non-causal, treat the group as
@@ -599,6 +620,7 @@ class MLAAttentionSpec(FullAttentionSpec):
             state_content_bytes=specs[0].state_content_bytes,
             cache_dtype_str=cache_dtype_str_set.pop(),
             tokens_per_state=tokens_per_state_set.pop(),
+            dcp_kv_cache_placement=specs[0].dcp_kv_cache_placement,
             model_version=model_version_set.pop(),
             storage_block_size=storage_block_size_set.pop(),
             non_causal_multi_token_decode=any(
@@ -656,6 +678,7 @@ class RSWASpec(FullAttentionSpec):
             num_head_slots=base.num_head_slots,
             state_content_bytes=base.state_content_bytes,
             tokens_per_state=base.tokens_per_state,
+            dcp_kv_cache_placement=base.dcp_kv_cache_placement,
             sliding_window=base.sliding_window,
             attention_chunk_size=base.attention_chunk_size,
             non_causal=base.non_causal,
@@ -742,9 +765,10 @@ class SlidingWindowSpec(AttentionSpec):
         return cdiv(num_tokens, self.block_size) + 1
 
     def max_memory_usage_bytes(self, vllm_config: VllmConfig) -> int:
-        assert vllm_config.parallel_config.decode_context_parallel_size == 1, (
-            "DCP not support sliding window."
-        )
+        dcp_world_size = vllm_config.parallel_config.decode_context_parallel_size
+        assert dcp_world_size == 1 or (
+            self.dcp_kv_cache_placement == KVCacheDCPPlacement.REPLICATED
+        ), "DCP sliding-window cache requires explicit replicated placement."
         max_blocks = self.max_admission_blocks_per_request(
             max_in_flight_tokens=vllm_config.max_in_flight_tokens,
             max_model_len=vllm_config.model_config.max_model_len,
@@ -846,6 +870,7 @@ class SlidingWindowMLASpec(SlidingWindowSpec):
             extra_retained_tokens=extra_retained_set.pop(),
             cache_dtype_str=cache_dtype_str_set.pop(),
             tokens_per_state=tokens_per_state_set.pop(),
+            dcp_kv_cache_placement=specs[0].dcp_kv_cache_placement,
             model_version=model_version_set.pop(),
         )
 
@@ -1050,6 +1075,8 @@ class SinkFullAttentionSpec(FullAttentionSpec):
             page_size_padded=specs[0].page_size_padded,
             num_head_slots=specs[0].num_head_slots,
             state_content_bytes=specs[0].state_content_bytes,
+            tokens_per_state=specs[0].tokens_per_state,
+            dcp_kv_cache_placement=specs[0].dcp_kv_cache_placement,
             sliding_window=cls.merge_window_sizes(sliding_window),
             attention_chunk_size=cls.merge_window_sizes(attention_chunk_size),
             non_causal=any(spec.non_causal for spec in specs),
@@ -1127,6 +1154,12 @@ class UniformTypeKVCacheSpecs(KVCacheSpec):
             # Different block sizes, not uniform.
             return False
         first_spec = next(iter(kv_cache_specs.values()))
+        if isinstance(first_spec, AttentionSpec) and any(
+            not isinstance(spec, AttentionSpec)
+            or spec.is_dcp_kv_cache_sharded != first_spec.is_dcp_kv_cache_sharded
+            for spec in kv_cache_specs.values()
+        ):
+            return False
         return first_spec.is_uniform_with_collection(kv_cache_specs)
 
     @classmethod

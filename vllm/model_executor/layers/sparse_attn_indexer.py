@@ -19,6 +19,9 @@ from vllm.model_executor.kernels.attention.dsa.candidate_blocks import (
 from vllm.model_executor.kernels.attention.dsa.candidate_blocks import (
     select_candidate_blocks as _select_candidate_blocks,
 )
+from vllm.model_executor.kernels.attention.dsa.candidate_blocks import (
+    select_dcp_candidate_blocks as _select_dcp_candidate_blocks,
+)
 from vllm.model_executor.layers.quantization.utils.quant_utils import (
     get_fp8_min_max,
 )
@@ -333,12 +336,17 @@ def sparse_attn_indexer(
     k_cache_prefix = _resolve_layer_name(k_cache_prefix)
 
     if candidate_blocks is not None:
-        # Candidate blocks are request-local; the DCP-sharded logits layout
-        # would need per-rank translation that is not implemented.
-        assert dcp_world_size == 1, (
-            "v4.1 two-level candidate filtering is not supported with DCP."
-        )
         assert candidate_block_size > 0
+        if dcp_world_size > 1 and (
+            not current_platform.is_cuda()
+            or dcp_world_size not in (2, 4)
+            or cp_kv_cache_interleave_size != 1
+            or use_pcp
+        ):
+            raise RuntimeError(
+                "V4.1 DCP candidate filtering requires NVIDIA CUDA, DCP2/4, "
+                "record interleave 1, and PCP1."
+            )
 
     # assert isinstance(attn_metadata, dict)
     if not isinstance(attn_metadata, dict):
@@ -526,8 +534,7 @@ def sparse_attn_indexer(
                         cu_seqlen_ke,
                         clean_logits=False,
                     )
-                num_rows = logits.shape[0]
-                if candidate_blocks is not None:
+                if candidate_blocks is not None and dcp_world_size == 1:
                     # Two-level selection (v4.1): the candidate source
                     # publishes its top blocks; later indexers mask their
                     # scores to them. Both before the row top-k.
@@ -551,6 +558,38 @@ def sparse_attn_indexer(
                             chunk_candidates,
                             candidate_block_size,
                         )
+
+            num_rows = logits.shape[0]
+            if candidate_blocks is not None and dcp_world_size > 1:
+                chunk_candidates = candidate_blocks[chunk.token_start : chunk.token_end]
+                local_lens = (cu_seqlen_ke - cu_seqlen_ks).reshape(-1, 1)
+                global_lens = get_dcp_group().all_gather(local_lens, dim=1).sum(dim=1)
+                if candidate_write:
+                    _select_dcp_candidate_blocks(
+                        logits,
+                        cu_seqlen_ks,
+                        cu_seqlen_ke,
+                        global_lens,
+                        chunk_candidates.shape[1],
+                        candidate_block_size,
+                        chunk_candidates,
+                        dcp_rank,
+                        dcp_world_size,
+                        get_dcp_group().all_gather,
+                    )
+                else:
+                    _apply_candidate_mask(
+                        logits,
+                        cu_seqlen_ks,
+                        cu_seqlen_ke,
+                        chunk_candidates,
+                        candidate_block_size,
+                        dcp_rank=dcp_rank,
+                        dcp_world_size=dcp_world_size,
+                        global_max_len=int(global_lens.max().item()),
+                    )
+
+            if chunk.local_total_seq_lens > 0:
                 ops.top_k_per_row_prefill(
                     logits,
                     cu_seqlen_ks,
@@ -667,16 +706,49 @@ def sparse_attn_indexer(
             vis = vis[:num_rows]
             decode_candidates = candidate_blocks[:num_rows]
             if candidate_write:
-                _select_candidate_blocks(
-                    logits,
-                    None,
-                    vis,
-                    decode_candidates.shape[1],
-                    candidate_block_size,
-                    decode_candidates,
-                    row_repeat,
-                )
+                if dcp_world_size > 1:
+                    if next_n != 1 or decode_metadata.requires_padding:
+                        raise RuntimeError(
+                            "V4.1 DCP candidate filtering does not support "
+                            "speculative or padded decode."
+                        )
+                    assert decode_metadata.global_seq_lens is not None
+                    global_lens = decode_metadata.global_seq_lens[:num_rows].reshape(-1)
+                    _select_dcp_candidate_blocks(
+                        logits,
+                        None,
+                        vis,
+                        global_lens,
+                        decode_candidates.shape[1],
+                        candidate_block_size,
+                        decode_candidates,
+                        dcp_rank,
+                        dcp_world_size,
+                        get_dcp_group().all_gather,
+                        row_repeat,
+                    )
+                else:
+                    _select_candidate_blocks(
+                        logits,
+                        None,
+                        vis,
+                        decode_candidates.shape[1],
+                        candidate_block_size,
+                        decode_candidates,
+                        row_repeat,
+                    )
             else:
+                global_max_len = None
+                if dcp_world_size > 1:
+                    if next_n != 1 or decode_metadata.requires_padding:
+                        raise RuntimeError(
+                            "V4.1 DCP candidate filtering does not support "
+                            "speculative or padded decode."
+                        )
+                    assert decode_metadata.global_seq_lens is not None
+                    global_max_len = int(
+                        decode_metadata.global_seq_lens[:num_rows].max().item()
+                    )
                 _apply_candidate_mask(
                     logits,
                     None,
@@ -684,6 +756,9 @@ def sparse_attn_indexer(
                     decode_candidates,
                     candidate_block_size,
                     row_repeat,
+                    dcp_rank,
+                    dcp_world_size,
+                    global_max_len,
                 )
         topk_indices = topk_indices_buffer[:num_padded_tokens, :topk_tokens]
 

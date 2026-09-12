@@ -33,6 +33,7 @@ from vllm.v1.attention.backends.mla.compressor_utils import (
 from vllm.v1.attention.backends.utils import split_decodes_and_prefills
 from vllm.v1.attention.ops.flashmla import FlashMLASchedMeta, get_mla_metadata
 from vllm.v1.kv_cache_interface import (
+    KVCacheDCPPlacement,
     KVCacheSpec,
     MLAAttentionSpec,
     SlidingWindowMLASpec,
@@ -79,6 +80,7 @@ class DeepseekV4SWACache(torch.nn.Module, AttentionLayerBase):
         cache_config: CacheConfig,
         backend_cls: "type[AttentionBackend] | None" = None,
         block_size: int = 64,
+        dcp_kv_cache_placement: KVCacheDCPPlacement | None = None,
     ):
         super().__init__()
         self.backend_cls = backend_cls or DeepseekSparseSWABackend
@@ -87,6 +89,7 @@ class DeepseekV4SWACache(torch.nn.Module, AttentionLayerBase):
         self.window_size = window_size
         self.prefix = prefix
         self.cache_config = cache_config
+        self.dcp_kv_cache_placement = dcp_kv_cache_placement
         self.dtype = dtype
         compilation_config = get_current_vllm_config().compilation_config
         if prefix in compilation_config.static_forward_context:
@@ -121,6 +124,7 @@ class DeepseekV4SWACache(torch.nn.Module, AttentionLayerBase):
             alignment=576 if uses_fp8_ds_mla_layout else 512,
             model_version="deepseek_v4",
             kv_quant_mode=get_kv_quant_mode(self.cache_config.cache_dtype),
+            dcp_kv_cache_placement=self.dcp_kv_cache_placement,
         )
 
     def forward(self): ...

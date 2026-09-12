@@ -9,6 +9,7 @@ import torch
 
 from vllm.config import VllmConfig
 from vllm.config.cache import CacheDType
+from vllm.distributed.parallel_state import get_dcp_group
 from vllm.platforms import current_platform
 from vllm.platforms.interface import DeviceCapability
 from vllm.v1.attention.backend import (
@@ -26,6 +27,7 @@ from vllm.v1.attention.backends.mla.sparse_swa import (
     _LAYER_TYPE_SWAONLY,
     DeepseekSparseSWAMetadataBuilder,
 )
+from vllm.v1.attention.backends.utils import get_dcp_local_seq_lens
 from vllm.v1.kv_cache_interface import AttentionSpec
 
 # v4.1 per-layer compress ratios: 0 = pure sliding window, 1 = full-length
@@ -139,6 +141,11 @@ class DeepseekV4FlashMLAMetadata(AttentionMetadata):
     req_id_per_token: torch.Tensor
     block_size: int
     topk_tokens: int
+    global_seq_lens: torch.Tensor | None = None
+    local_seq_lens: torch.Tensor | None = None
+    record_block_size: int = 0
+    dcp_rank: int = 0
+    dcp_world_size: int = 1
 
 
 class DeepseekV4SparseMLAMetadataBuilder(
@@ -159,6 +166,14 @@ class DeepseekV4SparseMLAMetadataBuilder(
         # supports_spec_as_decode=True) as decodes; longer queries go to prefill.
         self._init_reorder_batch_threshold(1, supports_spec_as_decode=True)
         self.topk_tokens = self.model_config.hf_config.index_topk
+        parallel_config = vllm_config.parallel_config
+        self.dcp_world_size = parallel_config.decode_context_parallel_size
+        self.dcp_rank = get_dcp_group().rank_in_group if self.dcp_world_size > 1 else 0
+        self.dcp_interleave = parallel_config.cp_kv_cache_interleave_size
+        if self.dcp_world_size > 1 and self.dcp_interleave != 1:
+            raise NotImplementedError(
+                "DeepSeek V4.1 compressed DCP requires cp_kv_cache_interleave_size=1."
+            )
 
         max_num_batched_tokens = vllm_config.scheduler_config.max_num_batched_tokens
         self.req_id_per_token_buffer = torch.empty(
@@ -201,7 +216,18 @@ class DeepseekV4SparseMLAMetadataBuilder(
                 int(self.kv_cache_spec.num_states),
                 self.compress_ratio,
                 out=self.compressed_slot_mapping_buffer,
+                dcp_rank=self.dcp_rank,
+                dcp_world_size=self.dcp_world_size,
+                dcp_interleave=self.dcp_interleave,
             )
+
+        global_seq_lens = cm.seq_lens // self.compress_ratio
+        local_seq_lens = get_dcp_local_seq_lens(
+            global_seq_lens,
+            self.dcp_world_size,
+            self.dcp_rank,
+            self.dcp_interleave,
+        )
 
         return DeepseekV4FlashMLAMetadata(
             num_reqs=cm.num_reqs,
@@ -211,9 +237,14 @@ class DeepseekV4SparseMLAMetadataBuilder(
             query_start_loc=cm.query_start_loc,
             slot_mapping=slot_mapping,
             block_table=cm.block_table_tensor,
+            global_seq_lens=global_seq_lens,
+            local_seq_lens=local_seq_lens,
             req_id_per_token=req_id_per_token,
             block_size=self.kv_cache_spec.block_size,
+            record_block_size=int(self.kv_cache_spec.num_states),
             topk_tokens=self.topk_tokens,
+            dcp_rank=self.dcp_rank,
+            dcp_world_size=self.dcp_world_size,
         )
 
 

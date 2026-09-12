@@ -212,6 +212,42 @@ def test_dcp_slot_mapping_with_smaller_kernel_blocks(cp_rank: int):
     assert torch.equal(actual, expected)
 
 
+@pytest.mark.parametrize("cp_rank", [0, 1])
+def test_dcp_slot_mapping_supports_mixed_group_placement(cp_rank: int):
+    device = torch.device("cuda")
+    block_tables = BlockTables(
+        block_sizes=[4, 4],
+        max_num_reqs=1,
+        max_num_batched_tokens=8,
+        max_num_blocks_per_group=[1, 2],
+        device=device,
+        kernel_block_sizes=[4, 4],
+        cp_size=2,
+        cp_rank=cp_rank,
+        cp_interleave=1,
+        dcp_sharded=[True, False],
+    )
+    block_tables.append_block_ids(
+        req_index=0,
+        new_block_ids=([5], [7, 8]),
+        overwrite=True,
+    )
+    block_tables.apply_staged_writes()
+
+    idx_mapping = torch.zeros(1, dtype=torch.int32, device=device)
+    query_start_loc = torch.tensor([0, 8], dtype=torch.int32, device=device)
+    positions = torch.arange(8, dtype=torch.int64, device=device)
+    actual = block_tables.compute_slot_mappings(
+        idx_mapping, query_start_loc, positions, num_tokens_padded=8
+    )
+
+    sharded = torch.full((8,), -1, dtype=torch.int64, device=device)
+    sharded[cp_rank::2] = torch.arange(20, 24, dtype=torch.int64, device=device)
+    replicated = torch.arange(28, 36, dtype=torch.int64, device=device)
+    assert torch.equal(actual[0], sharded)
+    assert torch.equal(actual[1], replicated)
+
+
 def test_v1_block_table_move_row_clears_vacated_row():
     """condense() moves the last row into a freed slot; the vacated row must
     not keep stale block ids. Padded dummy-run batches dereference stale rows

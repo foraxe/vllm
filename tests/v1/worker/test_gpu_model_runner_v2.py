@@ -108,6 +108,7 @@ def test_qsa_circular_group_uses_custom_slot_mapping(monkeypatch):
 
     assert captured["max_num_blocks_per_group"] == [1, 1]
     assert captured["slot_mapping_enabled"] == [False, True]
+    assert captured["dcp_sharded"] == [True, True]
 
 
 @pytest.mark.parametrize(

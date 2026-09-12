@@ -25,7 +25,11 @@ from vllm.v1.attention.backend import (
     CommonAttentionMetadata,
     MultipleOf,
 )
-from vllm.v1.kv_cache_interface import CircularBufferSpec, KVCacheSpec
+from vllm.v1.kv_cache_interface import (
+    CircularBufferSpec,
+    KVCacheDCPPlacement,
+    KVCacheSpec,
+)
 
 
 class CompressorBackend(AttentionBackend):
@@ -160,6 +164,7 @@ class CompressorStateCache(torch.nn.Module, AttentionLayerBase):
             head_size=self.state_dim,
             head_size_v=0,
             dtype=self.dtype,
+            dcp_kv_cache_placement=KVCacheDCPPlacement.REPLICATED,
         )
 
     def forward(self): ...

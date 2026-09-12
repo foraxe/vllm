@@ -20,11 +20,14 @@ from vllm.v1.core.single_type_kv_cache_manager import (
     get_manager_for_kv_cache_spec,
 )
 from vllm.v1.kv_cache_interface import (
+    AttentionSpec,
     FullAttentionSpec,
     KVCacheConfig,
+    KVCacheDCPPlacement,
     KVCacheSpec,
     MambaSpec,
     SlidingWindowSpec,
+    iter_layer_specs,
 )
 from vllm.v1.request import Request
 
@@ -649,15 +652,25 @@ class HybridKVCacheCoordinator(KVCacheCoordinator):
         )
         assert pcp_world_size == 1, "PCP not support hybrid attn now."
         if dcp_world_size > 1:
-            # DCP shards full-attention KV across ranks and replicates Mamba
-            # state; other spec types (e.g. sliding window) have no DCP-aware
-            # handling yet, so reject them explicitly.
             for g in kv_cache_config.kv_cache_groups:
-                assert isinstance(g.kv_cache_spec, (FullAttentionSpec, MambaSpec)), (
-                    "DCP with hybrid KV cache layouts only supports "
-                    "full-attention and Mamba groups, got: "
-                    f"{type(g.kv_cache_spec).__name__}."
-                )
+                for spec in iter_layer_specs(g.kv_cache_spec):
+                    supported = (
+                        isinstance(spec, MambaSpec)
+                        or (
+                            isinstance(spec, FullAttentionSpec)
+                            and spec.is_dcp_kv_cache_sharded
+                        )
+                        or (
+                            isinstance(spec, AttentionSpec)
+                            and spec.dcp_kv_cache_placement
+                            == KVCacheDCPPlacement.REPLICATED
+                        )
+                    )
+                    assert supported, (
+                        "DCP hybrid KV cache groups require sharded full attention "
+                        "or explicitly replicated attention state, got: "
+                        f"{type(spec).__name__}."
+                    )
         # Fine-grained hash hits require Mamba "align" and compatible cache
         # managers in every group. TP needs hashing finer than the Mamba block;
         # DCP accepts equality because it scales the effective full-attention

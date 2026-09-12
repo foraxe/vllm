@@ -69,6 +69,7 @@ from vllm.v1.core.sched.output import GrammarOutput, SchedulerOutput
 from vllm.v1.kv_cache_interface import (
     CircularBufferSpec,
     KVCacheConfig,
+    KVCacheDCPPlacement,
     MambaSpec,
     UniformTypeKVCacheSpecs,
 )
@@ -584,11 +585,16 @@ class GPUModelRunner(LoRAModelRunnerMixin):
         block_sizes = []
         max_num_blocks_per_group = []
         slot_mapping_enabled = []
+        dcp_sharded = []
         for kv_cache_group in kv_cache_config.kv_cache_groups:
             spec = kv_cache_group.kv_cache_spec
             block_sizes.append(spec.block_size)
             layer_spec = (
                 spec.first_spec if isinstance(spec, UniformTypeKVCacheSpecs) else spec
+            )
+            dcp_sharded.append(
+                getattr(layer_spec, "dcp_kv_cache_placement", None)
+                != KVCacheDCPPlacement.REPLICATED
             )
             slot_mapping_enabled.append(not isinstance(layer_spec, CircularBufferSpec))
             # Let each cache type account for CP. Attention KV is DCP-sharded,
@@ -650,6 +656,7 @@ class GPUModelRunner(LoRAModelRunnerMixin):
             device=self.device,
             kernel_block_sizes=self.kernel_block_sizes,
             slot_mapping_enabled=slot_mapping_enabled,
+            dcp_sharded=dcp_sharded,
             cp_size=self.dcp_size,
             cp_rank=self.dcp_rank,
             cp_interleave=self.cp_interleave,

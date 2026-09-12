@@ -14,12 +14,15 @@ from vllm.models.deepseek_v4_1.sparse_mla import (
 from vllm.v1.attention.backend import CommonAttentionMetadata
 from vllm.v1.attention.backends.mla.compressor_utils import (
     CompressedSlotMappingKernel,
+    get_compressed_record_owner_and_local,
+    get_compressed_slot_mapping,
 )
 from vllm.v1.attention.backends.mla.indexer import (
     BuildPrefillChunkMetadataKernel,
     DeepseekV4IndexerBackend,
     DeepseekV32IndexerMetadataBuilder,
     DeepseekV41IndexerBackend,
+    build_prefill_chunk_metadata,
 )
 from vllm.v1.attention.backends.mla.sparse_utils import (
     ConvertReqIndexToGlobalIndexKernel,
@@ -96,6 +99,83 @@ def test_compressed_slot_mapping_warmup_includes_index_kpool():
 
     keys = CompressedSlotMappingKernel().get_warmup_keys(config)
     assert {(key.compress_ratio, key.block_size) for key in keys} == {(32, 2)}
+
+
+@pytest.mark.parametrize("compress_ratio", [1, 2])
+@pytest.mark.parametrize("dcp_world_size", [2, 4])
+def test_v41_compressed_records_use_record_space_ownership(
+    compress_ratio: int, dcp_world_size: int
+):
+    records_per_rank = 4
+    num_records = records_per_rank * dcp_world_size
+    owned: list[list[int]] = [[] for _ in range(dcp_world_size)]
+
+    for position in range(num_records * compress_ratio):
+        mapping = get_compressed_record_owner_and_local(
+            position, compress_ratio, dcp_world_size
+        )
+        if (position + 1) % compress_ratio:
+            assert mapping is None
+            continue
+        assert mapping is not None
+        owner, local_record = mapping
+        global_record = position // compress_ratio
+        assert owner == global_record % dcp_world_size
+        assert local_record == global_record // dcp_world_size
+        owned[owner].append(local_record)
+
+    assert owned == [list(range(records_per_rank))] * dcp_world_size
+
+
+@pytest.mark.skipif(not torch.cuda.is_available(), reason="requires CUDA")
+@pytest.mark.parametrize("dcp_rank", [0, 1])
+def test_v41_compressed_slot_mapping_uses_record_owner(dcp_rank: int):
+    device = torch.device("cuda")
+    actual = get_compressed_slot_mapping(
+        num_tokens=8,
+        query_start_loc=torch.tensor([0, 8], dtype=torch.int32, device=device),
+        seq_lens=torch.tensor([8], dtype=torch.int32, device=device),
+        block_table=torch.tensor([[5]], dtype=torch.int32, device=device),
+        block_size=4,
+        compress_ratio=2,
+        dcp_rank=dcp_rank,
+        dcp_world_size=2,
+    )
+    expected = torch.full((8,), -1, dtype=torch.int64, device=device)
+    expected[1 + 2 * dcp_rank :: 4] = torch.tensor(
+        [20, 21], dtype=torch.int64, device=device
+    )
+    assert torch.equal(actual, expected)
+
+
+@pytest.mark.skipif(not torch.cuda.is_available(), reason="requires CUDA")
+@pytest.mark.parametrize(
+    ("dcp_rank", "expected_ends"),
+    [(0, [1, 2, 2, 2]), (1, [1, 1, 1, 2])],
+)
+def test_v41_prefill_bounds_and_token_rows_are_owner_packed(
+    dcp_rank: int, expected_ends: list[int]
+):
+    device = torch.device("cuda")
+    metadata = build_prefill_chunk_metadata(
+        0,
+        1,
+        query_start_loc=torch.tensor([0, 4], dtype=torch.int32, device=device),
+        query_start_loc_cpu=torch.tensor([0, 4], dtype=torch.int32),
+        uncompressed_seq_lens=torch.tensor([8], dtype=torch.int32, device=device),
+        compressed_seq_lens=torch.tensor([4], dtype=torch.int32, device=device),
+        compressed_seq_lens_cpu=torch.tensor([4], dtype=torch.int32),
+        block_table=torch.tensor([[5]], dtype=torch.int32, device=device),
+        compress_ratio=2,
+        dcp_rank=dcp_rank,
+        dcp_world_size=2,
+    )
+    assert metadata is not None
+    assert metadata.local_cu_seq_lens is not None
+    assert metadata.local_cu_seq_lens.tolist() == [0, 2]
+    assert metadata.cu_seqlen_ks.tolist() == [0, 0, 0, 0]
+    assert metadata.cu_seqlen_ke.tolist() == expected_ends
+    assert metadata.token_to_seq[:2].tolist() == [0, 0]
 
 
 def test_index_conversion_warmup_uses_physical_block_stride():
