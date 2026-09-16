@@ -1,0 +1,297 @@
+{
+  "pairs": {
+    "delivery": [
+      {
+        "length": 512,
+        "batch": 1,
+        "prompt_sha256": "9135ba1856b781abe32d9dbf25e03fcbc4919d420ce5a8c5579af8b5d63a825b",
+        "matched_scheduler": true,
+        "control_scheduler": [
+          "43c5ba90c637c12d5c29f44dfea30b4bb9cb0cce66a4325da228e5b7fd824351"
+        ],
+        "direct_scheduler": [
+          "43c5ba90c637c12d5c29f44dfea30b4bb9cb0cce66a4325da228e5b7fd824351"
+        ],
+        "control": {
+          "output_tokens_per_s": 103.35305610473206,
+          "mean_ttft_ms": 120.6832726796468,
+          "mean_tpot_ms": 7.91928695918864,
+          "wall_s": 0.6192378449874619,
+          "rate_samples": [
+            103.1594747227264,
+            103.50327085101657,
+            103.39642274045325
+          ]
+        },
+        "direct": {
+          "output_tokens_per_s": 104.14071877933334,
+          "mean_ttft_ms": 118.89958381652832,
+          "mean_tpot_ms": 7.873077453089454,
+          "wall_s": 0.614556257147342,
+          "rate_samples": [
+            103.81971234283155,
+            104.38244580601992,
+            104.21999818914858
+          ]
+        },
+        "rate_change_percent": 0.7621087409385385
+      },
+      {
+        "length": 8192,
+        "batch": 1,
+        "prompt_sha256": "23b72b9f9e06134dd14a0bcc10d7c210bc34bf40a9a23f049343cb9cc5aa8e96",
+        "matched_scheduler": true,
+        "control_scheduler": [
+          "56a83cfcb60b9058f95980a34c58c8acb181daf0506ecdb2e1c09bb5bf4170ae"
+        ],
+        "direct_scheduler": [
+          "56a83cfcb60b9058f95980a34c58c8acb181daf0506ecdb2e1c09bb5bf4170ae"
+        ],
+        "control": {
+          "output_tokens_per_s": 95.68283042035887,
+          "mean_ttft_ms": 164.69828287760416,
+          "mean_tpot_ms": 8.071064384821703,
+          "wall_s": 0.6721785214419166,
+          "rate_samples": [
+            86.4308956038478,
+            100.32926123710189,
+            100.28833442012693
+          ]
+        },
+        "direct": {
+          "output_tokens_per_s": 101.33067095699221,
+          "mean_ttft_ms": 127.64016787211101,
+          "mean_tpot_ms": 8.012225821850793,
+          "wall_s": 0.6316074666877588,
+          "rate_samples": [
+            101.6605728418814,
+            101.6221000926023,
+            100.7093399364929
+          ]
+        },
+        "rate_change_percent": 5.902668756579366
+      }
+    ],
+    "matrix": [
+      {
+        "length": 512,
+        "batch": 16,
+        "prompt_sha256": "9896706324498fea06628ae22210755ed8f619c1aedfe006bfb02430196779a4",
+        "matched_scheduler": true,
+        "control_scheduler": [
+          "203b7585a9f2507ef574b393246dc901d648e27a0ad5bfd060c3919e896e54c0"
+        ],
+        "direct_scheduler": [
+          "203b7585a9f2507ef574b393246dc901d648e27a0ad5bfd060c3919e896e54c0"
+        ],
+        "control": {
+          "output_tokens_per_s": 1466.1034409618696,
+          "mean_ttft_ms": 128.34625442822775,
+          "mean_tpot_ms": 9.065415996013494,
+          "wall_s": 0.698451622389257,
+          "rate_samples": [
+            1468.019131570416,
+            1463.008531548812,
+            1467.2826597663804
+          ]
+        },
+        "direct": {
+          "output_tokens_per_s": 1477.099532617024,
+          "mean_ttft_ms": 125.16845266024272,
+          "mean_tpot_ms": 9.032899402968939,
+          "wall_s": 0.6932531387234727,
+          "rate_samples": [
+            1479.3893501041416,
+            1478.8657079770587,
+            1473.0435397698714
+          ]
+        },
+        "rate_change_percent": 0.7500215433598578
+      },
+      {
+        "length": 512,
+        "batch": 64,
+        "prompt_sha256": "1e1c1c1dddea4e59277cc5cefe0197f4eef4a0ff432e57719da6c778a05f839e",
+        "matched_scheduler": true,
+        "control_scheduler": [
+          "e098dd8baa8c5bdde4ecdf3de4b8dfa6480769d7062caf2280508feec25b28fb"
+        ],
+        "direct_scheduler": [
+          "e098dd8baa8c5bdde4ecdf3de4b8dfa6480769d7062caf2280508feec25b28fb"
+        ],
+        "control": {
+          "output_tokens_per_s": 2908.8389327396508,
+          "mean_ttft_ms": 344.4202430546284,
+          "mean_tpot_ms": 16.62737267968373,
+          "wall_s": 1.4086255876657863,
+          "rate_samples": [
+            2833.3046951322,
+            2961.1147188635014,
+            2932.0973842232506
+          ]
+        },
+        "direct": {
+          "output_tokens_per_s": 2978.6850892103944,
+          "mean_ttft_ms": 337.93647090593976,
+          "mean_tpot_ms": 16.19155188913398,
+          "wall_s": 1.3752324466283123,
+          "rate_samples": [
+            2986.422649452045,
+            3009.4465892790254,
+            2940.1860289001133
+          ]
+        },
+        "rate_change_percent": 2.401169610479603
+      },
+      {
+        "length": 8192,
+        "batch": 16,
+        "prompt_sha256": "0853f04b9764a0db528a9c0422064bce6413c0d75752607ed5171883170722f5",
+        "matched_scheduler": true,
+        "control_scheduler": [
+          "f1f9690419b25e8fc3c75ff9e68305878c8fc2617adc7c6407d65cc18c7b99ae"
+        ],
+        "direct_scheduler": [
+          "f1f9690419b25e8fc3c75ff9e68305878c8fc2617adc7c6407d65cc18c7b99ae"
+        ],
+        "control": {
+          "output_tokens_per_s": 347.10935907852905,
+          "mean_ttft_ms": 1319.513405362765,
+          "mean_tpot_ms": 24.952143759937297,
+          "wall_s": 2.9502010638825595,
+          "rate_samples": [
+            349.40844471419945,
+            344.08981749962004,
+            347.82981502176773
+          ]
+        },
+        "direct": {
+          "output_tokens_per_s": 348.4933369579656,
+          "mean_ttft_ms": 1303.2200833161671,
+          "mean_tpot_ms": 25.073099306263472,
+          "wall_s": 2.941722238281121,
+          "rate_samples": [
+            332.0514120379549,
+            356.0898974937978,
+            357.3387013421442
+          ]
+        },
+        "rate_change_percent": 0.3987152300100938
+      },
+      {
+        "length": 8192,
+        "batch": 64,
+        "prompt_sha256": "07ac9c2af23429547c049d17eb9a27bdd005aa42ff6854fad588511054cc0e60",
+        "matched_scheduler": true,
+        "control_scheduler": [
+          "f18b8bfb0300e796a708507b976ce61d6e2d74dc6b09a4d5fbdd9b9aa1cebafd"
+        ],
+        "direct_scheduler": [
+          "f18b8bfb0300e796a708507b976ce61d6e2d74dc6b09a4d5fbdd9b9aa1cebafd"
+        ],
+        "control": {
+          "output_tokens_per_s": 423.98164590996225,
+          "mean_ttft_ms": 4649.954942365487,
+          "mean_tpot_ms": 74.95340125959565,
+          "wall_s": 9.66129740079244,
+          "rate_samples": [
+            428.2627373635239,
+            421.2714340592431,
+            422.4107663071198
+          ]
+        },
+        "direct": {
+          "output_tokens_per_s": 431.70797579156033,
+          "mean_ttft_ms": 4563.181092341741,
+          "mean_tpot_ms": 73.62095643733117,
+          "wall_s": 9.488354833020518,
+          "rate_samples": [
+            434.9043869579781,
+            432.52736391745935,
+            427.69217649924343
+          ]
+        },
+        "rate_change_percent": 1.8223264983595167
+      },
+      {
+        "length": -1,
+        "batch": 24,
+        "prompt_sha256": "3f4f43d30d0ecf642c94499f8fdd37935a08bd4e1a5bb21754ce1c403935abfb",
+        "matched_scheduler": true,
+        "control_scheduler": [
+          "b268398c46661fd334fee39b38a6cf5a8b4064dba73d51e4f746d67c98190a83"
+        ],
+        "direct_scheduler": [
+          "b268398c46661fd334fee39b38a6cf5a8b4064dba73d51e4f746d67c98190a83"
+        ],
+        "control": {
+          "output_tokens_per_s": 726.683100584054,
+          "mean_ttft_ms": 780.6291447745429,
+          "mean_tpot_ms": 20.507996699015564,
+          "wall_s": 2.11384550963218,
+          "rate_samples": [
+            731.269807251515,
+            730.1654633619124,
+            718.614031138735
+          ]
+        },
+        "direct": {
+          "output_tokens_per_s": 709.7344016804408,
+          "mean_ttft_ms": 800.5107674333784,
+          "mean_tpot_ms": 21.017377951381174,
+          "wall_s": 2.165516594890505,
+          "rate_samples": [
+            723.976758297338,
+            685.2049249775629,
+            720.0215217664214
+          ]
+        },
+        "rate_change_percent": -2.3323370104507912
+      }
+    ]
+  },
+  "gsm8k": {
+    "control": 31,
+    "direct": 31,
+    "total": 32,
+    "answer_matches": 31,
+    "changed_correctness_ids": [],
+    "dataset_sha256": "7727532fb991b2885d1523aa047bb35f981f72d5298a2eb720fd9a01e25b618e",
+    "source_revision": "3101c7d5072418e28b9008a6636bde82a006892c"
+  },
+  "fixed_eval_rechecks": {
+    "control": [
+      {
+        "correct": 31,
+        "total": 32,
+        "truncated": [],
+        "incorrect_ids": [
+          12
+        ]
+      },
+      {
+        "correct": 32,
+        "total": 32,
+        "truncated": [],
+        "incorrect_ids": []
+      }
+    ],
+    "direct": [
+      {
+        "correct": 32,
+        "total": 32,
+        "truncated": [],
+        "incorrect_ids": []
+      },
+      {
+        "correct": 31,
+        "total": 32,
+        "truncated": [],
+        "incorrect_ids": [
+          12
+        ]
+      }
+    ]
+  },
+  "accuracy_interpretation": "Both modes score31/32 and32/32 in opposite order; same sole varying break-even item, no truncation. Bounded evidence, not broad accuracy proof."
+}

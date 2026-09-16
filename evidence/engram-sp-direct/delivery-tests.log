@@ -1,0 +1,15 @@
+........................................................................ [ 60%]
+................................................                         [100%]
+=============================== warnings summary ===============================
+.venv/lib/python3.12/site-packages/torch/jit/_script.py:365: 14 warnings
+  /workspace/vllm_dsv41/vllm-engram-sp-direct/.venv/lib/python3.12/site-packages/torch/jit/_script.py:365: DeprecationWarning: `torch.jit.script_method` is deprecated. Please switch to `torch.compile` or `torch.export`.
+    warnings.warn(
+
+tests/kernels/test_engram.py::test_engram_prepared_rows_survive_graph_breaks[breakable-True-None]
+tests/kernels/test_engram.py::test_engram_prepared_rows_survive_graph_breaks[breakable-True-producer]
+tests/kernels/test_engram.py::test_engram_prepared_rows_survive_graph_breaks[breakable-True-lookup]
+  /workspace/vllm_dsv41/vllm-engram-sp-direct/.venv/lib/python3.12/site-packages/torch/cuda/graphs.py:169: UserWarning: The CUDA Graph is empty. This usually means that the graph was attempted to be captured on wrong device or stream. (Triggered internally at /__w/pytorch/pytorch/aten/src/ATen/cuda/CUDAGraph.cpp:210.)
+    super().capture_end()
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+120 passed, 17 warnings in 133.44s (0:02:13)
