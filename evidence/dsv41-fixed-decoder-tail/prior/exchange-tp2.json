@@ -1,0 +1,27 @@
+[
+  {
+    "lengths": [
+      4096
+    ],
+    "layers": 19,
+    "fields_exact": 6
+  },
+  {
+    "lengths": [
+      1,
+      4096,
+      17
+    ],
+    "layers": 19,
+    "fields_exact": 6
+  },
+  {
+    "lengths": [
+      8192,
+      3,
+      4097
+    ],
+    "layers": 19,
+    "fields_exact": 6
+  }
+]

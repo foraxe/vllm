@@ -1,0 +1,67 @@
+{
+  "head": "dec8e010e05e00dd920aa941e740f8e99176be3b",
+  "base": "5efbf0886a7110ae0801b9540e3072e89a23eb36",
+  "code_matches_measured_patch": true,
+  "cases": [
+    {
+      "length": 8192,
+      "batch": 1,
+      "control": 107.05445523744292,
+      "tail": 106.58292037217193,
+      "change_percent": -0.4404626264503886,
+      "runs_per_arm": 3,
+      "scheduler_signature": "56a83cfcb60b9058f95980a34c58c8acb181daf0506ecdb2e1c09bb5bf4170ae",
+      "prompt_sha256": "50dbaaaf283f0821074fe7785f74196d0dab867c25124779b3a9ec200713ee15"
+    },
+    {
+      "length": 8192,
+      "batch": 16,
+      "control": 518.3092936188337,
+      "tail": 662.3956201134823,
+      "change_percent": 27.79929441138096,
+      "runs_per_arm": 3,
+      "scheduler_signature": "fbaa61f10a4dd20e9bbbeee2e8e9dfe24f0a86929256a864966971dda5d392e5",
+      "prompt_sha256": "0697322e19f64d50ce3268b288e854b0b3f61ca1db40a7ad6f921238a3642ab0"
+    },
+    {
+      "length": 8192,
+      "batch": 64,
+      "control": 645.9298645862657,
+      "tail": 875.9619994257697,
+      "change_percent": 35.612556014397235,
+      "runs_per_arm": 6,
+      "scheduler_signature": "11d0aeb8f8b36d25a88803070cdc456b9f83f875d00417844ecbe46171cc2bca",
+      "prompt_sha256": "41409eff7acf195cd623d48b75739954e2caae3466bdb386bc09fcc628285ac8"
+    },
+    {
+      "length": -1,
+      "batch": 24,
+      "control": 1026.0977709460867,
+      "tail": 1197.3492855299282,
+      "change_percent": 16.68959035218871,
+      "runs_per_arm": 3,
+      "scheduler_signature": "27de13443d18bb83c368f61b96733b577f90ded3b452010fd894b1d4ee1a8dd8",
+      "prompt_sha256": "e22f97a5a413f4a34d867efeb4bf6ffb41ce06fe64a9bca2af5fca589bca3565"
+    },
+    {
+      "length": 512,
+      "batch": 16,
+      "control": 1596.3119164562975,
+      "tail": 1594.0953864389267,
+      "change_percent": -0.13885318993868134,
+      "runs_per_arm": 3,
+      "scheduler_signature": "203b7585a9f2507ef574b393246dc901d648e27a0ad5bfd060c3919e896e54c0",
+      "prompt_sha256": "e943717c005c2c5489fad8ea417441f8d842a737eaa3a222049fb4fbc645ef9e"
+    }
+  ],
+  "short_gsm8k": 31,
+  "long_gsm8k": {
+    "control": 8,
+    "tail": 8,
+    "count": 8
+  },
+  "qualification_complete": true,
+  "max_num_batched_tokens": 32768,
+  "evidence_level": "matched offline engine; B64 ABBA; not HTTP",
+  "gpu_lease": "released"
+}

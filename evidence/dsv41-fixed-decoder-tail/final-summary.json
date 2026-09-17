@@ -1,0 +1,84 @@
+{
+  "cases": [
+    {
+      "length": 8192,
+      "batch": 1,
+      "control": 107.54750398730691,
+      "fixed_tail": 106.1408166841904,
+      "throughput_change_percent": -1.3079683404670472,
+      "wall_s": {
+        "0": 0.5950896642170846,
+        "19": 0.6029800634520749
+      },
+      "prompt_sha256": "50dbaaaf283f0821074fe7785f74196d0dab867c25124779b3a9ec200713ee15",
+      "scheduler_signature": "56a83cfcb60b9058f95980a34c58c8acb181daf0506ecdb2e1c09bb5bf4170ae"
+    },
+    {
+      "length": 8192,
+      "batch": 16,
+      "control": 384.7500546418862,
+      "fixed_tail": 360.47430509965164,
+      "throughput_change_percent": -6.309485664616654,
+      "wall_s": {
+        "0": 2.661563530098647,
+        "19": 2.84078452627485
+      },
+      "prompt_sha256": "0697322e19f64d50ce3268b288e854b0b3f61ca1db40a7ad6f921238a3642ab0",
+      "scheduler_signature": "f1f9690419b25e8fc3c75ff9e68305878c8fc2617adc7c6407d65cc18c7b99ae"
+    },
+    {
+      "length": 8192,
+      "batch": 64,
+      "control": 465.76841922457425,
+      "fixed_tail": 436.4709826715714,
+      "throughput_change_percent": -6.290129459996052,
+      "wall_s": {
+        "0": 8.794435217355689,
+        "19": 9.384723764844239
+      },
+      "prompt_sha256": "41409eff7acf195cd623d48b75739954e2caae3466bdb386bc09fcc628285ac8",
+      "scheduler_signature": "f18b8bfb0300e796a708507b976ce61d6e2d74dc6b09a4d5fbdd9b9aa1cebafd"
+    },
+    {
+      "length": -1,
+      "batch": 24,
+      "control": 779.8223843402135,
+      "fixed_tail": 737.8884123708403,
+      "throughput_change_percent": -5.3773747473089495,
+      "wall_s": {
+        "0": 1.9696920635178685,
+        "19": 2.0816742603977523
+      },
+      "prompt_sha256": "e22f97a5a413f4a34d867efeb4bf6ffb41ce06fe64a9bca2af5fca589bca3565",
+      "scheduler_signature": "b268398c46661fd334fee39b38a6cf5a8b4064dba73d51e4f746d67c98190a83"
+    },
+    {
+      "length": 512,
+      "batch": 16,
+      "control": 1573.9935178945725,
+      "fixed_tail": 1561.6180760520765,
+      "throughput_change_percent": -0.7862447781265214,
+      "wall_s": {
+        "0": 0.6505802023845414,
+        "19": 0.6557829754116634
+      },
+      "prompt_sha256": "e943717c005c2c5489fad8ea417441f8d842a737eaa3a222049fb4fbc645ef9e",
+      "scheduler_signature": "203b7585a9f2507ef574b393246dc901d648e27a0ad5bfd060c3919e896e54c0"
+    }
+  ],
+  "gsm8k_correct": 32,
+  "eval_truncated_ids": [],
+  "smoke_pass": true,
+  "retrieval": [
+    {
+      "length": 8192,
+      "text": "654321"
+    },
+    {
+      "length": 8193,
+      "text": "654321"
+    }
+  ],
+  "source_head": "155780159b2e8bd547ea4d2696c075aa6b49843e",
+  "patch_sha256": "71567f654ad69f08467f3d27819509e1dae150b414c69a7a2201f9e85425ae79"
+}

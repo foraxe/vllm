@@ -1,0 +1,52 @@
+diff --git a/vllm/models/deepseek_v41/decoder_tail.py b/vllm/models/deepseek_v41/decoder_tail.py
+index a55628bf..4923934f 100644
+--- a/vllm/models/deepseek_v41/decoder_tail.py
++++ b/vllm/models/deepseek_v41/decoder_tail.py
+@@ -100,8 +100,7 @@ class DecoderTail:
+         self.start, self.end, self.window = start, end, window
+         self.sequence_parallel = sequence_parallel
+         self.allowed = False
+-        self.compaction_interval = end - start
+-        self.row_alignment = 256
++        self.min_num_tokens = 16384
+         self.builders: dict[Any, Any] = {}
+         self.calls = 0
+         self.full_rows = 0
+@@ -113,6 +112,7 @@ class DecoderTail:
+         self.original_rows: torch.Tensor | None = None
+         self.query_starts: np.ndarray | None = None
+         self.original_count = 0
++        self.skip = False
+         self.metadata_cache: dict[int, Any] = {}
+         self.query_cpu: torch.Tensor | None = None
+         self.query: torch.Tensor | None = None
+@@ -148,6 +148,8 @@ class DecoderTail:
+         ctx = get_forward_context()
+         if (
+             not self.allowed
++            or self.skip
++            or (not self.active and states[1].shape[0] < self.min_num_tokens)
+             or index < self.start
+             or index >= self.end
+             or ctx.cudagraph_runtime_mode != CUDAGraphMode.NONE
+@@ -162,18 +164,10 @@ class DecoderTail:
+         original_starts = common.query_start_loc_cpu[: common.num_reqs + 1].numpy()
+         starts = self.query_starts if self.query_starts is not None else original_starts
+         rows_cpu, new_starts, kept = decoder_tail_rows(
+-            starts,
+-            self.end
+-            - (
+-                self.start
+-                + (index - self.start)
+-                // self.compaction_interval
+-                * self.compaction_interval
+-            ),
+-            self.window,
+-            self.row_alignment,
++            starts, self.end - self.start, self.window, alignment=256
+         )
+         if rows_cpu.size == int(starts[-1]) and not self.active:
++            self.skip = True
+             return layer(*states, **kwargs), states[1], states[2]
+         device = states[0].device
+         num_tokens = len(rows_cpu)
