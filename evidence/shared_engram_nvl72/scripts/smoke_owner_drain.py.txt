@@ -1,0 +1,144 @@
+"""Small real-GPU owner drain and lost-control lifetime checks."""
+
+import json
+import os
+import signal
+import socket
+import tempfile
+import time
+from pathlib import Path
+
+import torch
+from safetensors.torch import save_file
+
+from run_pd_smoke import LoggedProcess
+from vllm.models.deepseek_v41.nvidia.ops.shared_engram_owner import (
+    attach_table,
+    detach_table,
+)
+
+ARTIFACTS = Path("/workspace/vllm_dsv41/artifacts/engram-shared-nvl72")
+
+
+def checkpoint(root: Path) -> None:
+    text_config = {
+        "engram_layer_ids": [1],
+        "engram_num_embeddings": [3],
+        "engram_max_ngram_size": 2,
+        "engram_vocab_size": 3,
+        "engram_n_heads": 1,
+        "engram_head_dim": 64,
+        "engram_pad_token_id": 0,
+        "engram_compressed_vocab_size": 3,
+    }
+    (root / "config.json").write_text(json.dumps({"text_config": text_config}))
+    weight = torch.ones((3, 64), dtype=torch.float32).to(torch.float8_e4m3fn)
+    scale = torch.full((3, 2), 127, dtype=torch.uint8).view(torch.float8_e8m0fnu)
+    filename = "model-00001-of-00001.safetensors"
+    keys = {
+        "layers.1.engram.embed.weight": weight,
+        "layers.1.engram.embed.scale": scale,
+    }
+    save_file(keys, root / filename)
+    (root / "model.safetensors.index.json").write_text(
+        json.dumps({"weight_map": {name: filename for name in keys}})
+    )
+
+
+def one_scenario(scenario: str) -> dict:
+    with tempfile.TemporaryDirectory() as temporary:
+        root = Path(temporary)
+        checkpoint(root)
+        token_file = root / "token"
+        token_file.write_text("0123456789abcdef0123456789abcdef")
+        os.chmod(token_file, 0o600)
+        with socket.socket() as probe:
+            probe.bind(("127.0.0.1", 0))
+            port = probe.getsockname()[1]
+        owner = LoggedProcess(
+            [
+                os.sys.executable,
+                "-m",
+                "vllm.models.deepseek_v41.nvidia.ops.shared_engram_owner",
+                "--model-dir",
+                str(root),
+                "--listen-host",
+                "127.0.0.1",
+                "--listen-port",
+                str(port),
+                "--token-file",
+                str(token_file),
+                "--device",
+                "0",
+            ],
+            os.environ.copy(),
+            ARTIFACTS / f"owner_drain_{scenario}.log",
+            ready_text="ENGRAM_OWNER_READY",
+        )
+        connection = mapping = None
+        try:
+            owner.wait_ready("owner", 60)
+            generation = next(
+                line.split("generation=", 1)[1]
+                for line in owner.lines
+                if "ENGRAM_OWNER_READY" in line
+            )
+            torch.cuda.set_device(1)
+            connection, mapping, manifest = attach_table(
+                f"127.0.0.1:{port}",
+                token_file,
+                1,
+                3,
+                64,
+                (3,),
+                1,
+                expected_generation=generation,
+                checkpoint_dir=root,
+            )
+            torch.testing.assert_close(mapping.cuda[:64].cpu(), torch.ones(64, dtype=torch.uint8) * 56)
+            if scenario == "normal":
+                owner.process.send_signal(signal.SIGTERM)
+                time.sleep(1)
+                assert owner.process.poll() is None
+                assert any("ENGRAM_OWNER_DRAIN_WAIT" in line for line in owner.lines)
+                detach_table(connection, mapping, manifest["lease"])
+                connection = mapping = None
+                assert owner.process.wait(timeout=30) == 0
+                status = "normal_detach_released"
+            else:
+                mapping.close()
+                mapping = None
+                connection.close()
+                connection = None
+                owner.process.send_signal(signal.SIGTERM)
+                time.sleep(1)
+                assert owner.process.poll() is None
+                assert any("retaining backing" in line for line in owner.lines)
+                assert any(
+                    "ENGRAM_OWNER_DRAIN_WAIT" in line and "uncertain" in line
+                    for line in owner.lines
+                )
+                status = "lost_control_retained"
+                # The consumer mapping is gone, so this operator-side force
+                # teardown cannot invalidate a live GPU read in this test.
+                owner.process.kill()
+                owner.process.wait(timeout=30)
+            return {"scenario": scenario, "result": status, "owner_exit": owner.process.returncode}
+        finally:
+            if mapping is not None:
+                mapping.close()
+            if connection is not None:
+                connection.close()
+            if owner.process.poll() is None:
+                owner.process.kill()
+                owner.process.wait(timeout=30)
+            owner.thread.join(timeout=10)
+
+
+def main() -> None:
+    print(json.dumps(one_scenario("normal")), flush=True)
+    print(json.dumps(one_scenario("lost")), flush=True)
+
+
+if __name__ == "__main__":
+    main()

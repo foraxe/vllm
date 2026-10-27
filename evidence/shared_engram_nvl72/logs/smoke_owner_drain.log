@@ -1,0 +1,7 @@
+W1027 13:53:15.535000 498041 torch/_opaque_base.py:6] torch._opaque_base is deprecated, use torch._custom_class_base instead
+W1027 13:53:15.535000 498041 torch/_library/opaque_object.py:288] register_opaque_type is deprecated, use register_custom_class instead
+W1027 13:53:15.536000 498041 torch/_library/opaque_object.py:211] typ='value' is deprecated, use typ='constant' instead
+{"ready": "owner"}
+{"scenario": "normal", "result": "normal_detach_released", "owner_exit": 0}
+{"ready": "owner"}
+{"scenario": "lost", "result": "lost_control_retained", "owner_exit": -9}

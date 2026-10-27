@@ -4,9 +4,11 @@
   "captured_on": "2026-10-27",
   "hardware": "4x NVIDIA GB200, single host",
   "files_sha256": {
-    "README.md": "4558234a5be8b48404af18e92a2531f37b531fe993f7be9ee2e15529ee7f86bd",
+    "README.md": "0b816b55b6934950733b79114749c846f75cefa66beea813e8cca5220e35551c",
     "logs/engram_regression_final.log": "42f9fb4b4494e11f6e3f5d8782cf3ec6c83dbc90d529a735db9d99feb570b7f0",
     "logs/full_checkpoint_probe_striped.log": "e554d5fc92dc05ecefc76ce4ad4246a21f9647afc5a3f177971f02401f253a8a",
+    "logs/owner_drain_lost.log": "97d3a715e4fa81e97c2cb59ff45e4778ea0df6ab820b5ef743e6a5c72fea0264",
+    "logs/owner_drain_normal.log": "18d2a6d7035ac9c5b9a2a7fdcea127660245a745136771917ac5d4f29a3c69e4",
     "logs/run_gsm8k_shared.log": "d927424aada698e667808d8b0ae12f0fec1eee261d787f4d76152232538585cf",
     "logs/run_pd_measure_baseline.log": "9b627377ea79f473cd58945636ad7f0d3ea8de25c0d13db5f977944126a215da",
     "logs/run_pd_measure_shared.log": "293b73282aba55410a769412b525fd9748b6c898e97044051a29a83d37c30cb7",
@@ -15,6 +17,7 @@
     "logs/run_vl_wrapper_probe.log": "da7008a00c4b218ca93613b0b083aecb87849b5711aaf2fa8eda96f570610364",
     "logs/runtime_install_final.log": "a4c2647d43e0a376ff52a1617d9636dd3e82e9c07c8c354f80b66c926e7ffc7f",
     "logs/smoke_ipc_lookup_exact.log": "bdad18d81dfc0e6e442f900448aa2d547a515e0d5cf9a67409d26f67f130de30",
+    "logs/smoke_owner_drain.log": "77abacd3030ad0bc51ab634f441484b96aa7e6e5facd41dd3caf385e29a9f11d",
     "logs/smoke_striped.log": "2568d0c251f79271a2208961154f2a2d487dc21d5452ce9c286e18a5b900f0a4",
     "logs/smoke_tp_layouts.log": "6347fd778a631c2ee77dab9a47210432dd656f41811a73334440b4f29527a4fa",
     "logs/vl_wrapper_baseline.log": "90d1da8c5c350fca677d09af741b1b96e968683f9dc41d35d34dd0c4260dab39",
@@ -59,9 +62,11 @@
     "scripts/run_two_instances.py.txt": "aff41044646bf85f1a6de93d411123372638b0464ddad7a45c173d6476348cc7",
     "scripts/run_vl_wrapper_probe.py.txt": "ea36d5339fa760ecb08ff9ed9bcef05b1a51ebeb400a42d86c12e82d6d15cb84",
     "scripts/smoke_ipc_lookup.py.txt": "1d27e120d526caf6ce09bfeeb030bc05dd06d819c4649a3f70854c26fc729b21",
+    "scripts/smoke_owner_drain.py.txt": "50d31b5dd5ad52e2f07182146d7c6f698932488b9815604505909a2ff605fe37",
     "scripts/smoke_publish.py.txt": "184ad02e3068005552675c6f814ab926c17619b78fd27bfc95cb4eadddebdcc4",
     "scripts/smoke_striped.py.txt": "d903175820a7e09319473fa8a56bb019c9e48743e7ca552d69472d6474d150a2",
     "scripts/smoke_tp_layouts.py.txt": "48a298888b3e194a7d41defbabc7ccea09bd1d47596efb6b99a4a951d91cc869",
     "scripts/smoke_vmm.py.txt": "5e270c27af1b6f7e8aa8b007e8d4636ddc7ae7ef5c1839754029e52e980c4985"
-  }
+  },
+  "lifecycle_followup_source_commit": "46706ee5e5ade3f622b6f606bbd05b84b06a9b96"
 }

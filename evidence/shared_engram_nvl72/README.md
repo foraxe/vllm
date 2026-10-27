@@ -144,3 +144,15 @@ See [`performance/`](performance/) for the matched long-context P/D controls,
 rank-paired CUDA trace analysis, negative Engram-kernel evidence, and the
 bounded P-only scheduling-budget result. This is a single-host configuration
 finding and does not qualify NVL72 cross-host performance.
+
+## Follow-up: owner drain and lost control
+
+PR follow-up `46706ee5` adds structured attach/detach and drain-wait records
+with bounded client identity. A small real-GPU check signaled owner shutdown
+while a consumer was attached: normal detach released the lease and owner
+exited zero. In the lost-control case, the consumer first synchronized and
+unmapped, then dropped its socket; the owner retained an uncertain lease and
+waited until the test operator force-stopped it. The captured script is
+`scripts/smoke_owner_drain.py.txt`; `logs/owner_drain_normal.log` and
+`logs/owner_drain_lost.log` show the state transitions. This does not test
+owner loss while a graph is actively replaying or remote-host failure.
