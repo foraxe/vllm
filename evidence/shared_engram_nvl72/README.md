@@ -127,3 +127,13 @@ quality evaluation, sleep/reload, and production SLO acceptance remain open.
 The upstream draft is for human review; its CI `pre-run-check` stopped because
 the author has two merged PRs and none of the workflow's ready/verified labels.
 The workflow expressly tells AI agents not to request such a label.
+
+## Follow-up: outer wrapper text route
+
+The full DeepSeek-V4.1 multimodal wrapper was exercised with image input
+disabled (`language_model_only=False`, `limit_mm_per_prompt={"image":0}`). Its
+shared-table and ordinary-table TP2 runs each generated 32 tokens for two
+fixed text prompts; token IDs matched 2/2. The owner drained normally. This
+validates wrapper loading and parameter accounting, not image processing.
+Raw results are `results/vl_wrapper_shared.json` and
+`results/vl_wrapper_baseline.json`, with logs and captured scripts beside them.

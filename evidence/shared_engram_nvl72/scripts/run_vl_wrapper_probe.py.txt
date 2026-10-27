@@ -1,0 +1,110 @@
+"""Load the DeepSeek-V4.1 multimodal wrapper with external Engram tables."""
+
+import json
+import os
+import secrets
+import signal
+import socket
+import subprocess
+import sys
+import tempfile
+from pathlib import Path
+
+from run_pd_smoke import LoggedProcess
+
+ARTIFACTS = Path("/workspace/vllm_dsv41/artifacts/engram-shared-nvl72")
+
+
+def main() -> None:
+    with tempfile.TemporaryDirectory() as temporary:
+        token_file = Path(temporary) / "token"
+        token_file.write_text(secrets.token_hex(32))
+        os.chmod(token_file, 0o600)
+        with socket.socket() as probe:
+            probe.bind(("127.0.0.1", 0))
+            port = probe.getsockname()[1]
+        owner = LoggedProcess(
+            [
+                sys.executable,
+                "-m",
+                "vllm.models.deepseek_v41.nvidia.ops.shared_engram_owner",
+                "--model-dir",
+                "/data/models/DeepSeek-V4.1-Flash",
+                "--listen-host",
+                "127.0.0.1",
+                "--listen-port",
+                str(port),
+                "--token-file",
+                str(token_file),
+                "--device",
+                "0",
+            ],
+            os.environ.copy(),
+            ARTIFACTS / "vl_wrapper_owner.log",
+            ready_text="ENGRAM_OWNER_READY",
+        )
+        child = None
+        try:
+            owner.wait_ready("owner", 1200)
+            generation = next(
+                line.split("generation=", 1)[1]
+                for line in owner.lines
+                if "ENGRAM_OWNER_READY" in line
+            )
+            environment = os.environ.copy()
+            environment.update(
+                {
+                    "CUDA_VISIBLE_DEVICES": "2,3",
+                    "VLLM_ENGINE_READY_TIMEOUT_S": "3600",
+                    "VLLM_DEEP_GEMM_WARMUP": "skip",
+                }
+            )
+            command = [
+                sys.executable,
+                str(ARTIFACTS / "model_smoke.py"),
+                "--endpoint",
+                f"127.0.0.1:{port}",
+                "--token-file",
+                str(token_file),
+                "--generation",
+                generation,
+                "--vl-wrapper",
+                "--output",
+                str(ARTIFACTS / "vl_wrapper_shared.json"),
+            ]
+            with (ARTIFACTS / "vl_wrapper_shared.log").open("w") as log:
+                child = subprocess.Popen(
+                    command,
+                    stdout=log,
+                    stderr=subprocess.STDOUT,
+                    env=environment,
+                    start_new_session=True,
+                )
+                code = child.wait(timeout=1800)
+            if code:
+                tail = (ARTIFACTS / "vl_wrapper_shared.log").read_text().splitlines()
+                print("\n".join(tail[-45:]), flush=True)
+                raise RuntimeError(f"multimodal wrapper failed: {code}")
+            report = json.loads((ARTIFACTS / "vl_wrapper_shared.json").read_text())
+            print(
+                json.dumps(
+                    {
+                        "result": "pass",
+                        "vl_wrapper": report["vl_wrapper"],
+                        "output_tokens": [
+                            len(item["token_ids"]) for item in report["outputs"]
+                        ],
+                    }
+                ),
+                flush=True,
+            )
+        finally:
+            if child is not None and child.poll() is None:
+                os.killpg(child.pid, signal.SIGTERM)
+                child.wait(timeout=120)
+            owner.stop()
+            print(json.dumps({"owner_exit_code": owner.process.returncode}), flush=True)
+
+
+if __name__ == "__main__":
+    main()
