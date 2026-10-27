@@ -1,0 +1,137 @@
+"""Summarize one-request CUDA traces without treating kernel sums as wall time."""
+
+import gzip
+import json
+from collections import defaultdict
+from pathlib import Path
+
+ARTIFACTS = Path("/workspace/vllm_dsv41/artifacts/engram-shared-nvl72")
+
+
+def merged_length(intervals):
+    if not intervals:
+        return 0.0
+    total = 0.0
+    start, end = sorted(intervals)[0]
+    for next_start, next_end in sorted(intervals)[1:]:
+        if next_start > end:
+            total += end - start
+            start, end = next_start, next_end
+        else:
+            end = max(end, next_end)
+    return total + end - start
+
+
+def overlap_length(interval, sorted_intervals):
+    start, end = interval
+    return merged_length(
+        [
+            (max(start, other_start), min(end, other_end))
+            for other_start, other_end in sorted_intervals
+            if other_start < end and other_end > start
+        ]
+    )
+
+
+def trace_summary(path: Path) -> dict:
+    with gzip.open(path, "rt") as source:
+        data = json.load(source)
+    events = data["traceEvents"] if isinstance(data, dict) else data
+    kernels = [
+        event
+        for event in events
+        if event.get("cat") == "kernel" and event.get("dur", 0) > 0
+    ]
+    aggregate = defaultdict(lambda: [0, 0.0])
+    for event in kernels:
+        row = aggregate[event["name"]]
+        row[0] += 1
+        row[1] += event["dur"]
+    engram = [event for event in kernels if "engram" in event["name"].lower()]
+    other_intervals = sorted(
+        (event["ts"], event["ts"] + event["dur"])
+        for event in kernels
+        if event not in engram
+    )
+    engram_overlap = sum(
+        overlap_length((event["ts"], event["ts"] + event["dur"]), other_intervals)
+        for event in engram
+    )
+    all_intervals = [(event["ts"], event["ts"] + event["dur"]) for event in kernels]
+    top = sorted(aggregate.items(), key=lambda pair: pair[1][1], reverse=True)[:20]
+    annotations = defaultdict(lambda: [0, 0.0])
+    for event in events:
+        if event.get("cat") in ("user_annotation", "gpu_user_annotation"):
+            row = annotations[event.get("name", "")]
+            row[0] += 1
+            row[1] += event.get("dur", 0)
+    return {
+        "file": str(path),
+        "all_events": len(events),
+        "kernel_count": len(kernels),
+        "kernel_duration_sum_ms": sum(e["dur"] for e in kernels) / 1000,
+        "kernel_interval_union_ms": merged_length(all_intervals) / 1000,
+        "engram_kernel_count": len(engram),
+        "engram_kernel_sum_ms": sum(e["dur"] for e in engram) / 1000,
+        "engram_overlap_with_other_kernels_ms": engram_overlap / 1000,
+        "engram_kernels": [
+            {"name": name, "count": count, "sum_ms": duration / 1000}
+            for name, (count, duration) in sorted(
+                aggregate.items(), key=lambda pair: pair[0]
+            )
+            if "engram" in name.lower()
+        ],
+        "top_kernels_by_duration_sum": [
+            {"name": name, "count": count, "sum_ms": duration / 1000}
+            for name, (count, duration) in top
+        ],
+        "top_annotations_by_duration_sum": [
+            {"name": name, "count": count, "sum_ms": duration / 1000}
+            for name, (count, duration) in sorted(
+                annotations.items(), key=lambda pair: pair[1][1], reverse=True
+            )[:15]
+        ],
+    }
+
+
+def main() -> None:
+    root = ARTIFACTS / "profiles"
+    runs = {}
+    for storage in ("baseline", "shared"):
+        paths = sorted(root.glob(f"engram_{storage}_8k_*/report.json"))
+        if len(paths) != 1:
+            raise RuntimeError(f"expected one {storage} 8K report, found {paths}")
+        report = json.loads(paths[0].read_text())
+        roles = {}
+        for role in ("prefill", "decode"):
+            trace = list((paths[0].parent / role).glob("*rank0*.json.gz"))
+            if len(trace) != 1:
+                raise RuntimeError(f"expected one rank0 {storage}/{role} trace")
+            roles[role] = trace_summary(trace[0])
+        runs[storage] = {"report": report, "roles": roles}
+    if (
+        runs["baseline"]["report"]["prompt_sha256"]
+        != runs["shared"]["report"]["prompt_sha256"]
+    ):
+        raise ValueError("profiled prompts differ")
+    output = ARTIFACTS / "pd_profile_8k_summary.json"
+    output.write_text(json.dumps(runs, indent=2) + "\n")
+    for storage, run in runs.items():
+        print(storage)
+        for role, result in run["roles"].items():
+            print(
+                role,
+                "kernels",
+                result["kernel_count"],
+                "sum_ms",
+                round(result["kernel_duration_sum_ms"], 3),
+                "engram_ms",
+                round(result["engram_kernel_sum_ms"], 3),
+                "engram_overlap_ms",
+                round(result["engram_overlap_with_other_kernels_ms"], 3),
+            )
+            print("  top", [(x["name"][:55], round(x["sum_ms"], 3)) for x in result["top_kernels_by_duration_sum"][:8]])
+
+
+if __name__ == "__main__":
+    main()

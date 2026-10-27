@@ -1,0 +1,71 @@
+{
+  "storage": "baseline",
+  "length": 131072,
+  "generation": null,
+  "source_commit": "25041176ec3ed52022ff3db3d9f01ecaf6b61a4a",
+  "fixture": "/workspace/vllm_dsv41/artifacts/engram-wkv-32k/prompts.json",
+  "fixture_provenance": "concatenated first 4 or 16 saved 32K engineering-document prompt ID fixtures",
+  "prompt_sha256": "686ab7fea2075f8c0dc78546f23447f25c8f665b37980ed6effda7dc726b185c",
+  "max_model_len": 131584,
+  "max_num_batched_tokens": 8192,
+  "max_num_seqs": 1,
+  "kv_cache_memory_bytes_per_rank": 2147483648,
+  "gpu_used_mib_at_ready": [
+    152487,
+    152487,
+    152487,
+    152487
+  ],
+  "warmup": {
+    "request_id": "9e69c5b7-d1ae-49ad-86ab-0c46a9005866",
+    "prompt_tokens": 131072,
+    "completion_tokens": 32,
+    "prefill_seconds": 4.0985222910530865,
+    "decode_seconds": 11.404117813101038,
+    "text_sha256": "4cb407ab7c43e877c9d1e22bc22e51530c545bb0abf53ef760f75c9a945a00cd",
+    "transfer_mode": "pull",
+    "transfer_keys": [
+      "dcp_size",
+      "do_remote_decode",
+      "do_remote_prefill",
+      "pp_size",
+      "remote_block_ids",
+      "remote_blocks_expiry_time",
+      "remote_engine_id",
+      "remote_host",
+      "remote_num_tokens",
+      "remote_port",
+      "remote_prefill_cached_tokens",
+      "remote_registration_generation",
+      "remote_request_id",
+      "tp_size",
+      "transfer_mode"
+    ]
+  },
+  "measured": {
+    "request_id": "d5631f50-4514-470c-8de4-25b5f95aca4e",
+    "prompt_tokens": 131072,
+    "completion_tokens": 32,
+    "prefill_seconds": 2.8045747610740364,
+    "decode_seconds": 6.173733873991296,
+    "text_sha256": "af39f0a73f416f84f2907f94cbfd4f6e262cdb5f0f726a2e0ee67cce5d29b5e1",
+    "transfer_mode": "pull",
+    "transfer_keys": [
+      "dcp_size",
+      "do_remote_decode",
+      "do_remote_prefill",
+      "pp_size",
+      "remote_block_ids",
+      "remote_blocks_expiry_time",
+      "remote_engine_id",
+      "remote_host",
+      "remote_num_tokens",
+      "remote_port",
+      "remote_prefill_cached_tokens",
+      "remote_registration_generation",
+      "remote_request_id",
+      "tp_size",
+      "transfer_mode"
+    ]
+  }
+}

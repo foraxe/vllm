@@ -1,0 +1,251 @@
+"""Compare 512K P/D scheduling budgets under one shared table owner."""
+
+import argparse
+import datetime as dt
+import hashlib
+import json
+import os
+import secrets
+import socket
+import statistics
+import sys
+import tempfile
+from pathlib import Path
+
+import httpx
+
+from run_pd_long import gpu_memory_used_mib, load_ids, set_flag
+from run_pd_profile import one_pd_request
+from run_pd_smoke import LoggedProcess, server_command
+
+ARTIFACTS = Path("/workspace/vllm_dsv41/artifacts/engram-shared-nvl72")
+
+
+def run_arm(
+    length: int,
+    budget: int,
+    decode_budget: int | None,
+    position: int,
+    owner_port: int,
+    token_file: Path,
+    generation: str,
+    ids: list[int],
+    root: Path,
+    repeats: int,
+    warmups: int,
+) -> dict:
+    d_budget = budget if decode_budget is None else decode_budget
+    out = root / f"arm{position}_p{budget}_d{d_budget}"
+    out.mkdir()
+    processes = []
+    try:
+        for role, gpus, port, internal, side in (
+            ("prefill", "0,1", 8100, 20000, 5559),
+            ("decode", "2,3", 8200, 30000, 5659),
+        ):
+            environment = os.environ.copy()
+            environment.update(
+                {
+                    "CUDA_VISIBLE_DEVICES": gpus,
+                    "VLLM_PORT": str(internal),
+                    "VLLM_NIXL_SIDE_CHANNEL_PORT": str(side),
+                    "VLLM_ENGINE_READY_TIMEOUT_S": "3600",
+                    "VLLM_DEEP_GEMM_WARMUP": "skip",
+                    "UCX_TLS": "cuda_copy,cuda_ipc,tcp",
+                    "UCX_NET_DEVICES": "all",
+                }
+            )
+            command = server_command(
+                role, port, owner_port, token_file, generation, False
+            )
+            set_flag(command, "--max-model-len", length + 512)
+            set_flag(command, "--max-num-seqs", 1)
+            set_flag(
+                command,
+                "--max-num-batched-tokens",
+                budget if role == "prefill" else d_budget,
+            )
+            set_flag(
+                command,
+                "--kv-cache-memory-bytes",
+                (2 if length == 131072 else 8) * 2**30,
+            )
+            process = LoggedProcess(
+                command,
+                environment,
+                out / f"{role}.log",
+                ready_text="Application startup complete.",
+            )
+            processes.append(process)
+            process.wait_ready(f"{role} budget {budget}", 3600)
+            with httpx.Client(timeout=30) as client:
+                client.get(f"http://127.0.0.1:{port}/v1/models").raise_for_status()
+        used = gpu_memory_used_mib()
+        rows = []
+        for repetition in range(repeats + warmups):
+            result = one_pd_request(ids)
+            result["repetition"] = repetition
+            result["warmup"] = repetition < warmups
+            rows.append(result)
+            (out / "report_partial.json").write_text(
+                json.dumps({"budget": budget, "rows": rows}, indent=2) + "\n"
+            )
+        retained = rows[warmups:]
+        report = {
+            "prefill_budget": budget,
+            "decode_budget": d_budget,
+            "position": position,
+            "warmups": warmups,
+            "length": length,
+            "max_model_len": length + 512,
+            "kv_cache_memory_bytes_per_rank": (
+                2 if length == 131072 else 8
+            ) * 2**30,
+            "gpu_used_mib_at_ready": used,
+            "rows": rows,
+            "prefill_median_seconds": statistics.median(
+                row["prefill_seconds"] for row in retained
+            ),
+            "decode_median_seconds": statistics.median(
+                row["decode_seconds"] for row in retained
+            ),
+        }
+        (out / "report.json").write_text(json.dumps(report, indent=2) + "\n")
+        print(
+            json.dumps(
+                {
+                    "arm_complete": budget,
+                    "decode_budget": d_budget,
+                    "position": position,
+                    "prefill_median_seconds": report["prefill_median_seconds"],
+                    "decode_median_seconds": report["decode_median_seconds"],
+                    "text_hashes": [row["text_sha256"] for row in retained],
+                }
+            ),
+            flush=True,
+        )
+        return report
+    finally:
+        for process in reversed(processes):
+            process.stop()
+        print(
+            json.dumps(
+                {
+                    "arm_exit_codes": [process.process.returncode for process in processes],
+                    "budget": budget,
+                }
+            ),
+            flush=True,
+        )
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--order", default="8192,16384")
+    parser.add_argument("--length", type=int, choices=(131072, 524288), default=524288)
+    parser.add_argument("--decode-budget", type=int, choices=(8192, 16384, 32768))
+    parser.add_argument("--repeats", type=int, default=3)
+    parser.add_argument("--warmups", type=int, default=1)
+    args = parser.parse_args()
+    budgets = [int(item) for item in args.order.split(",")]
+    if any(budget not in (8192, 16384, 32768) for budget in budgets):
+        parser.error("budgets must be 8192, 16384 or 32768")
+    if args.repeats < 1 or args.repeats > 5:
+        parser.error("repeats must be between 1 and 5")
+    if args.warmups < 1 or args.warmups > 3:
+        parser.error("warmups must be between 1 and 3")
+    length = args.length
+    ids = load_ids(length)
+    prompt_hash = hashlib.sha256(json.dumps(ids).encode()).hexdigest()
+    run_id = dt.datetime.now(dt.timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    root = ARTIFACTS / "budget_ab" / run_id
+    root.mkdir(parents=True, exist_ok=False)
+    with tempfile.TemporaryDirectory() as temporary:
+        token_file = Path(temporary) / "token"
+        token_file.write_text(secrets.token_hex(32))
+        os.chmod(token_file, 0o600)
+        with socket.socket() as probe:
+            probe.bind(("127.0.0.1", 0))
+            owner_port = probe.getsockname()[1]
+        owner = LoggedProcess(
+            [
+                sys.executable,
+                "-m",
+                "vllm.models.deepseek_v41.nvidia.ops.shared_engram_owner",
+                "--model-dir",
+                "/data/models/DeepSeek-V4.1-Flash",
+                "--listen-host",
+                "127.0.0.1",
+                "--listen-port",
+                str(owner_port),
+                "--token-file",
+                str(token_file),
+                "--device",
+                "0",
+            ],
+            os.environ.copy(),
+            root / "owner.log",
+            ready_text="ENGRAM_OWNER_READY",
+        )
+        arms = []
+        try:
+            owner.wait_ready("owner", 1200)
+            generation = next(
+                line.split("generation=", 1)[1]
+                for line in owner.lines
+                if "ENGRAM_OWNER_READY" in line
+            )
+            for position, budget in enumerate(budgets):
+                arms.append(
+                    run_arm(
+                        length,
+                        budget,
+                        args.decode_budget,
+                        position,
+                        owner_port,
+                        token_file,
+                        generation,
+                        ids,
+                        root,
+                        args.repeats,
+                        args.warmups,
+                    )
+                )
+            report = {
+                "result": "pass",
+                "source_commit": "25041176ec3ed52022ff3db3d9f01ecaf6b61a4a",
+                "generation": generation,
+                "prompt_sha256": prompt_hash,
+                "length": length,
+                "order": budgets,
+                "fixed_decode_budget": args.decode_budget,
+                "retained_per_arm": args.repeats,
+                "warmups_per_arm": args.warmups,
+                "arms": arms,
+            }
+            (root / "report.json").write_text(json.dumps(report, indent=2) + "\n")
+            if len(arms) == 2:
+                print(
+                    json.dumps(
+                        {
+                            "result": "pass",
+                            "profile_dir": str(root),
+                            "prefill_ratio_second_over_first": (
+                                arms[1]["prefill_median_seconds"]
+                                / arms[0]["prefill_median_seconds"]
+                            ),
+                            "decode_ratio_second_over_first": (
+                                arms[1]["decode_median_seconds"]
+                                / arms[0]["decode_median_seconds"]
+                            ),
+                        }
+                    ),
+                    flush=True,
+                )
+        finally:
+            owner.stop()
+            print(json.dumps({"owner_exit_code": owner.process.returncode}), flush=True)
+
+
+if __name__ == "__main__":
+    main()

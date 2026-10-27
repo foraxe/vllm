@@ -1,0 +1,109 @@
+"""Summarize retained 128K/512K P/D budget controls from raw JSON."""
+
+import json
+import statistics
+from pathlib import Path
+
+ROOT = Path("/workspace/vllm_dsv41/artifacts/engram-shared-nvl72/budget_ab")
+OUTPUT = ROOT.parent / "pd_budget_summary.json"
+
+
+def budgets(arm: dict) -> tuple[int, int]:
+    prefill = arm.get("prefill_budget", arm.get("budget"))
+    decode = arm.get("decode_budget", arm.get("budget"))
+    return int(prefill), int(decode)
+
+
+def main() -> None:
+    runs = []
+    for path in sorted(ROOT.glob("*/report.json")):
+        report = json.loads(path.read_text())
+        arms = []
+        for arm in report["arms"]:
+            retained = [row for row in arm["rows"] if not row["warmup"]]
+            p_budget, d_budget = budgets(arm)
+            tokens = {(row["prompt_tokens"], row["completion_tokens"]) for row in retained}
+            routes = {row["transfer_mode"] for row in retained}
+            if tokens != {(report["length"], 32)} or routes != {"pull"}:
+                raise ValueError(f"invalid retained workload at {path}")
+            arms.append(
+                {
+                    "prefill_budget": p_budget,
+                    "decode_budget": d_budget,
+                    "retained": len(retained),
+                    "prefill_median_seconds": arm["prefill_median_seconds"],
+                    "decode_median_seconds": arm["decode_median_seconds"],
+                    "prefill_seconds": [row["prefill_seconds"] for row in retained],
+                    "decode_seconds": [row["decode_seconds"] for row in retained],
+                    "total_seconds": [
+                        row["prefill_seconds"] + row["decode_seconds"]
+                        for row in retained
+                    ],
+                    "total_median_seconds": statistics.median(
+                        row["prefill_seconds"] + row["decode_seconds"]
+                        for row in retained
+                    ),
+                    "text_hashes": [row["text_sha256"] for row in retained],
+                    "gpu_used_mib_at_ready": arm["gpu_used_mib_at_ready"],
+                }
+            )
+        if len(arms) != 2:
+            raise ValueError(f"expected two arms at {path}")
+        run = {
+            "source": str(path),
+            "length": report["length"],
+            "order": report["order"],
+            "fixed_decode_budget": report.get("fixed_decode_budget"),
+            "prompt_sha256": report["prompt_sha256"],
+            "arms": arms,
+        }
+        by_budget = {budgets(arm): arm for arm in arms}
+        if (8192, 8192) in by_budget and (16384, 8192) in by_budget:
+            control, candidate = by_budget[(8192, 8192)], by_budget[(16384, 8192)]
+            run["p16_d8_vs_p8_d8"] = {
+                "prefill_ratio": (
+                    candidate["prefill_median_seconds"]
+                    / control["prefill_median_seconds"]
+                ),
+                "decode_ratio": (
+                    candidate["decode_median_seconds"]
+                    / control["decode_median_seconds"]
+                ),
+                "total_ratio": (
+                    candidate["total_median_seconds"]
+                    / control["total_median_seconds"]
+                ),
+            }
+        if (16384, 8192) in by_budget and (32768, 8192) in by_budget:
+            control, candidate = by_budget[(16384, 8192)], by_budget[(32768, 8192)]
+            run["p32_d8_vs_p16_d8"] = {
+                "prefill_ratio": (
+                    candidate["prefill_median_seconds"]
+                    / control["prefill_median_seconds"]
+                ),
+                "decode_ratio": (
+                    candidate["decode_median_seconds"]
+                    / control["decode_median_seconds"]
+                ),
+                "total_ratio": (
+                    candidate["total_median_seconds"]
+                    / control["total_median_seconds"]
+                ),
+            }
+        runs.append(run)
+    OUTPUT.write_text(json.dumps({"runs": runs}, indent=2) + "\n")
+    for run in runs:
+        label = run.get("p16_d8_vs_p8_d8") or run.get("p32_d8_vs_p16_d8")
+        print(
+            run["length"],
+            run["order"],
+            run["fixed_decode_budget"],
+            "P ratio",
+            None if label is None else round(label["prefill_ratio"], 4),
+            "D ratio",
+            None if label is None else round(label["decode_ratio"], 4),
+        )
+
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,104 @@
+"""Compare per-rank MNNVL two-shot all-reduce arrival in 512K traces."""
+
+import gzip
+import hashlib
+import json
+import statistics
+from pathlib import Path
+
+ROOT = Path("/workspace/vllm_dsv41/artifacts/engram-shared-nvl72/long_context")
+RUNS = {
+    8192: ROOT / "524288_shared_20261027T171525Z",
+    16384: ROOT / "524288_shared_20261027T183421Z",
+}
+KERNEL = "twoshotAllreduceKernel"
+
+
+def twoshot_events(path: Path) -> list[tuple[float, float]]:
+    with gzip.open(path, "rt") as source:
+        data = json.load(source)
+    return sorted(
+        (event["ts"], event["dur"])
+        for event in data["traceEvents"]
+        if event.get("cat") == "kernel" and KERNEL in event.get("name", "")
+    )
+
+
+def main() -> None:
+    result = {}
+    for budget, directory in RUNS.items():
+        traces = []
+        for rank in (0, 1):
+            found = list((directory / "prefill_profile").glob(f"*rank{rank}*.json.gz"))
+            if len(found) != 1:
+                raise RuntimeError(f"expected one rank {rank} trace at {directory}")
+            traces.append(found[0])
+        rank0, rank1 = (twoshot_events(path) for path in traces)
+        if len(rank0) != len(rank1):
+            raise RuntimeError("rank event counts differ")
+        paired = [
+            {
+                "ordinal": ordinal,
+                "rank0_start_us": first[0],
+                "rank1_start_us": second[0],
+                "rank0_duration_us": first[1],
+                "rank1_duration_us": second[1],
+            }
+            for ordinal, (first, second) in enumerate(zip(rank0, rank1))
+        ]
+        start_skew = [
+            row["rank0_start_us"] - row["rank1_start_us"] for row in paired
+        ]
+        end_skew = [
+            row["rank0_start_us"]
+            + row["rank0_duration_us"]
+            - row["rank1_start_us"]
+            - row["rank1_duration_us"]
+            for row in paired
+        ]
+        profile = json.loads((directory / "report.json").read_text())
+        result[str(budget)] = {
+            "source_commit": profile["source_commit"],
+            "prompt_sha256": profile["prompt_sha256"],
+            "profiled_prefill_seconds": profile["measured"]["prefill_seconds"],
+            "trace_files": {
+                str(rank): {
+                    "path": str(path),
+                    "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+                }
+                for rank, path in enumerate(traces)
+            },
+            "call_count_per_rank": len(paired),
+            "rank0_duration_sum_ms": sum(row["rank0_duration_us"] for row in paired)
+            / 1000,
+            "rank1_duration_sum_ms": sum(row["rank1_duration_us"] for row in paired)
+            / 1000,
+            "rank0_duration_median_us": statistics.median(
+                row["rank0_duration_us"] for row in paired
+            ),
+            "rank1_duration_median_us": statistics.median(
+                row["rank1_duration_us"] for row in paired
+            ),
+            "rank0_minus_rank1_start_median_us": statistics.median(start_skew),
+            "rank0_minus_rank1_end_median_us": statistics.median(end_skew),
+            "paired_events": paired,
+        }
+    destination = ROOT.parent / "rank_skew_512k.json"
+    destination.write_text(json.dumps(result, indent=2) + "\n")
+    for budget, row in result.items():
+        print(
+            budget,
+            "calls",
+            row["call_count_per_rank"],
+            "start_skew_us",
+            round(row["rank0_minus_rank1_start_median_us"], 1),
+            "end_skew_us",
+            round(row["rank0_minus_rank1_end_median_us"], 1),
+            "rank_duration_median_us",
+            round(row["rank0_duration_median_us"], 1),
+            round(row["rank1_duration_median_us"], 1),
+        )
+
+
+if __name__ == "__main__":
+    main()

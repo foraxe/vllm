@@ -1,0 +1,236 @@
+"""Bounded 128K/512K P/D admission and request checks on one GB200 host."""
+
+import argparse
+import datetime as dt
+import hashlib
+import json
+import os
+import secrets
+import socket
+import subprocess
+import sys
+import tempfile
+from pathlib import Path
+
+import httpx
+
+from run_pd_profile import one_pd_request, profile_session
+from run_pd_smoke import LoggedProcess, server_command
+
+ARTIFACTS = Path("/workspace/vllm_dsv41/artifacts/engram-shared-nvl72")
+SOURCE = Path("/workspace/vllm_dsv41/artifacts/engram-wkv-32k/prompts.json")
+
+
+def set_flag(command: list[str], flag: str, value: int) -> None:
+    position = command.index(flag)
+    command[position + 1] = str(value)
+
+
+def load_ids(length: int) -> list[int]:
+    saved = json.loads(SOURCE.read_text())
+    count = length // 32768
+    if count not in (4, 16):
+        raise ValueError("unsupported long-context fixture length")
+    ids = [token for item in saved[:count] for token in item["prompt_token_ids"]]
+    if len(ids) != length:
+        raise ValueError("saved fixture length mismatch")
+    return ids
+
+
+def gpu_memory_used_mib() -> list[int]:
+    result = subprocess.run(
+        [
+            "nvidia-smi",
+            "--query-gpu=memory.used",
+            "--format=csv,noheader,nounits",
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    return [int(line) for line in result.stdout.splitlines()]
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--baseline", action="store_true")
+    parser.add_argument("--profile-prefill", action="store_true")
+    parser.add_argument("--prefill-budget", type=int, choices=(8192, 16384, 32768), default=8192)
+    parser.add_argument("--decode-budget", type=int, choices=(8192, 16384, 32768), default=8192)
+    parser.add_argument("--length", type=int, choices=(131072, 524288), required=True)
+    args = parser.parse_args()
+    length = args.length
+    label = "baseline" if args.baseline else "shared"
+    kv_gib = 2 if length == 131072 else 8
+    run_id = dt.datetime.now(dt.timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    out = ARTIFACTS / "long_context" / f"{length}_{label}_{run_id}"
+    out.mkdir(parents=True, exist_ok=False)
+    ids = load_ids(length)
+    prompt_hash = hashlib.sha256(json.dumps(ids).encode()).hexdigest()
+    processes: list[LoggedProcess] = []
+    with tempfile.TemporaryDirectory() as temporary:
+        token_file = Path(temporary) / "token"
+        token_file.write_text(secrets.token_hex(32))
+        os.chmod(token_file, 0o600)
+        with socket.socket() as probe:
+            probe.bind(("127.0.0.1", 0))
+            owner_port = probe.getsockname()[1]
+        generation = None
+        try:
+            if not args.baseline:
+                owner = LoggedProcess(
+                    [
+                        sys.executable,
+                        "-m",
+                        "vllm.models.deepseek_v41.nvidia.ops.shared_engram_owner",
+                        "--model-dir",
+                        "/data/models/DeepSeek-V4.1-Flash",
+                        "--listen-host",
+                        "127.0.0.1",
+                        "--listen-port",
+                        str(owner_port),
+                        "--token-file",
+                        str(token_file),
+                        "--device",
+                        "0",
+                    ],
+                    os.environ.copy(),
+                    out / "owner.log",
+                    ready_text="ENGRAM_OWNER_READY",
+                )
+                processes.append(owner)
+                owner.wait_ready("owner", 1200)
+                generation = next(
+                    line.split("generation=", 1)[1]
+                    for line in owner.lines
+                    if "ENGRAM_OWNER_READY" in line
+                )
+            for role, gpus, port, internal, side in (
+                ("prefill", "0,1", 8100, 20000, 5559),
+                ("decode", "2,3", 8200, 30000, 5659),
+            ):
+                environment = os.environ.copy()
+                environment.update(
+                    {
+                        "CUDA_VISIBLE_DEVICES": gpus,
+                        "VLLM_PORT": str(internal),
+                        "VLLM_NIXL_SIDE_CHANNEL_PORT": str(side),
+                        "VLLM_ENGINE_READY_TIMEOUT_S": "3600",
+                        "VLLM_DEEP_GEMM_WARMUP": "skip",
+                        "UCX_TLS": "cuda_copy,cuda_ipc,tcp",
+                        "UCX_NET_DEVICES": "all",
+                    }
+                )
+                command = server_command(
+                    role, port, owner_port, token_file, generation, args.baseline
+                )
+                set_flag(command, "--max-model-len", length + 512)
+                set_flag(command, "--max-num-seqs", 1)
+                set_flag(
+                    command,
+                    "--max-num-batched-tokens",
+                    args.prefill_budget if role == "prefill" else args.decode_budget,
+                )
+                set_flag(command, "--kv-cache-memory-bytes", kv_gib * 2**30)
+                if args.profile_prefill and role == "prefill":
+                    profile_dir = out / "prefill_profile"
+                    profile_dir.mkdir()
+                    command.extend(
+                        [
+                            "--profiler-config",
+                            json.dumps(
+                                {
+                                    "profiler": "torch",
+                                    "torch_profiler_dir": str(profile_dir),
+                                    "torch_profiler_with_stack": False,
+                                    "torch_profiler_record_shapes": False,
+                                    "torch_profiler_with_memory": False,
+                                    "torch_profiler_use_gzip": True,
+                                }
+                            ),
+                        ]
+                    )
+                server = LoggedProcess(
+                    command,
+                    environment,
+                    out / f"{role}.log",
+                    ready_text="Application startup complete.",
+                )
+                processes.append(server)
+                server.wait_ready(role, 3600)
+                with httpx.Client(timeout=30) as client:
+                    client.get(f"http://127.0.0.1:{port}/v1/models").raise_for_status()
+            used = gpu_memory_used_mib()
+            print(json.dumps({"both_ready": True, "gpu_used_mib": used}), flush=True)
+            warmup = one_pd_request(ids)
+            print(
+                json.dumps(
+                    {
+                        "warmup": True,
+                        "p_seconds": warmup["prefill_seconds"],
+                        "d_seconds": warmup["decode_seconds"],
+                        "text_sha256": warmup["text_sha256"],
+                    }
+                ),
+                flush=True,
+            )
+            if args.profile_prefill:
+                with httpx.Client(timeout=600) as client:
+                    profile_session(client, "prefill", f"engram_{label}_{length}_{run_id}", True)
+                    try:
+                        measured = one_pd_request(ids)
+                    finally:
+                        profile_session(
+                            client, "prefill", f"engram_{label}_{length}_{run_id}", False
+                        )
+            else:
+                measured = one_pd_request(ids)
+            report = {
+                "storage": label,
+                "length": length,
+                "generation": generation,
+                "source_commit": "25041176ec3ed52022ff3db3d9f01ecaf6b61a4a",
+                "fixture": str(SOURCE),
+                "fixture_provenance": "concatenated first 4 or 16 saved 32K engineering-document prompt ID fixtures",
+                "prompt_sha256": prompt_hash,
+                "max_model_len": length + 512,
+                "prefill_budget": args.prefill_budget,
+                "decode_budget": args.decode_budget,
+                "max_num_seqs": 1,
+                "kv_cache_memory_bytes_per_rank": kv_gib * 2**30,
+                "gpu_used_mib_at_ready": used,
+                "profile_prefill": args.profile_prefill,
+                "trace_files": [
+                    str(path) for path in sorted((out / "prefill_profile").glob("*.json.gz"))
+                ] if args.profile_prefill else [],
+                "warmup": warmup,
+                "measured": measured,
+            }
+            (out / "report.json").write_text(json.dumps(report, indent=2) + "\n")
+            print(
+                json.dumps(
+                    {
+                        "result": "pass",
+                        "storage": label,
+                        "length": length,
+                        "report": str(out / "report.json"),
+                        "p_seconds": measured["prefill_seconds"],
+                        "d_seconds": measured["decode_seconds"],
+                        "text_sha256": measured["text_sha256"],
+                    }
+                ),
+                flush=True,
+            )
+        finally:
+            for process in reversed(processes):
+                process.stop()
+            print(
+                json.dumps(
+                    {"exit_codes": [process.process.returncode for process in processes]}
+                ),
+                flush=True,
+            )
+
+
+if __name__ == "__main__":
+    main()

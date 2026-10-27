@@ -1,0 +1,236 @@
+"""Profile one real 8K P/D request with ordinary or shared Engram tables."""
+
+import argparse
+import datetime as dt
+import hashlib
+import json
+import os
+import secrets
+import socket
+import tempfile
+import time
+import uuid
+import sys
+from pathlib import Path
+
+import httpx
+
+from run_pd_smoke import LoggedProcess, server_command
+
+ARTIFACTS = Path("/workspace/vllm_dsv41/artifacts/engram-shared-nvl72")
+PROMPTS = Path("/workspace/vllm_dsv41/artifacts/decoder-tail-diagnosis/long-eval-prompts.json")
+MODEL = "deepseek-v41-shared"
+
+
+def one_pd_request(ids: list[int]) -> dict:
+    request_id = str(uuid.uuid4())
+    headers = {"X-Request-Id": request_id}
+    base = {
+        "model": MODEL,
+        "prompt": ids,
+        "max_tokens": 32,
+        "min_tokens": 32,
+        "temperature": 0,
+        "stream": False,
+    }
+    prefill = base.copy()
+    prefill.pop("min_tokens")
+    prefill["max_tokens"] = 1
+    prefill["kv_transfer_params"] = {
+        "do_remote_decode": True,
+        "do_remote_prefill": False,
+        "remote_engine_id": None,
+        "remote_block_ids": None,
+        "remote_host": None,
+        "remote_port": None,
+    }
+    with httpx.Client(timeout=600) as client:
+        started = time.monotonic()
+        p_response = client.post(
+            "http://127.0.0.1:8100/v1/completions", json=prefill, headers=headers
+        )
+        p_response.raise_for_status()
+        p_seconds = time.monotonic() - started
+        transfer = p_response.json().get("kv_transfer_params")
+        if not transfer:
+            raise RuntimeError("prefill did not publish KV transfer metadata")
+        decode = {**base, "kv_transfer_params": transfer}
+        started = time.monotonic()
+        d_response = client.post(
+            "http://127.0.0.1:8200/v1/completions", json=decode, headers=headers
+        )
+        d_response.raise_for_status()
+        d_seconds = time.monotonic() - started
+        answer = d_response.json()
+        usage = answer.get("usage") or {}
+        if usage.get("prompt_tokens") != len(ids):
+            raise RuntimeError(f"unexpected prompt tokens: {usage}")
+        if usage.get("completion_tokens") != 32:
+            raise RuntimeError(f"unexpected completion tokens: {usage}")
+        text = answer["choices"][0]["text"]
+        return {
+            "request_id": request_id,
+            "prompt_tokens": usage["prompt_tokens"],
+            "completion_tokens": usage["completion_tokens"],
+            "prefill_seconds": p_seconds,
+            "decode_seconds": d_seconds,
+            "text_sha256": hashlib.sha256(text.encode()).hexdigest(),
+            "transfer_mode": transfer.get("transfer_mode"),
+            "transfer_keys": sorted(transfer),
+        }
+
+
+def profile_session(client: httpx.Client, role: str, prefix: str, start: bool):
+    endpoint = "start_profile" if start else "stop_profile"
+    body = {"profile_prefix": f"{prefix}_{role}"} if start else None
+    port = 8100 if role == "prefill" else 8200
+    response = client.post(f"http://127.0.0.1:{port}/{endpoint}", json=body)
+    response.raise_for_status()
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--baseline", action="store_true")
+    args = parser.parse_args()
+    label = "baseline" if args.baseline else "shared"
+    run_id = dt.datetime.now(dt.timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    prefix = f"engram_{label}_8k_{run_id}"
+    out = ARTIFACTS / "profiles" / prefix
+    out.mkdir(parents=True, exist_ok=False)
+    ids = json.loads(PROMPTS.read_text())[0]["prompt_token_ids"]
+    assert len(ids) == 8192
+    prompt_hash = hashlib.sha256(json.dumps(ids).encode()).hexdigest()
+    processes: list[LoggedProcess] = []
+    with tempfile.TemporaryDirectory() as temporary:
+        token_file = Path(temporary) / "token"
+        token_file.write_text(secrets.token_hex(32))
+        os.chmod(token_file, 0o600)
+        with socket.socket() as probe:
+            probe.bind(("127.0.0.1", 0))
+            owner_port = probe.getsockname()[1]
+        generation = None
+        try:
+            if not args.baseline:
+                owner = LoggedProcess(
+                    [
+                        sys.executable,
+                        "-m",
+                        "vllm.models.deepseek_v41.nvidia.ops.shared_engram_owner",
+                        "--model-dir",
+                        "/data/models/DeepSeek-V4.1-Flash",
+                        "--listen-host",
+                        "127.0.0.1",
+                        "--listen-port",
+                        str(owner_port),
+                        "--token-file",
+                        str(token_file),
+                        "--device",
+                        "0",
+                    ],
+                    os.environ.copy(),
+                    out / "owner.log",
+                    ready_text="ENGRAM_OWNER_READY",
+                )
+                processes.append(owner)
+                owner.wait_ready("owner", 1200)
+                generation = next(
+                    line.split("generation=", 1)[1]
+                    for line in owner.lines
+                    if "ENGRAM_OWNER_READY" in line
+                )
+            for role, gpus, port, internal, side in (
+                ("prefill", "0,1", 8100, 20000, 5559),
+                ("decode", "2,3", 8200, 30000, 5659),
+            ):
+                environment = os.environ.copy()
+                (out / role).mkdir()
+                environment.update(
+                    {
+                        "CUDA_VISIBLE_DEVICES": gpus,
+                        "VLLM_PORT": str(internal),
+                        "VLLM_NIXL_SIDE_CHANNEL_PORT": str(side),
+                        "VLLM_ENGINE_READY_TIMEOUT_S": "3600",
+                        "VLLM_DEEP_GEMM_WARMUP": "skip",
+                        "UCX_TLS": "cuda_copy,cuda_ipc,tcp",
+                        "UCX_NET_DEVICES": "all",
+                    }
+                )
+                command = server_command(
+                    role, port, owner_port, token_file, generation, args.baseline
+                )
+                command.extend(
+                    [
+                        "--profiler-config",
+                        json.dumps(
+                            {
+                                "profiler": "torch",
+                                "torch_profiler_dir": str(out / role),
+                                "torch_profiler_with_stack": False,
+                                "torch_profiler_record_shapes": False,
+                                "torch_profiler_with_memory": False,
+                                "torch_profiler_use_gzip": True,
+                            }
+                        ),
+                    ]
+                )
+                server = LoggedProcess(
+                    command,
+                    environment,
+                    out / f"{role}.log",
+                    ready_text="Application startup complete.",
+                )
+                processes.append(server)
+                server.wait_ready(role, 3600)
+                with httpx.Client(timeout=30) as client:
+                    client.get(f"http://127.0.0.1:{port}/v1/models").raise_for_status()
+
+            warmup = one_pd_request(ids)
+            print(json.dumps({"warmup": warmup}), flush=True)
+            started_roles = []
+            with httpx.Client(timeout=600) as client:
+                try:
+                    for role in ("prefill", "decode"):
+                        profile_session(client, role, prefix, True)
+                        started_roles.append(role)
+                    measured = one_pd_request(ids)
+                finally:
+                    for role in reversed(started_roles):
+                        profile_session(client, role, prefix, False)
+            report = {
+                "storage": label,
+                "generation": generation,
+                "source_commit": "25041176ec3ed52022ff3db3d9f01ecaf6b61a4a",
+                "prompt_source": str(PROMPTS),
+                "prompt_sha256": prompt_hash,
+                "max_num_batched_tokens": 8192,
+                "kv_cache_memory_bytes_per_rank": 2 * 2**30,
+                "warmup": warmup,
+                "profiled": measured,
+                "trace_files": [str(path) for path in sorted(out.rglob("*.json.gz"))],
+            }
+            (out / "report.json").write_text(json.dumps(report, indent=2) + "\n")
+            print(
+                json.dumps(
+                    {
+                        "result": "pass",
+                        "storage": label,
+                        "profile_dir": str(out),
+                        "prompt_tokens": measured["prompt_tokens"],
+                        "trace_files": len(report["trace_files"]),
+                    }
+                ),
+                flush=True,
+            )
+        finally:
+            for process in reversed(processes):
+                process.stop()
+            print(
+                json.dumps(
+                    {"exit_codes": [process.process.returncode for process in processes]}
+                ),
+                flush=True,
+            )
+
+
+if __name__ == "__main__":
+    main()

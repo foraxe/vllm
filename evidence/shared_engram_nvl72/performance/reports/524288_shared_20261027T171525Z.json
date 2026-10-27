@@ -1,0 +1,77 @@
+{
+  "storage": "shared",
+  "length": 524288,
+  "generation": "b677ec77e77353f3eadf48d6f44bd4bf",
+  "source_commit": "25041176ec3ed52022ff3db3d9f01ecaf6b61a4a",
+  "fixture": "/workspace/vllm_dsv41/artifacts/engram-wkv-32k/prompts.json",
+  "fixture_provenance": "concatenated first 4 or 16 saved 32K engineering-document prompt ID fixtures",
+  "prompt_sha256": "01becec9a1bb610a2b29a2ec8bc4dadee0c8fce3d6494bf8cac642714aee5889",
+  "max_model_len": 524800,
+  "max_num_batched_tokens": 8192,
+  "max_num_seqs": 1,
+  "kv_cache_memory_bytes_per_rank": 8589934592,
+  "gpu_used_mib_at_ready": [
+    159785,
+    159091,
+    159091,
+    159091
+  ],
+  "profile_prefill": true,
+  "trace_files": [
+    "/workspace/vllm_dsv41/artifacts/engram-shared-nvl72/long_context/524288_shared_20261027T171525Z/prefill_profile/engram_shared_524288_20261027T171525Z_prefill_dp0_pp0_tp0_dcp0_ep0_rank0.1793121756170938617.pt.trace.json.gz",
+    "/workspace/vllm_dsv41/artifacts/engram-shared-nvl72/long_context/524288_shared_20261027T171525Z/prefill_profile/engram_shared_524288_20261027T171525Z_prefill_dp0_pp0_tp1_dcp0_ep1_rank1.1793121756184063610.pt.trace.json.gz",
+    "/workspace/vllm_dsv41/artifacts/engram-shared-nvl72/long_context/524288_shared_20261027T171525Z/prefill_profile/engram_shared_524288_20261027T171525Z_prefill_gpuidi14aaf1029.idi1_289948.async_llm.1793121752929872505.pt.trace.json.gz"
+  ],
+  "warmup": {
+    "request_id": "312d4432-1b5d-413a-970f-0b9253f41dd0",
+    "prompt_tokens": 524288,
+    "completion_tokens": 32,
+    "prefill_seconds": 12.783537117997184,
+    "decode_seconds": 10.991567202145234,
+    "text_sha256": "7a687102e15fef3ea2551c42bacdffe5a71ab4f9ce2f9f93dc8a10a5d2177090",
+    "transfer_mode": "pull",
+    "transfer_keys": [
+      "dcp_size",
+      "do_remote_decode",
+      "do_remote_prefill",
+      "pp_size",
+      "remote_block_ids",
+      "remote_blocks_expiry_time",
+      "remote_engine_id",
+      "remote_host",
+      "remote_num_tokens",
+      "remote_port",
+      "remote_prefill_cached_tokens",
+      "remote_registration_generation",
+      "remote_request_id",
+      "tp_size",
+      "transfer_mode"
+    ]
+  },
+  "measured": {
+    "request_id": "e851a5d8-37ef-49b3-bf97-787714a5c862",
+    "prompt_tokens": 524288,
+    "completion_tokens": 32,
+    "prefill_seconds": 17.26528181997128,
+    "decode_seconds": 5.889065002789721,
+    "text_sha256": "72fb54cd59ef1d887ba0c49ae41c367b9fd32d28257c0eba9ba8c02421e27892",
+    "transfer_mode": "pull",
+    "transfer_keys": [
+      "dcp_size",
+      "do_remote_decode",
+      "do_remote_prefill",
+      "pp_size",
+      "remote_block_ids",
+      "remote_blocks_expiry_time",
+      "remote_engine_id",
+      "remote_host",
+      "remote_num_tokens",
+      "remote_port",
+      "remote_prefill_cached_tokens",
+      "remote_registration_generation",
+      "remote_request_id",
+      "tp_size",
+      "transfer_mode"
+    ]
+  }
+}

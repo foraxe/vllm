@@ -1,0 +1,525 @@
+{
+  "runs": [
+    {
+      "source": "/workspace/vllm_dsv41/artifacts/engram-shared-nvl72/budget_ab/20261027T172511Z/report.json",
+      "length": 524288,
+      "order": [
+        8192,
+        16384
+      ],
+      "fixed_decode_budget": null,
+      "prompt_sha256": "01becec9a1bb610a2b29a2ec8bc4dadee0c8fce3d6494bf8cac642714aee5889",
+      "arms": [
+        {
+          "prefill_budget": 8192,
+          "decode_budget": 8192,
+          "retained": 3,
+          "prefill_median_seconds": 12.323935128049925,
+          "decode_median_seconds": 5.36060115811415,
+          "prefill_seconds": [
+            12.323935128049925,
+            12.041458015097305,
+            12.32566163316369
+          ],
+          "decode_seconds": [
+            6.1667793618980795,
+            5.329493490979075,
+            5.36060115811415
+          ],
+          "total_seconds": [
+            18.490714489948004,
+            17.37095150607638,
+            17.68626279127784
+          ],
+          "total_median_seconds": 17.68626279127784,
+          "text_hashes": [
+            "7a687102e15fef3ea2551c42bacdffe5a71ab4f9ce2f9f93dc8a10a5d2177090",
+            "7a687102e15fef3ea2551c42bacdffe5a71ab4f9ce2f9f93dc8a10a5d2177090",
+            "7a687102e15fef3ea2551c42bacdffe5a71ab4f9ce2f9f93dc8a10a5d2177090"
+          ],
+          "gpu_used_mib_at_ready": [
+            159785,
+            159091,
+            159091,
+            159091
+          ]
+        },
+        {
+          "prefill_budget": 16384,
+          "decode_budget": 16384,
+          "retained": 3,
+          "prefill_median_seconds": 6.773630926851183,
+          "decode_median_seconds": 5.868735620984808,
+          "prefill_seconds": [
+            6.795034365030006,
+            6.765507819131017,
+            6.773630926851183
+          ],
+          "decode_seconds": [
+            6.284270238131285,
+            5.868735620984808,
+            5.863015943905339
+          ],
+          "total_seconds": [
+            13.07930460316129,
+            12.634243440115824,
+            12.636646870756522
+          ],
+          "total_median_seconds": 12.636646870756522,
+          "text_hashes": [
+            "7a687102e15fef3ea2551c42bacdffe5a71ab4f9ce2f9f93dc8a10a5d2177090",
+            "7a687102e15fef3ea2551c42bacdffe5a71ab4f9ce2f9f93dc8a10a5d2177090",
+            "7a687102e15fef3ea2551c42bacdffe5a71ab4f9ce2f9f93dc8a10a5d2177090"
+          ],
+          "gpu_used_mib_at_ready": [
+            163741,
+            163047,
+            163047,
+            163047
+          ]
+        }
+      ]
+    },
+    {
+      "source": "/workspace/vllm_dsv41/artifacts/engram-shared-nvl72/budget_ab/20261027T173651Z/report.json",
+      "length": 524288,
+      "order": [
+        8192,
+        16384
+      ],
+      "fixed_decode_budget": 8192,
+      "prompt_sha256": "01becec9a1bb610a2b29a2ec8bc4dadee0c8fce3d6494bf8cac642714aee5889",
+      "arms": [
+        {
+          "prefill_budget": 8192,
+          "decode_budget": 8192,
+          "retained": 3,
+          "prefill_median_seconds": 11.941326997010037,
+          "decode_median_seconds": 5.768683976028115,
+          "prefill_seconds": [
+            12.070934206014499,
+            11.941326997010037,
+            11.012933766003698
+          ],
+          "decode_seconds": [
+            6.252487050136551,
+            5.768683976028115,
+            5.758191781118512
+          ],
+          "total_seconds": [
+            18.32342125615105,
+            17.710010973038152,
+            16.77112554712221
+          ],
+          "total_median_seconds": 17.710010973038152,
+          "text_hashes": [
+            "7a687102e15fef3ea2551c42bacdffe5a71ab4f9ce2f9f93dc8a10a5d2177090",
+            "7a687102e15fef3ea2551c42bacdffe5a71ab4f9ce2f9f93dc8a10a5d2177090",
+            "72fb54cd59ef1d887ba0c49ae41c367b9fd32d28257c0eba9ba8c02421e27892"
+          ],
+          "gpu_used_mib_at_ready": [
+            159785,
+            159091,
+            159091,
+            159091
+          ]
+        },
+        {
+          "prefill_budget": 16384,
+          "decode_budget": 8192,
+          "retained": 3,
+          "prefill_median_seconds": 6.804477756144479,
+          "decode_median_seconds": 5.4854261099826545,
+          "prefill_seconds": [
+            6.804477756144479,
+            6.93264677003026,
+            6.647124763811007
+          ],
+          "decode_seconds": [
+            5.937103820964694,
+            5.4854261099826545,
+            5.434771152911708
+          ],
+          "total_seconds": [
+            12.741581577109173,
+            12.418072880012915,
+            12.081895916722715
+          ],
+          "total_median_seconds": 12.418072880012915,
+          "text_hashes": [
+            "72fb54cd59ef1d887ba0c49ae41c367b9fd32d28257c0eba9ba8c02421e27892",
+            "e6defeefc4ebb12efcc331a1562f10c8f3e6d981bb4226dcd069c2091c60e054",
+            "7a687102e15fef3ea2551c42bacdffe5a71ab4f9ce2f9f93dc8a10a5d2177090"
+          ],
+          "gpu_used_mib_at_ready": [
+            163741,
+            163047,
+            159091,
+            159091
+          ]
+        }
+      ],
+      "p16_d8_vs_p8_d8": {
+        "prefill_ratio": 0.5698259295510656,
+        "decode_ratio": 0.9508973160563927,
+        "total_ratio": 0.7011894514869741
+      }
+    },
+    {
+      "source": "/workspace/vllm_dsv41/artifacts/engram-shared-nvl72/budget_ab/20261027T174840Z/report.json",
+      "length": 524288,
+      "order": [
+        16384,
+        8192
+      ],
+      "fixed_decode_budget": 8192,
+      "prompt_sha256": "01becec9a1bb610a2b29a2ec8bc4dadee0c8fce3d6494bf8cac642714aee5889",
+      "arms": [
+        {
+          "prefill_budget": 16384,
+          "decode_budget": 8192,
+          "retained": 4,
+          "prefill_median_seconds": 6.797702334006317,
+          "decode_median_seconds": 5.779776193085127,
+          "prefill_seconds": [
+            6.790238704998046,
+            6.763130609178916,
+            6.805165963014588,
+            6.829875301802531
+          ],
+          "decode_seconds": [
+            5.746819138061255,
+            5.936494883848354,
+            5.719260230893269,
+            5.812733248108998
+          ],
+          "total_seconds": [
+            12.537057843059301,
+            12.69962549302727,
+            12.524426193907857,
+            12.642608549911529
+          ],
+          "total_median_seconds": 12.589833196485415,
+          "text_hashes": [
+            "7a687102e15fef3ea2551c42bacdffe5a71ab4f9ce2f9f93dc8a10a5d2177090",
+            "e6defeefc4ebb12efcc331a1562f10c8f3e6d981bb4226dcd069c2091c60e054",
+            "7a687102e15fef3ea2551c42bacdffe5a71ab4f9ce2f9f93dc8a10a5d2177090",
+            "7a687102e15fef3ea2551c42bacdffe5a71ab4f9ce2f9f93dc8a10a5d2177090"
+          ],
+          "gpu_used_mib_at_ready": [
+            163741,
+            163047,
+            159091,
+            159091
+          ]
+        },
+        {
+          "prefill_budget": 8192,
+          "decode_budget": 8192,
+          "retained": 4,
+          "prefill_median_seconds": 12.47279509739019,
+          "decode_median_seconds": 5.92195087147411,
+          "prefill_seconds": [
+            11.553877364145592,
+            12.565345517825335,
+            12.578756327042356,
+            12.380244676955044
+          ],
+          "decode_seconds": [
+            5.536604441003874,
+            6.01790314191021,
+            6.33673977595754,
+            5.825998601038009
+          ],
+          "total_seconds": [
+            17.090481805149466,
+            18.583248659735546,
+            18.915496102999896,
+            18.206243277993053
+          ],
+          "total_median_seconds": 18.3947459688643,
+          "text_hashes": [
+            "72fb54cd59ef1d887ba0c49ae41c367b9fd32d28257c0eba9ba8c02421e27892",
+            "7a687102e15fef3ea2551c42bacdffe5a71ab4f9ce2f9f93dc8a10a5d2177090",
+            "7a687102e15fef3ea2551c42bacdffe5a71ab4f9ce2f9f93dc8a10a5d2177090",
+            "7a687102e15fef3ea2551c42bacdffe5a71ab4f9ce2f9f93dc8a10a5d2177090"
+          ],
+          "gpu_used_mib_at_ready": [
+            159785,
+            159091,
+            159091,
+            159091
+          ]
+        }
+      ],
+      "p16_d8_vs_p8_d8": {
+        "prefill_ratio": 0.5450023255355706,
+        "decode_ratio": 0.9759919186304238,
+        "total_ratio": 0.6844254994222525
+      }
+    },
+    {
+      "source": "/workspace/vllm_dsv41/artifacts/engram-shared-nvl72/budget_ab/20261027T180112Z/report.json",
+      "length": 524288,
+      "order": [
+        16384,
+        32768
+      ],
+      "fixed_decode_budget": 8192,
+      "prompt_sha256": "01becec9a1bb610a2b29a2ec8bc4dadee0c8fce3d6494bf8cac642714aee5889",
+      "arms": [
+        {
+          "prefill_budget": 16384,
+          "decode_budget": 8192,
+          "retained": 3,
+          "prefill_median_seconds": 6.752092662034556,
+          "decode_median_seconds": 6.099903034977615,
+          "prefill_seconds": [
+            6.752092662034556,
+            6.7290747170336545,
+            6.774026459082961
+          ],
+          "decode_seconds": [
+            6.110252936836332,
+            6.099903034977615,
+            5.613312140107155
+          ],
+          "total_seconds": [
+            12.862345598870888,
+            12.82897775201127,
+            12.387338599190116
+          ],
+          "total_median_seconds": 12.82897775201127,
+          "text_hashes": [
+            "7a687102e15fef3ea2551c42bacdffe5a71ab4f9ce2f9f93dc8a10a5d2177090",
+            "7a687102e15fef3ea2551c42bacdffe5a71ab4f9ce2f9f93dc8a10a5d2177090",
+            "7a687102e15fef3ea2551c42bacdffe5a71ab4f9ce2f9f93dc8a10a5d2177090"
+          ],
+          "gpu_used_mib_at_ready": [
+            163741,
+            163047,
+            159091,
+            159091
+          ]
+        },
+        {
+          "prefill_budget": 32768,
+          "decode_budget": 8192,
+          "retained": 3,
+          "prefill_median_seconds": 6.298179466975853,
+          "decode_median_seconds": 5.565983409062028,
+          "prefill_seconds": [
+            6.275064480025321,
+            6.311943667940795,
+            6.298179466975853
+          ],
+          "decode_seconds": [
+            5.834624920040369,
+            5.422920512035489,
+            5.565983409062028
+          ],
+          "total_seconds": [
+            12.10968940006569,
+            11.734864179976285,
+            11.86416287603788
+          ],
+          "total_median_seconds": 11.86416287603788,
+          "text_hashes": [
+            "7a687102e15fef3ea2551c42bacdffe5a71ab4f9ce2f9f93dc8a10a5d2177090",
+            "7a687102e15fef3ea2551c42bacdffe5a71ab4f9ce2f9f93dc8a10a5d2177090",
+            "7a687102e15fef3ea2551c42bacdffe5a71ab4f9ce2f9f93dc8a10a5d2177090"
+          ],
+          "gpu_used_mib_at_ready": [
+            171109,
+            170415,
+            159091,
+            159091
+          ]
+        }
+      ],
+      "p32_d8_vs_p16_d8": {
+        "prefill_ratio": 0.9327744422686982,
+        "decode_ratio": 0.9124708011169974,
+        "total_ratio": 0.9247940954748223
+      }
+    },
+    {
+      "source": "/workspace/vllm_dsv41/artifacts/engram-shared-nvl72/budget_ab/20261027T181226Z/report.json",
+      "length": 131072,
+      "order": [
+        8192,
+        16384
+      ],
+      "fixed_decode_budget": 8192,
+      "prompt_sha256": "686ab7fea2075f8c0dc78546f23447f25c8f665b37980ed6effda7dc726b185c",
+      "arms": [
+        {
+          "prefill_budget": 8192,
+          "decode_budget": 8192,
+          "retained": 3,
+          "prefill_median_seconds": 2.9093806161545217,
+          "decode_median_seconds": 5.45941606303677,
+          "prefill_seconds": [
+            2.911855027079582,
+            2.9093806161545217,
+            2.8542612257879227
+          ],
+          "decode_seconds": [
+            5.756265190895647,
+            5.2961720009334385,
+            5.45941606303677
+          ],
+          "total_seconds": [
+            8.668120217975229,
+            8.20555261708796,
+            8.313677288824692
+          ],
+          "total_median_seconds": 8.313677288824692,
+          "text_hashes": [
+            "ffe6b00b49b9fb26af7623f72ab3adfa141b18f11efcae9a1932076bdb0e2325",
+            "1f237896fa536d0b008fd11dfa9cd160074034b368cea426992901bca8b910f4",
+            "1f237896fa536d0b008fd11dfa9cd160074034b368cea426992901bca8b910f4"
+          ],
+          "gpu_used_mib_at_ready": [
+            153183,
+            152489,
+            152489,
+            152489
+          ]
+        },
+        {
+          "prefill_budget": 16384,
+          "decode_budget": 8192,
+          "retained": 3,
+          "prefill_median_seconds": 1.563698543002829,
+          "decode_median_seconds": 5.7488485120702535,
+          "prefill_seconds": [
+            1.5846478580497205,
+            1.563698543002829,
+            1.5459016270469874
+          ],
+          "decode_seconds": [
+            6.052853312110528,
+            5.611052114050835,
+            5.7488485120702535
+          ],
+          "total_seconds": [
+            7.637501170160249,
+            7.174750657053664,
+            7.294750139117241
+          ],
+          "total_median_seconds": 7.294750139117241,
+          "text_hashes": [
+            "1f237896fa536d0b008fd11dfa9cd160074034b368cea426992901bca8b910f4",
+            "1f237896fa536d0b008fd11dfa9cd160074034b368cea426992901bca8b910f4",
+            "4cb407ab7c43e877c9d1e22bc22e51530c545bb0abf53ef760f75c9a945a00cd"
+          ],
+          "gpu_used_mib_at_ready": [
+            158035,
+            157341,
+            152489,
+            152489
+          ]
+        }
+      ],
+      "p16_d8_vs_p8_d8": {
+        "prefill_ratio": 0.5374678494523174,
+        "decode_ratio": 1.0530152759363953,
+        "total_ratio": 0.8774396558455425
+      }
+    },
+    {
+      "source": "/workspace/vllm_dsv41/artifacts/engram-shared-nvl72/budget_ab/20261027T182301Z/report.json",
+      "length": 131072,
+      "order": [
+        16384,
+        8192
+      ],
+      "fixed_decode_budget": 8192,
+      "prompt_sha256": "686ab7fea2075f8c0dc78546f23447f25c8f665b37980ed6effda7dc726b185c",
+      "arms": [
+        {
+          "prefill_budget": 16384,
+          "decode_budget": 8192,
+          "retained": 4,
+          "prefill_median_seconds": 1.544100772938691,
+          "decode_median_seconds": 5.727426841040142,
+          "prefill_seconds": [
+            1.5387370788957924,
+            1.5494644669815898,
+            1.565320699941367,
+            1.473144331946969
+          ],
+          "decode_seconds": [
+            5.694000917952508,
+            5.810163677902892,
+            5.704242222011089,
+            5.750611460069194
+          ],
+          "total_seconds": [
+            7.2327379968483,
+            7.359628144884482,
+            7.269562921952456,
+            7.2237557920161635
+          ],
+          "total_median_seconds": 7.251150459400378,
+          "text_hashes": [
+            "4cb407ab7c43e877c9d1e22bc22e51530c545bb0abf53ef760f75c9a945a00cd",
+            "4cb407ab7c43e877c9d1e22bc22e51530c545bb0abf53ef760f75c9a945a00cd",
+            "cb5cc3695503108ce6071aa2700a4656851d854f453e3b4a365a9c1bef8aac22",
+            "435c95890c7034e3f6e8c58c5fbae7e60e58fbb6d710fce00a18b4415f4b1266"
+          ],
+          "gpu_used_mib_at_ready": [
+            158035,
+            157341,
+            152489,
+            152489
+          ]
+        },
+        {
+          "prefill_budget": 8192,
+          "decode_budget": 8192,
+          "retained": 4,
+          "prefill_median_seconds": 2.925224491977133,
+          "decode_median_seconds": 5.584207760985009,
+          "prefill_seconds": [
+            2.9306407729163766,
+            2.919808211037889,
+            2.9011266480665654,
+            2.9505675518885255
+          ],
+          "decode_seconds": [
+            5.302924267947674,
+            5.4537230539135635,
+            5.80368991009891,
+            5.714692468056455
+          ],
+          "total_seconds": [
+            8.23356504086405,
+            8.373531264951453,
+            8.704816558165476,
+            8.66526001994498
+          ],
+          "total_median_seconds": 8.519395642448217,
+          "text_hashes": [
+            "1f237896fa536d0b008fd11dfa9cd160074034b368cea426992901bca8b910f4",
+            "4cb407ab7c43e877c9d1e22bc22e51530c545bb0abf53ef760f75c9a945a00cd",
+            "2f86d6d10847a49321162418fa3a56d83c53190748de51fa649f428e4ff78e0d",
+            "1f237896fa536d0b008fd11dfa9cd160074034b368cea426992901bca8b910f4"
+          ],
+          "gpu_used_mib_at_ready": [
+            153183,
+            152489,
+            152489,
+            152489
+          ]
+        }
+      ],
+      "p16_d8_vs_p8_d8": {
+        "prefill_ratio": 0.5278571874307832,
+        "decode_ratio": 1.0256471618151022,
+        "total_ratio": 0.8511343719349342
+      }
+    }
+  ]
+}

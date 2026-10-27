@@ -137,3 +137,10 @@ fixed text prompts; token IDs matched 2/2. The owner drained normally. This
 validates wrapper loading and parameter accounting, not image processing.
 Raw results are `results/vl_wrapper_shared.json` and
 `results/vl_wrapper_baseline.json`, with logs and captured scripts beside them.
+
+## Follow-up: 8K/128K/512K performance analysis
+
+See [`performance/`](performance/) for the matched long-context P/D controls,
+rank-paired CUDA trace analysis, negative Engram-kernel evidence, and the
+bounded P-only scheduling-budget result. This is a single-host configuration
+finding and does not qualify NVL72 cross-host performance.
