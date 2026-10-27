@@ -1,0 +1,220 @@
+"""Real-table owner and direct mapped lookup on one GB200 node.
+
+The shell caller must hold a GPU 0/1 lease. This validates full publication and
+real checkpoint rows, while two-host NVL72 reachability remains a separate gate.
+"""
+
+import argparse
+import json
+import os
+import selectors
+import signal
+import socket
+import subprocess
+import sys
+import tempfile
+import time
+from pathlib import Path
+
+import psutil
+import torch
+from safetensors import safe_open
+
+from vllm.models.deepseek_v41.common.engram import _engram_lookup_kernel
+from vllm.models.deepseek_v41.nvidia.ops.shared_engram_owner import (
+    _checkpoint_tables,
+    attach_table,
+    detach_table,
+)
+
+MODEL = Path("/data/models/DeepSeek-V4.1-Flash")
+
+
+def _reference(layer: int, rows: int) -> tuple[torch.Tensor, list[int]]:
+    positions = [0, rows // 2, rows - 1]
+    filename = f"model-{47 if layer == 1 else 48:05d}-of-00048.safetensors"
+    with safe_open(MODEL / filename, framework="pt", device="cpu") as source:
+        weights = source.get_slice(f"layers.{layer}.engram.embed.weight")
+        scales = source.get_slice(f"layers.{layer}.engram.embed.scale")
+        values = torch.cat([weights[pos : pos + 1] for pos in positions])
+        exponent = torch.cat([scales[pos : pos + 1] for pos in positions])
+    scale = (exponent.view(torch.uint8).to(torch.int32) << 23).view(torch.float32)
+    expected = (
+        values.to(torch.float32).unflatten(-1, (-1, 32)) * scale.unsqueeze(-1)
+    )
+    return expected.flatten(-2).to(torch.bfloat16), positions
+
+
+def consumer(endpoint: str, token_file: Path, generation: str) -> None:
+    torch.cuda.set_device(1)
+    _, tables = _checkpoint_tables(MODEL)
+    for layer_text, spec in tables.items():
+        layer, rows, dim = int(layer_text), spec["rows"], spec["dim"]
+        before_rss = psutil.Process().memory_info().rss
+        connection, mapping, manifest = attach_table(
+            endpoint,
+            token_file,
+            layer,
+            rows,
+            dim,
+            spec["head_sizes"],
+            1,
+            expected_generation=generation,
+        )
+        after_rss = psutil.Process().memory_info().rss
+        try:
+            expected, positions = _reference(layer, rows)
+            ids = torch.tensor(positions, dtype=torch.int32, device="cuda")[:, None]
+            output = torch.empty((len(positions), dim), dtype=torch.bfloat16, device="cuda")
+            weight_bytes = rows * dim
+            weight = mapping.cuda[:weight_bytes].view(torch.float8_e4m3fn).view(
+                rows, dim
+            )
+            scales = mapping.cuda[weight_bytes:].view(rows, dim // 32)
+
+            def lookup() -> None:
+                _engram_lookup_kernel[(1,)](
+                    weight,
+                    scales,
+                    ids,
+                    ids,
+                    output,
+                    0,
+                    rows,
+                    len(positions),
+                    1,
+                    1,
+                    HEAD_START=0,
+                    LOCAL_HEADS=1,
+                    TOTAL_HEADS=1,
+                    DIM=dim,
+                    QUANT_BLOCK=32,
+                    BLOCK_R=16,
+                    GRID=1,
+                    SORTED=False,
+                    PACKED=False,
+                    OUT_STRIDE=dim,
+                )
+
+            lookup()
+            torch.cuda.synchronize()
+            torch.testing.assert_close(output.cpu(), expected, rtol=0, atol=0)
+            graph = torch.cuda.CUDAGraph()
+            with torch.cuda.graph(graph):
+                lookup()
+            graph.replay()
+            torch.cuda.synchronize()
+            torch.testing.assert_close(output.cpu(), expected, rtol=0, atol=0)
+            del graph
+            print(
+                json.dumps(
+                    {
+                        "layer": layer,
+                        "result": "pass",
+                        "checked_rows": positions,
+                        "consumer_rss_delta_bytes": after_rss - before_rss,
+                        "imported_va": mapping.address,
+                        "table_bytes": mapping.table.size_bytes,
+                        "content_sha256": (
+                            manifest["tables"][layer_text]["weight_sha256"]
+                        ),
+                    }
+                ),
+                flush=True,
+            )
+        finally:
+            detach_table(connection, mapping, manifest["lease"])
+
+
+def owner_and_consumer() -> None:
+    with tempfile.TemporaryDirectory() as temporary:
+        token_file = Path(temporary) / "token"
+        token_file.write_text("0123456789abcdef0123456789abcdef")
+        os.chmod(token_file, 0o600)
+        with socket.socket() as probe:
+            probe.bind(("127.0.0.1", 0))
+            port = probe.getsockname()[1]
+        command = [
+            sys.executable,
+            "-m",
+            "vllm.models.deepseek_v41.nvidia.ops.shared_engram_owner",
+            "--model-dir",
+            str(MODEL),
+            "--listen-host",
+            "127.0.0.1",
+            "--listen-port",
+            str(port),
+            "--token-file",
+            str(token_file),
+            "--device",
+            "0",
+        ]
+        print(json.dumps({"owner_command": command}), flush=True)
+        owner = subprocess.Popen(
+            command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True
+        )
+        child_finished = False
+        try:
+            assert owner.stdout is not None
+            selector = selectors.DefaultSelector()
+            selector.register(owner.stdout, selectors.EVENT_READ)
+            deadline = time.monotonic() + 1200
+            generation = None
+            while time.monotonic() < deadline:
+                if not selector.select(timeout=30):
+                    if owner.poll() is not None:
+                        break
+                    continue
+                line = owner.stdout.readline()
+                if not line:
+                    break
+                print(f"owner: {line.rstrip()}", flush=True)
+                if line.startswith("ENGRAM_OWNER_READY"):
+                    generation = line.rstrip().split("generation=", 1)[1]
+                    break
+            if generation is None:
+                raise RuntimeError("owner did not publish a ready generation")
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(Path(__file__).resolve()),
+                    "--consumer",
+                    "--endpoint",
+                    f"127.0.0.1:{port}",
+                    "--token-file",
+                    str(token_file),
+                    "--generation",
+                    generation,
+                ],
+                check=True,
+                capture_output=True,
+                text=True,
+                timeout=300,
+            )
+            child_finished = True
+            print(result.stdout, end="", flush=True)
+        finally:
+            if owner.poll() is None:
+                owner.send_signal(signal.SIGTERM)
+                try:
+                    owner.wait(timeout=120)
+                except subprocess.TimeoutExpired:
+                    if child_finished:
+                        owner.kill()
+                        owner.wait()
+                    else:
+                        raise
+            print(json.dumps({"owner_exit_code": owner.returncode}), flush=True)
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--consumer", action="store_true")
+    parser.add_argument("--endpoint")
+    parser.add_argument("--token-file", type=Path)
+    parser.add_argument("--generation")
+    args = parser.parse_args()
+    if args.consumer:
+        consumer(args.endpoint, args.token_file, args.generation)
+    else:
+        owner_and_consumer()

@@ -1,0 +1,116 @@
+"""Evaluate eight fixed GSM8K prompts against a real shared table owner."""
+
+import json
+import os
+import secrets
+import signal
+import socket
+import subprocess
+import sys
+import tempfile
+from pathlib import Path
+
+from run_pd_smoke import LoggedProcess
+
+ARTIFACTS = Path("/workspace/vllm_dsv41/artifacts/engram-shared-nvl72")
+
+
+def main() -> None:
+    with tempfile.TemporaryDirectory() as temporary:
+        token_file = Path(temporary) / "token"
+        token_file.write_text(secrets.token_hex(32))
+        os.chmod(token_file, 0o600)
+        with socket.socket() as probe:
+            probe.bind(("127.0.0.1", 0))
+            port = probe.getsockname()[1]
+        command = [
+            sys.executable,
+            "-m",
+            "vllm.models.deepseek_v41.nvidia.ops.shared_engram_owner",
+            "--model-dir",
+            "/data/models/DeepSeek-V4.1-Flash",
+            "--listen-host",
+            "127.0.0.1",
+            "--listen-port",
+            str(port),
+            "--token-file",
+            str(token_file),
+            "--device",
+            "0",
+        ]
+        owner = LoggedProcess(
+            command,
+            os.environ.copy(),
+            ARTIFACTS / "gsm8k_owner.log",
+            ready_text="ENGRAM_OWNER_READY",
+        )
+        child = None
+        try:
+            owner.wait_ready("owner", 1200)
+            ready_line = next(
+                line for line in owner.lines if "ENGRAM_OWNER_READY" in line
+            )
+            generation = ready_line.split("generation=", 1)[1]
+            environment = os.environ.copy()
+            environment["CUDA_VISIBLE_DEVICES"] = "2,3"
+            environment["VLLM_ENGINE_READY_TIMEOUT_S"] = "3600"
+            environment["VLLM_DEEP_GEMM_WARMUP"] = "skip"
+            command = [
+                sys.executable,
+                str(ARTIFACTS / "gsm8k_canary.py"),
+                "--endpoint",
+                f"127.0.0.1:{port}",
+                "--token-file",
+                str(token_file),
+                "--generation",
+                generation,
+                "--output",
+                str(ARTIFACTS / "gsm8k_shared.json"),
+            ]
+            with (ARTIFACTS / "gsm8k_shared.log").open("w") as log:
+                child = subprocess.Popen(
+                    command,
+                    stdout=log,
+                    stderr=subprocess.STDOUT,
+                    env=environment,
+                    start_new_session=True,
+                )
+                code = child.wait(timeout=1800)
+            if code:
+                tail = (ARTIFACTS / "gsm8k_shared.log").read_text().splitlines()
+                print("\n".join(tail[-40:]), flush=True)
+                raise RuntimeError(f"shared GSM8K process failed: {code}")
+            baseline = json.loads((ARTIFACTS / "gsm8k_baseline.json").read_text())
+            shared = json.loads((ARTIFACTS / "gsm8k_shared.json").read_text())
+            assert baseline["prompt_sha256"] == shared["prompt_sha256"]
+            print(
+                json.dumps(
+                    {
+                        "result": "pass",
+                        "baseline_correct": baseline["correct"],
+                        "shared_correct": shared["correct"],
+                        "total": shared["total"],
+                        "baseline_truncated": baseline["truncated"],
+                        "shared_truncated": shared["truncated"],
+                        "answer_match": [
+                            a["prediction"] == b["prediction"]
+                            for a, b in zip(baseline["rows"], shared["rows"])
+                        ],
+                        "token_match": [
+                            a["token_ids"] == b["token_ids"]
+                            for a, b in zip(baseline["rows"], shared["rows"])
+                        ],
+                    }
+                ),
+                flush=True,
+            )
+        finally:
+            if child is not None and child.poll() is None:
+                os.killpg(child.pid, signal.SIGTERM)
+                child.wait(timeout=120)
+            owner.stop()
+            print(json.dumps({"owner_exit_code": owner.process.returncode}), flush=True)
+
+
+if __name__ == "__main__":
+    main()

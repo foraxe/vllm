@@ -1,0 +1,111 @@
+"""One real DeepSeek-V4.1-Flash TP2 engine using an external Engram owner."""
+
+import argparse
+import json
+import os
+import time
+from pathlib import Path
+
+from vllm import LLM, SamplingParams
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--endpoint")
+    parser.add_argument("--token-file", type=Path)
+    parser.add_argument("--generation")
+    parser.add_argument("--baseline", action="store_true")
+    parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--graph", action="store_true")
+    parser.add_argument("--ready-fd", type=int)
+    parser.add_argument("--start-fd", type=int)
+    args = parser.parse_args()
+    if not args.baseline and not (
+        args.endpoint and args.token_file and args.generation
+    ):
+        parser.error("external mode requires endpoint, token file and generation")
+    start = time.monotonic()
+    llm = LLM(
+        model="/data/models/DeepSeek-V4.1-Flash",
+        tokenizer_mode="deepseek_v41",
+        language_model_only=True,
+        tensor_parallel_size=2,
+        enforce_eager=not args.graph,
+        compilation_config=(
+            {
+                "cudagraph_mode": "FULL_DECODE_ONLY",
+                "cudagraph_capture_sizes": [1, 2],
+                "max_cudagraph_capture_size": 2,
+            }
+            if args.graph
+            else {}
+        ),
+        enable_prefix_caching=False,
+        max_model_len=32768,
+        max_num_seqs=2,
+        max_num_batched_tokens=8192,
+        kv_cache_memory_bytes=2 * 2**30,
+        seed=0,
+        disable_log_stats=False,
+        attention_config={
+            "backend": "FLASHINFER_MLA_SPARSE_DSV41",
+            "indexer_kv_dtype": "mxfp4",
+            "indexer_sparse_logits": True,
+        },
+        kv_cache_dtype="fp8",
+        kernel_config={
+            "enable_jit_warmup": False,
+            "enable_cutedsl_warmup": False,
+            "enable_flashinfer_autotune": False,
+        },
+        engram_config=(
+            {"cpu_offload": True, "dp_shared_memory": False}
+            if args.baseline
+            else {
+                "cpu_offload": True,
+                "shared_host_endpoint": args.endpoint,
+                "shared_host_token_file": str(args.token_file),
+                "shared_host_generation": args.generation,
+            }
+        ),
+        load_format="safetensors",
+        safetensors_load_strategy="lazy",
+    )
+    ready_seconds = time.monotonic() - start
+    if args.ready_fd is not None or args.start_fd is not None:
+        if args.ready_fd is None or args.start_fd is None:
+            parser.error("ready-fd and start-fd must be provided together")
+        os.write(args.ready_fd, b"1")
+        if os.read(args.start_fd, 1) != b"1":
+            raise RuntimeError("model start barrier closed before release")
+    prompts = [
+        "Explain why a CUDA graph needs stable table addresses in one sentence.",
+        "What is 17 plus 25?",
+    ]
+    outputs = llm.generate(
+        prompts,
+        SamplingParams(temperature=0, max_tokens=32),
+        use_tqdm=False,
+    )
+    report = {
+        "graph": args.graph,
+        "baseline": args.baseline,
+        "ready_seconds": ready_seconds,
+        "generation": args.generation,
+        "outputs": [
+            {
+                "prompt": prompt,
+                "token_ids": output.outputs[0].token_ids,
+                "text": output.outputs[0].text,
+                "finish_reason": output.outputs[0].finish_reason,
+            }
+            for prompt, output in zip(prompts, outputs)
+        ],
+    }
+    assert all(item["token_ids"] for item in report["outputs"])
+    args.output.write_text(json.dumps(report, indent=2) + "\n")
+    print("MODEL_SMOKE_PASS " + json.dumps(report), flush=True)
+
+
+if __name__ == "__main__":
+    main()

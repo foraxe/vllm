@@ -1,0 +1,380 @@
+"""Real P TP2 + D TP2 KV handoff with one shared Engram table owner."""
+
+import argparse
+import hashlib
+import json
+import os
+import secrets
+import signal
+import socket
+import subprocess
+import sys
+import tempfile
+import threading
+import time
+import uuid
+from pathlib import Path
+
+import httpx
+
+ARTIFACTS = Path("/workspace/vllm_dsv41/artifacts/engram-shared-nvl72")
+MODEL = "/data/models/DeepSeek-V4.1-Flash"
+SERVED_MODEL = "deepseek-v41-shared"
+
+
+class LoggedProcess:
+    def __init__(self, command, environment, log_path, *, ready_text=None):
+        self.log_path = log_path
+        self.ready = threading.Event()
+        self.lines = []
+        self.process = subprocess.Popen(
+            command,
+            env=environment,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            bufsize=1,
+            start_new_session=True,
+        )
+        self.ready_text = ready_text
+        self.thread = threading.Thread(target=self._pump, daemon=True)
+        self.thread.start()
+
+    def _pump(self):
+        assert self.process.stdout is not None
+        with self.log_path.open("w") as output:
+            for line in self.process.stdout:
+                output.write(line)
+                output.flush()
+                self.lines.append(line.rstrip())
+                if len(self.lines) > 100:
+                    self.lines.pop(0)
+                if self.ready_text and self.ready_text in line:
+                    self.ready.set()
+        self.ready.set()
+
+    def wait_ready(self, label: str, timeout: int):
+        deadline = time.monotonic() + timeout
+        while time.monotonic() < deadline:
+            if self.ready.wait(timeout=min(30, deadline - time.monotonic())):
+                if self.process.poll() is not None:
+                    raise RuntimeError(f"{label} exited before ready: {self.lines[-15:]}")
+                if any(self.ready_text in line for line in self.lines):
+                    print(json.dumps({"ready": label}), flush=True)
+                    return
+                raise RuntimeError(f"{label} ended before ready: {self.lines[-15:]}")
+            if self.process.poll() is not None:
+                raise RuntimeError(f"{label} exited before ready: {self.lines[-15:]}")
+        raise TimeoutError(f"{label} startup timed out: {self.lines[-15:]}")
+
+    def stop(self):
+        if self.process.poll() is None:
+            os.killpg(self.process.pid, signal.SIGINT)
+            try:
+                self.process.wait(timeout=150)
+            except subprocess.TimeoutExpired:
+                os.killpg(self.process.pid, signal.SIGTERM)
+                try:
+                    self.process.wait(timeout=30)
+                except subprocess.TimeoutExpired:
+                    os.killpg(self.process.pid, signal.SIGKILL)
+                    self.process.wait()
+        self.thread.join(timeout=10)
+
+
+def server_command(
+    role: str, port: int, owner_port: int, token_file, generation, baseline: bool
+):
+    engram = (
+        {"cpu_offload": True, "dp_shared_memory": False}
+        if baseline
+        else {
+            "cpu_offload": True,
+            "shared_host_endpoint": f"127.0.0.1:{owner_port}",
+            "shared_host_token_file": str(token_file),
+            "shared_host_generation": generation,
+        }
+    )
+    kv = {
+        "kv_connector": "NixlConnector",
+        "kv_role": "kv_producer" if role == "prefill" else "kv_consumer",
+    }
+    return [
+        sys.executable,
+        "-m",
+        "vllm.entrypoints.cli.main",
+        "serve",
+        MODEL,
+        "--host",
+        "127.0.0.1",
+        "--port",
+        str(port),
+        "--served-model-name",
+        SERVED_MODEL,
+        "--language-model-only",
+        "--tensor-parallel-size",
+        "2",
+        "--enforce-eager",
+        "--shutdown-timeout",
+        "120",
+        "--disable-prefix-caching",
+        "--max-model-len",
+        "32768",
+        "--max-num-seqs",
+        "2",
+        "--max-num-batched-tokens",
+        "8192",
+        "--block-size",
+        "128",
+        "--kv-cache-memory-bytes",
+        str(2 * 2**30),
+        "--kv-cache-dtype",
+        "fp8",
+        "--attention-config",
+        json.dumps(
+            {
+                "backend": "FLASHINFER_MLA_SPARSE_DSV41",
+                "indexer_kv_dtype": "mxfp4",
+                "indexer_sparse_logits": True,
+            }
+        ),
+        "--kernel-config",
+        json.dumps(
+            {
+                "enable_jit_warmup": False,
+                "enable_cutedsl_warmup": False,
+                "enable_flashinfer_autotune": False,
+            }
+        ),
+        "--engram-config",
+        json.dumps(engram),
+        "--load-format",
+        "safetensors",
+        "--safetensors-load-strategy",
+        "lazy",
+        "--kv-transfer-config",
+        json.dumps(kv),
+    ]
+
+
+def send_pd_request(
+    label: str, prompt: str | None = None, *, save_raw: bool = True
+) -> dict:
+    if prompt is None:
+        prompt = "Explain why a CUDA graph needs stable table addresses in one sentence."
+    request_id = str(uuid.uuid4())
+    headers = {"X-Request-Id": request_id}
+    payload = {
+        "model": SERVED_MODEL,
+        "prompt": prompt,
+        "max_tokens": 32,
+        "min_tokens": 8,
+        "temperature": 0,
+        "stream": False,
+    }
+    prefill = payload.copy()
+    prefill["max_tokens"] = 1
+    prefill.pop("min_tokens")
+    prefill["kv_transfer_params"] = {
+        "do_remote_decode": True,
+        "do_remote_prefill": False,
+        "remote_engine_id": None,
+        "remote_block_ids": None,
+        "remote_host": None,
+        "remote_port": None,
+    }
+    with httpx.Client(timeout=600) as client:
+        started = time.monotonic()
+        p_response = client.post(
+            "http://127.0.0.1:8100/v1/completions",
+            json=prefill,
+            headers=headers,
+        )
+        p_response.raise_for_status()
+        p_time = time.monotonic() - started
+        p_json = p_response.json()
+        transfer = p_json.get("kv_transfer_params")
+        if not transfer:
+            raise RuntimeError("prefill did not publish KV transfer parameters")
+        decode = {**payload, "kv_transfer_params": transfer}
+        started = time.monotonic()
+        d_response = client.post(
+            "http://127.0.0.1:8200/v1/completions",
+            json=decode,
+            headers=headers,
+        )
+        d_response.raise_for_status()
+        d_time = time.monotonic() - started
+        d_json = d_response.json()
+        if save_raw:
+            (ARTIFACTS / f"pd_raw_responses_{label}.json").write_text(
+                json.dumps({"prefill": p_json, "decode": d_json}, indent=2) + "\n"
+            )
+        text = d_json["choices"][0]["text"]
+        if not text:
+            raise RuntimeError("decode returned no text")
+        return {
+            "request_id": request_id,
+            "prompt_sha256": hashlib.sha256(prompt.encode()).hexdigest(),
+            "prefill_seconds": p_time,
+            "decode_seconds": d_time,
+            "transfer_keys": sorted(transfer),
+            "usage": d_json.get("usage"),
+            "finish_reason": d_json["choices"][0].get("finish_reason"),
+            "text": text,
+        }
+
+
+def measure_pd(label: str, generation: str | None) -> dict:
+    def identifiers(count: int) -> str:
+        return " ".join(f"item{(index * 7919) % 10007}" for index in range(count))
+
+    prompts = {
+        "short": "Explain why a CUDA graph needs stable table addresses in one sentence.",
+        "medium": "Summarize these identifiers in one sentence: " + identifiers(256),
+        "long": "Summarize these identifiers in one sentence: " + identifiers(1024),
+    }
+    rows = []
+    output = ARTIFACTS / f"pd_measure_{label}.json"
+    for bucket, prompt in prompts.items():
+        for repetition in range(4):
+            row = send_pd_request(label, prompt, save_raw=False)
+            row.update(
+                {
+                    "bucket": bucket,
+                    "repetition": repetition,
+                    "warmup": repetition == 0,
+                    "text_sha256": hashlib.sha256(row.pop("text").encode()).hexdigest(),
+                }
+            )
+            rows.append(row)
+            output.write_text(
+                json.dumps(
+                    {"storage": label, "generation": generation, "rows": rows},
+                    indent=2,
+                )
+                + "\n"
+            )
+        print(json.dumps({"bucket_complete": bucket, "storage": label}), flush=True)
+    return {"storage": label, "generation": generation, "rows": rows}
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--baseline", action="store_true")
+    parser.add_argument("--measure", action="store_true")
+    args = parser.parse_args()
+    label = "baseline" if args.baseline else "shared"
+    processes = []
+    with tempfile.TemporaryDirectory() as temporary:
+        token_file = Path(temporary) / "token"
+        token_file.write_text(secrets.token_hex(32))
+        os.chmod(token_file, 0o600)
+        with socket.socket() as probe:
+            probe.bind(("127.0.0.1", 0))
+            owner_port = probe.getsockname()[1]
+        try:
+            generation = None
+            if not args.baseline:
+                owner_command = [
+                    sys.executable,
+                    "-m",
+                    "vllm.models.deepseek_v41.nvidia.ops.shared_engram_owner",
+                    "--model-dir",
+                    MODEL,
+                    "--listen-host",
+                    "127.0.0.1",
+                    "--listen-port",
+                    str(owner_port),
+                    "--token-file",
+                    str(token_file),
+                    "--device",
+                    "0",
+                ]
+                print(json.dumps({"owner_command": owner_command}), flush=True)
+                owner = LoggedProcess(
+                    owner_command,
+                    os.environ.copy(),
+                    ARTIFACTS / (
+                        "pd_owner_measure.log" if args.measure else "pd_owner.log"
+                    ),
+                    ready_text="ENGRAM_OWNER_READY",
+                )
+                processes.append(owner)
+                owner.wait_ready("owner", 1200)
+                ready_line = next(
+                    line for line in owner.lines if "ENGRAM_OWNER_READY" in line
+                )
+                generation = ready_line.split("generation=", 1)[1]
+            for role, gpus, port, internal, side in (
+                ("prefill", "0,1", 8100, 20000, 5559),
+                ("decode", "2,3", 8200, 30000, 5659),
+            ):
+                environment = os.environ.copy()
+                environment.update(
+                    {
+                        "CUDA_VISIBLE_DEVICES": gpus,
+                        "VLLM_PORT": str(internal),
+                        "VLLM_NIXL_SIDE_CHANNEL_PORT": str(side),
+                        "VLLM_ENGINE_READY_TIMEOUT_S": "3600",
+                        "VLLM_DEEP_GEMM_WARMUP": "skip",
+                        "UCX_TLS": "cuda_copy,cuda_ipc,tcp",
+                        "UCX_NET_DEVICES": "all",
+                    }
+                )
+                command = server_command(
+                    role, port, owner_port, token_file, generation, args.baseline
+                )
+                print(json.dumps({"role": role, "gpus": gpus, "command": command}), flush=True)
+                server = LoggedProcess(
+                    command,
+                    environment,
+                    ARTIFACTS
+                    / f"pd_{role}_{label}{'_measure' if args.measure else ''}.log",
+                    ready_text="Application startup complete.",
+                )
+                processes.append(server)
+                server.wait_ready(role, 3600)
+                with httpx.Client(timeout=30) as client:
+                    response = client.get(f"http://127.0.0.1:{port}/v1/models")
+                    response.raise_for_status()
+            if args.measure:
+                report = {"result": "pass", **measure_pd(label, generation)}
+            else:
+                result = send_pd_request(label)
+                report = {
+                    "result": "pass",
+                    "storage": label,
+                    "generation": generation,
+                    **result,
+                }
+                (ARTIFACTS / f"pd_smoke_{label}.json").write_text(
+                    json.dumps(report, indent=2) + "\n"
+                )
+            if args.measure:
+                print(
+                    json.dumps(
+                        {
+                            "result": "pass",
+                            "storage": label,
+                            "requests": len(report["rows"]),
+                            "output": str(ARTIFACTS / f"pd_measure_{label}.json"),
+                        }
+                    ),
+                    flush=True,
+                )
+            else:
+                print(json.dumps(report), flush=True)
+        finally:
+            for process in reversed(processes):
+                process.stop()
+            print(
+                json.dumps(
+                    {"exit_codes": [process.process.returncode for process in processes]}
+                ),
+                flush=True,
+            )
+
+
+if __name__ == "__main__":
+    main()

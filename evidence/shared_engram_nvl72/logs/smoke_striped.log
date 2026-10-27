@@ -1,0 +1,4 @@
+W1027 09:13:41.327000 417599 torch/_opaque_base.py:6] torch._opaque_base is deprecated, use torch._custom_class_base instead
+W1027 09:13:41.328000 417599 torch/_library/opaque_object.py:288] register_opaque_type is deprecated, use register_custom_class instead
+W1027 09:13:41.328000 417599 torch/_library/opaque_object.py:211] typ='value' is deprecated, use typ='constant' instead
+{"result": "pass", "placement": [0, 1], "owner_va": 281443800449024, "imported_va": 281442189836288}

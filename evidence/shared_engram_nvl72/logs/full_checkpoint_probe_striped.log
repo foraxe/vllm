@@ -1,0 +1,11 @@
+W1027 09:14:14.571000 419069 torch/_opaque_base.py:6] torch._opaque_base is deprecated, use torch._custom_class_base instead
+W1027 09:14:14.572000 419069 torch/_library/opaque_object.py:288] register_opaque_type is deprecated, use register_custom_class instead
+W1027 09:14:14.572000 419069 torch/_library/opaque_object.py:211] typ='value' is deprecated, use typ='constant' instead
+{"owner_command": ["/workspace/vllm_dsv41/vllm-engram-shared-nvl72/.venv/bin/python", "-m", "vllm.models.deepseek_v41.nvidia.ops.shared_engram_owner", "--model-dir", "/data/models/DeepSeek-V4.1-Flash", "--listen-host", "127.0.0.1", "--listen-port", "33767", "--token-file", "/tmp/tmpw_fsh0uj/token", "--device", "0"]}
+owner: W1027 09:14:22.024000 419458 .venv/lib/python3.12/site-packages/torch/_opaque_base.py:6] torch._opaque_base is deprecated, use torch._custom_class_base instead
+owner: W1027 09:14:22.024000 419458 .venv/lib/python3.12/site-packages/torch/_library/opaque_object.py:288] register_opaque_type is deprecated, use register_custom_class instead
+owner: W1027 09:14:22.025000 419458 .venv/lib/python3.12/site-packages/torch/_library/opaque_object.py:211] typ='value' is deprecated, use typ='constant' instead
+owner: ENGRAM_OWNER_READY 127.0.0.1:33767 generation=629cee25bd4b4fc56cf6115d778950b9
+{"layer": 1, "result": "pass", "checked_rows": [0, 192003084, 384006167], "consumer_rss_delta_bytes": 0, "imported_va": 26843545600, "table_bytes": 101377628352, "content_sha256": "ada3f1b35065e3088b6cc8d45cde49320f25a1b884287d55c428618321310329"}
+{"layer": 14, "result": "pass", "checked_rows": [0, 192008341, 384016681], "consumer_rss_delta_bytes": 0, "imported_va": 128312147968, "table_bytes": 101380404048, "content_sha256": "7b386ab53a08afb08a72907e4ab28456dece22f71d63ab4c9382c88896fda768"}
+{"owner_exit_code": 0}

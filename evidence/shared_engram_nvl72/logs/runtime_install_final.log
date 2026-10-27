@@ -1,0 +1,82 @@
+Resolved 1 package in 10.08s
+   Building vllm @ file:///workspace/vllm_dsv41/vllm-engram-shared-nvl72
+  × Failed to build `vllm @
+  │ file:///workspace/vllm_dsv41/vllm-engram-shared-nvl72`
+  ├─▶ The build backend returned an error
+  ╰─▶ Call to `setuptools.build_meta.build_editable` failed (exit status: 1)
+
+      [stdout]
+      Detected CUDA 13.0, using variant cu130
+      Using precompiled wheel commit a9b727a6122a0817ecb4eba61baeeb52e9a7d7f5
+      with variant cu130
+      Trying to fetch nightly build metadata from
+      https://wheels.vllm.ai/a9b727a6122a0817ecb4eba61baeeb52e9a7d7f5/cu130/vllm/metadata.json
+
+      [stderr]
+      /root/.cache/uv/builds-v0/.tmpq6pMGX/lib/python3.12/site-packages/torch/_subclasses/functional_tensor.py:368:
+      UserWarning: Failed to initialize NumPy: No
+      module named 'numpy' (Triggered internally at
+      /__w/pytorch/pytorch/torch/csrc/utils/tensor_numpy.cpp:84.)
+        cpu = _conversion_method_template(device=torch.device("cpu"))
+      Traceback (most recent call last):
+        File "<string>", line 1036, in determine_wheel_url
+        File "<string>", line 547, in fetch_metadata_for_variant
+        File
+      "/root/.local/share/uv/python/cpython-3.12.13-linux-aarch64-gnu/lib/python3.12/urllib/request.py",
+      line 215, in urlopen
+          return opener.open(url, data, timeout)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        File
+      "/root/.local/share/uv/python/cpython-3.12.13-linux-aarch64-gnu/lib/python3.12/urllib/request.py",
+      line 521, in open
+          response = meth(req, response)
+                     ^^^^^^^^^^^^^^^^^^^
+        File
+      "/root/.local/share/uv/python/cpython-3.12.13-linux-aarch64-gnu/lib/python3.12/urllib/request.py",
+      line 630, in http_response
+          response = self.parent.error(
+                     ^^^^^^^^^^^^^^^^^^
+        File
+      "/root/.local/share/uv/python/cpython-3.12.13-linux-aarch64-gnu/lib/python3.12/urllib/request.py",
+      line 559, in error
+          return self._call_chain(*args)
+                 ^^^^^^^^^^^^^^^^^^^^^^^
+        File
+      "/root/.local/share/uv/python/cpython-3.12.13-linux-aarch64-gnu/lib/python3.12/urllib/request.py",
+      line 492, in _call_chain
+          result = func(*args)
+                   ^^^^^^^^^^^
+        File
+      "/root/.local/share/uv/python/cpython-3.12.13-linux-aarch64-gnu/lib/python3.12/urllib/request.py",
+      line 639, in http_error_default
+          raise HTTPError(req.full_url, code, msg, hdrs, fp)
+      urllib.error.HTTPError: HTTP Error 404: Not Found
+
+      The above exception was the direct cause of the following exception:
+
+      Traceback (most recent call last):
+        File "<string>", line 11, in <module>
+        File
+      "/root/.cache/uv/builds-v0/.tmpq6pMGX/lib/python3.12/site-packages/setuptools/build_meta.py",
+      line 472, in build_editable
+          return self._build_with_temp_dir(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^
+        File
+      "/root/.cache/uv/builds-v0/.tmpq6pMGX/lib/python3.12/site-packages/setuptools/build_meta.py",
+      line 408, in _build_with_temp_dir
+          self.run_setup()
+        File
+      "/root/.cache/uv/builds-v0/.tmpq6pMGX/lib/python3.12/site-packages/setuptools/build_meta.py",
+      line 317, in run_setup
+          exec(code, locals())
+        File "<string>", line 1660, in <module>
+        File "<string>", line 1040, in determine_wheel_url
+      RuntimeError: Failed to fetch precompiled wheel metadata for CUDA
+      variant 'cu130' at commit a9b727a6122a0817ecb4eba61baeeb52e9a7d7f5.
+      The root/default variant is not used as a fallback because its CUDA
+      compatibility with the selected variant cannot be verified. Provide
+      a compatible wheel with VLLM_PRECOMPILED_WHEEL_LOCATION or disable
+      VLLM_USE_PRECOMPILED to build from source.
+
+      hint: This usually indicates a problem with the package or the build
+      environment.

@@ -1,0 +1,136 @@
+"""Run the full Engram owner and one disjoint TP2 vLLM instance."""
+
+import argparse
+import json
+import os
+import selectors
+import signal
+import socket
+import subprocess
+import sys
+import tempfile
+import time
+from pathlib import Path
+
+ARTIFACTS = Path("/workspace/vllm_dsv41/artifacts/engram-shared-nvl72")
+MODEL = Path("/data/models/DeepSeek-V4.1-Flash")
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--graph", action="store_true")
+    args = parser.parse_args()
+    label = "graph" if args.graph else "eager"
+    with tempfile.TemporaryDirectory() as temporary:
+        token_file = Path(temporary) / "token"
+        token_file.write_text("0123456789abcdef0123456789abcdef")
+        os.chmod(token_file, 0o600)
+        with socket.socket() as probe:
+            probe.bind(("127.0.0.1", 0))
+            port = probe.getsockname()[1]
+        owner_command = [
+            sys.executable,
+            "-m",
+            "vllm.models.deepseek_v41.nvidia.ops.shared_engram_owner",
+            "--model-dir",
+            str(MODEL),
+            "--listen-host",
+            "127.0.0.1",
+            "--listen-port",
+            str(port),
+            "--token-file",
+            str(token_file),
+            "--device",
+            "0",
+        ]
+        print(json.dumps({"owner_command": owner_command}), flush=True)
+        owner = subprocess.Popen(
+            owner_command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True
+        )
+        child = None
+        try:
+            assert owner.stdout is not None
+            selector = selectors.DefaultSelector()
+            selector.register(owner.stdout, selectors.EVENT_READ)
+            deadline = time.monotonic() + 1200
+            generation = None
+            while time.monotonic() < deadline:
+                if not selector.select(timeout=30):
+                    if owner.poll() is not None:
+                        break
+                    continue
+                line = owner.stdout.readline()
+                if not line:
+                    break
+                print(f"owner: {line.rstrip()}", flush=True)
+                if line.startswith("ENGRAM_OWNER_READY"):
+                    generation = line.rstrip().split("generation=", 1)[1]
+                    break
+            if generation is None:
+                raise RuntimeError("owner did not publish a ready generation")
+            command = [
+                sys.executable,
+                str(ARTIFACTS / "model_smoke.py"),
+                "--endpoint",
+                f"127.0.0.1:{port}",
+                "--token-file",
+                str(token_file),
+                "--generation",
+                generation,
+                "--output",
+                str(ARTIFACTS / f"model_smoke_{label}.json"),
+            ]
+            if args.graph:
+                command.append("--graph")
+            environment = os.environ.copy()
+            environment["CUDA_VISIBLE_DEVICES"] = "2,3"
+            environment["VLLM_ENGINE_READY_TIMEOUT_S"] = "3600"
+            environment["VLLM_DEEP_GEMM_WARMUP"] = "skip"
+            print(
+                json.dumps({"model_command": command, "gpu_ids": [2, 3]}),
+                flush=True,
+            )
+            with (ARTIFACTS / f"model_process_{label}.log").open("w") as output:
+                child = subprocess.Popen(
+                    command,
+                    stdout=output,
+                    stderr=subprocess.STDOUT,
+                    env=environment,
+                    start_new_session=True,
+                )
+                try:
+                    exit_code = child.wait(timeout=3600)
+                except subprocess.TimeoutExpired:
+                    os.killpg(child.pid, signal.SIGTERM)
+                    try:
+                        child.wait(timeout=60)
+                    except subprocess.TimeoutExpired:
+                        os.killpg(child.pid, signal.SIGKILL)
+                        child.wait()
+                    raise
+            print(json.dumps({"model_exit_code": exit_code}), flush=True)
+            if exit_code:
+                tail = (ARTIFACTS / f"model_process_{label}.log").read_text().splitlines()
+                print("\n".join(tail[-60:]), flush=True)
+                raise RuntimeError("TP2 model smoke failed")
+            report = json.loads((ARTIFACTS / f"model_smoke_{label}.json").read_text())
+            print(json.dumps({"result": "pass", "report": report}), flush=True)
+        finally:
+            if child is not None and child.poll() is None:
+                os.killpg(child.pid, signal.SIGTERM)
+                child.wait(timeout=120)
+            if owner.poll() is None:
+                owner.send_signal(signal.SIGTERM)
+                try:
+                    owner.wait(timeout=180)
+                except subprocess.TimeoutExpired:
+                    if child is None or child.poll() is not None:
+                        owner.kill()
+                        owner.wait()
+                    else:
+                        raise
+            print(json.dumps({"owner_exit_code": owner.returncode}), flush=True)
+
+
+if __name__ == "__main__":
+    main()

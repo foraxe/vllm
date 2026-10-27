@@ -1,0 +1,202 @@
+"""Hold two independent TP2 engines ready, then serve through one table owner."""
+
+import json
+import os
+import selectors
+import signal
+import socket
+import subprocess
+import sys
+import tempfile
+import time
+from pathlib import Path
+
+ARTIFACTS = Path("/workspace/vllm_dsv41/artifacts/engram-shared-nvl72")
+MODEL = Path("/data/models/DeepSeek-V4.1-Flash")
+
+
+def _wait_ready(process, descriptor: int, label: str) -> None:
+    selector = selectors.DefaultSelector()
+    selector.register(descriptor, selectors.EVENT_READ)
+    deadline = time.monotonic() + 3600
+    while time.monotonic() < deadline:
+        if selector.select(timeout=30):
+            if os.read(descriptor, 1) == b"1":
+                print(json.dumps({"role": label, "ready": True}), flush=True)
+                return
+            break
+        if process.poll() is not None:
+            break
+    tail = (ARTIFACTS / f"two_instance_{label}.log").read_text().splitlines()
+    print("\n".join(tail[-45:]), flush=True)
+    raise RuntimeError(f"{label} engine did not become ready")
+
+
+def _start_role(label: str, gpus: str, port: int, token_file: Path, generation: str):
+    ready_read, ready_write = os.pipe()
+    start_read, start_write = os.pipe()
+    command = [
+        sys.executable,
+        str(ARTIFACTS / "model_smoke.py"),
+        "--endpoint",
+        f"127.0.0.1:{port}",
+        "--token-file",
+        str(token_file),
+        "--generation",
+        generation,
+        "--output",
+        str(ARTIFACTS / f"two_instance_{label}.json"),
+        "--ready-fd",
+        str(ready_write),
+        "--start-fd",
+        str(start_read),
+    ]
+    environment = os.environ.copy()
+    environment["CUDA_VISIBLE_DEVICES"] = gpus
+    environment["VLLM_ENGINE_READY_TIMEOUT_S"] = "3600"
+    environment["VLLM_DEEP_GEMM_WARMUP"] = "skip"
+    print(json.dumps({"role": label, "gpus": gpus, "command": command}), flush=True)
+    with (ARTIFACTS / f"two_instance_{label}.log").open("w") as output:
+        process = subprocess.Popen(
+            command,
+            stdout=output,
+            stderr=subprocess.STDOUT,
+            env=environment,
+            pass_fds=(ready_write, start_read),
+            start_new_session=True,
+        )
+    os.close(ready_write)
+    os.close(start_read)
+    return process, ready_read, start_write
+
+
+def _node_free_bytes(node: int) -> int:
+    with open(f"/sys/devices/system/node/node{node}/meminfo") as source:
+        for line in source:
+            parts = line.split()
+            if len(parts) >= 5 and parts[2] == "MemFree:":
+                return int(parts[3]) * 1024
+    raise RuntimeError("cannot read NUMA free memory")
+
+
+def main() -> None:
+    roles = []
+    with tempfile.TemporaryDirectory() as temporary:
+        token_file = Path(temporary) / "token"
+        token_file.write_text("0123456789abcdef0123456789abcdef")
+        os.chmod(token_file, 0o600)
+        with socket.socket() as probe:
+            probe.bind(("127.0.0.1", 0))
+            port = probe.getsockname()[1]
+        owner_command = [
+            sys.executable,
+            "-m",
+            "vllm.models.deepseek_v41.nvidia.ops.shared_engram_owner",
+            "--model-dir",
+            str(MODEL),
+            "--listen-host",
+            "127.0.0.1",
+            "--listen-port",
+            str(port),
+            "--token-file",
+            str(token_file),
+            "--device",
+            "0",
+        ]
+        owner = subprocess.Popen(
+            owner_command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True
+        )
+        print(json.dumps({"owner_command": owner_command}), flush=True)
+        try:
+            assert owner.stdout is not None
+            selector = selectors.DefaultSelector()
+            selector.register(owner.stdout, selectors.EVENT_READ)
+            deadline = time.monotonic() + 1200
+            generation = None
+            while time.monotonic() < deadline:
+                if not selector.select(timeout=30):
+                    if owner.poll() is not None:
+                        break
+                    continue
+                line = owner.stdout.readline()
+                if not line:
+                    break
+                print(f"owner: {line.rstrip()}", flush=True)
+                if line.startswith("ENGRAM_OWNER_READY"):
+                    generation = line.rstrip().split("generation=", 1)[1]
+                    break
+            if generation is None:
+                raise RuntimeError("owner did not publish a ready generation")
+
+            for label, gpus in (("prefill", "0,1"), ("decode", "2,3")):
+                role = _start_role(label, gpus, port, token_file, generation)
+                roles.append((label, *role))
+                _wait_ready(role[0], role[1], label)
+            print(
+                json.dumps(
+                    {
+                        "both_ready": True,
+                        "node_free_bytes": {
+                            0: _node_free_bytes(0),
+                            1: _node_free_bytes(1),
+                        },
+                    }
+                ),
+                flush=True,
+            )
+            for _, _, _, start_write in roles:
+                os.write(start_write, b"1")
+                os.close(start_write)
+            for label, process, _, _ in roles:
+                code = process.wait(timeout=600)
+                print(json.dumps({"role": label, "exit_code": code}), flush=True)
+                if code:
+                    tail = (ARTIFACTS / f"two_instance_{label}.log").read_text().splitlines()
+                    print("\n".join(tail[-45:]), flush=True)
+                    raise RuntimeError(f"{label} request failed")
+            reports = {
+                label: json.loads((ARTIFACTS / f"two_instance_{label}.json").read_text())
+                for label, *_ in roles
+            }
+            print(
+                json.dumps(
+                    {
+                        "result": "pass",
+                        "generations": [report["generation"] for report in reports.values()],
+                        "tokens": {
+                            label: [item["token_ids"] for item in report["outputs"]]
+                            for label, report in reports.items()
+                        },
+                    }
+                ),
+                flush=True,
+            )
+        finally:
+            for _, process, ready_read, start_write in roles:
+                os.close(ready_read)
+                try:
+                    os.close(start_write)
+                except OSError:
+                    pass
+                if process.poll() is None:
+                    os.killpg(process.pid, signal.SIGTERM)
+                    try:
+                        process.wait(timeout=120)
+                    except subprocess.TimeoutExpired:
+                        os.killpg(process.pid, signal.SIGKILL)
+                        process.wait()
+            if owner.poll() is None:
+                owner.send_signal(signal.SIGTERM)
+                try:
+                    owner.wait(timeout=180)
+                except subprocess.TimeoutExpired:
+                    if all(process.poll() is not None for _, process, _, _ in roles):
+                        owner.kill()
+                        owner.wait()
+                    else:
+                        raise
+            print(json.dumps({"owner_exit_code": owner.returncode}), flush=True)
+
+
+if __name__ == "__main__":
+    main()

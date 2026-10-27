@@ -1,0 +1,32 @@
+W1027 11:18:10.257000 158823 torch/_opaque_base.py:6] torch._opaque_base is deprecated, use torch._custom_class_base instead
+W1027 11:18:10.257000 158823 torch/_library/opaque_object.py:288] register_opaque_type is deprecated, use register_custom_class instead
+W1027 11:18:10.258000 158823 torch/_library/opaque_object.py:211] typ='value' is deprecated, use typ='constant' instead
+W1027 11:18:18.325000 159488 torch/_opaque_base.py:6] torch._opaque_base is deprecated, use torch._custom_class_base instead
+W1027 11:18:18.325000 159488 torch/_library/opaque_object.py:288] register_opaque_type is deprecated, use register_custom_class instead
+W1027 11:18:18.326000 159488 torch/_library/opaque_object.py:211] typ='value' is deprecated, use typ='constant' instead
+{"result": "pass", "tp": 1, "rank": 0, "head_start": 0, "local_heads": 24, "rows": 2604}
+W1027 11:18:28.041000 160036 torch/_opaque_base.py:6] torch._opaque_base is deprecated, use torch._custom_class_base instead
+W1027 11:18:28.041000 160036 torch/_library/opaque_object.py:288] register_opaque_type is deprecated, use register_custom_class instead
+W1027 11:18:28.042000 160036 torch/_library/opaque_object.py:211] typ='value' is deprecated, use typ='constant' instead
+{"result": "pass", "tp": 2, "rank": 0, "head_start": 0, "local_heads": 12, "rows": 1230}
+W1027 11:18:26.964000 160037 torch/_opaque_base.py:6] torch._opaque_base is deprecated, use torch._custom_class_base instead
+W1027 11:18:26.964000 160037 torch/_library/opaque_object.py:288] register_opaque_type is deprecated, use register_custom_class instead
+W1027 11:18:26.964000 160037 torch/_library/opaque_object.py:211] typ='value' is deprecated, use typ='constant' instead
+{"result": "pass", "tp": 2, "rank": 1, "head_start": 12, "local_heads": 12, "rows": 1374}
+W1027 11:18:39.079000 160995 torch/_opaque_base.py:6] torch._opaque_base is deprecated, use torch._custom_class_base instead
+W1027 11:18:39.079000 160995 torch/_library/opaque_object.py:288] register_opaque_type is deprecated, use register_custom_class instead
+W1027 11:18:39.080000 160995 torch/_library/opaque_object.py:211] typ='value' is deprecated, use typ='constant' instead
+{"result": "pass", "tp": 4, "rank": 0, "head_start": 0, "local_heads": 6, "rows": 597}
+W1027 11:18:39.067000 160996 torch/_opaque_base.py:6] torch._opaque_base is deprecated, use torch._custom_class_base instead
+W1027 11:18:39.067000 160996 torch/_library/opaque_object.py:288] register_opaque_type is deprecated, use register_custom_class instead
+W1027 11:18:39.068000 160996 torch/_library/opaque_object.py:211] typ='value' is deprecated, use typ='constant' instead
+{"result": "pass", "tp": 4, "rank": 1, "head_start": 6, "local_heads": 6, "rows": 633}
+W1027 11:18:39.079000 160997 torch/_opaque_base.py:6] torch._opaque_base is deprecated, use torch._custom_class_base instead
+W1027 11:18:39.079000 160997 torch/_library/opaque_object.py:288] register_opaque_type is deprecated, use register_custom_class instead
+W1027 11:18:39.080000 160997 torch/_library/opaque_object.py:211] typ='value' is deprecated, use typ='constant' instead
+{"result": "pass", "tp": 4, "rank": 2, "head_start": 12, "local_heads": 6, "rows": 669}
+W1027 11:18:38.807000 160998 torch/_opaque_base.py:6] torch._opaque_base is deprecated, use torch._custom_class_base instead
+W1027 11:18:38.807000 160998 torch/_library/opaque_object.py:288] register_opaque_type is deprecated, use register_custom_class instead
+W1027 11:18:38.808000 160998 torch/_library/opaque_object.py:211] typ='value' is deprecated, use typ='constant' instead
+{"result": "pass", "tp": 4, "rank": 3, "head_start": 18, "local_heads": 6, "rows": 705}
+{"result": "pass", "generation": "one-generation"}

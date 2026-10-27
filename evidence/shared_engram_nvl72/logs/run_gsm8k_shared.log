@@ -1,0 +1,3 @@
+{"ready": "owner"}
+{"result": "pass", "baseline_correct": 8, "shared_correct": 8, "total": 8, "baseline_truncated": 0, "shared_truncated": 0, "answer_match": [true, true, true, true, true, true, true, true], "token_match": [false, false, false, false, false, false, false, false]}
+{"owner_exit_code": 0}
