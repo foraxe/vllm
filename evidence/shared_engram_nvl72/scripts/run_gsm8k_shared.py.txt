@@ -1,6 +1,7 @@
 """Evaluate eight fixed GSM8K prompts against a real shared table owner."""
 
 import json
+import argparse
 import os
 import secrets
 import signal
@@ -16,6 +17,10 @@ ARTIFACTS = Path("/workspace/vllm_dsv41/artifacts/engram-shared-nvl72")
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--count", type=int, default=8)
+    args = parser.parse_args()
+    suffix = "" if args.count == 8 else f"_{args.count}"
     with tempfile.TemporaryDirectory() as temporary:
         token_file = Path(temporary) / "token"
         token_file.write_text(secrets.token_hex(32))
@@ -65,9 +70,11 @@ def main() -> None:
                 "--generation",
                 generation,
                 "--output",
-                str(ARTIFACTS / "gsm8k_shared.json"),
+                str(ARTIFACTS / f"gsm8k_shared{suffix}.json"),
+                "--count",
+                str(args.count),
             ]
-            with (ARTIFACTS / "gsm8k_shared.log").open("w") as log:
+            with (ARTIFACTS / f"gsm8k_shared{suffix}.log").open("w") as log:
                 child = subprocess.Popen(
                     command,
                     stdout=log,
@@ -77,11 +84,11 @@ def main() -> None:
                 )
                 code = child.wait(timeout=1800)
             if code:
-                tail = (ARTIFACTS / "gsm8k_shared.log").read_text().splitlines()
+                tail = (ARTIFACTS / f"gsm8k_shared{suffix}.log").read_text().splitlines()
                 print("\n".join(tail[-40:]), flush=True)
                 raise RuntimeError(f"shared GSM8K process failed: {code}")
-            baseline = json.loads((ARTIFACTS / "gsm8k_baseline.json").read_text())
-            shared = json.loads((ARTIFACTS / "gsm8k_shared.json").read_text())
+            baseline = json.loads((ARTIFACTS / f"gsm8k_baseline{suffix}.json").read_text())
+            shared = json.loads((ARTIFACTS / f"gsm8k_shared{suffix}.json").read_text())
             assert baseline["prompt_sha256"] == shared["prompt_sha256"]
             print(
                 json.dumps(

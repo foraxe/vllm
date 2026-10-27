@@ -168,3 +168,16 @@ and the matching logs. Its endpoint was `127.0.0.1`, so this result does not
 qualify NVL72. [`TWO_HOST_VALIDATION.md`](TWO_HOST_VALIDATION.md) records the
 cross-host acceptance commands and stop conditions for when a second host is
 available. Source head at this follow-up: `46706ee5`.
+
+## Follow-up: 32-question model check
+
+The first 32 questions from the saved five-shot GSM8K subset were run in
+ordinary and shared TP2 modes on this host, temperature zero and at most 512
+output tokens. Both scored 31/32, made the same one error at index 12, matched
+all 32 extracted final answers, and had no truncations. Full token sequences
+matched 8/32; total generated tokens were 3,908 ordinary and 4,120 shared.
+This is a bounded answer-level canary, not token equivalence or a broad model
+quality claim. `results/gsm8k_32_summary.json` has per-question answer, finish,
+token-count and text-hash records plus hashes of the full local raw results.
+The updated scripts accept `--count 32`; the owner attach/detach log and runner
+summary are archived in `logs/`.
