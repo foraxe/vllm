@@ -156,3 +156,15 @@ waited until the test operator force-stopped it. The captured script is
 `scripts/smoke_owner_drain.py.txt`; `logs/owner_drain_normal.log` and
 `logs/owner_drain_lost.log` show the state transitions. This does not test
 owner loss while a graph is actively replaying or remote-host failure.
+
+## Follow-up: reusable remote-consumer probe
+
+`scripts/remote_consumer_probe.py.txt` imports both real tables from an owner,
+checks seven boundary rows per layer against the local checkpoint, replays a
+CUDA Graph after changing row IDs, and detaches. The same-host dry run on GPU1
+against an owner on GPU0 passed with exact BF16 values, zero RSS change at
+attachment, and normal owner exit; see `results/remote_consumer_probe_local.json`
+and the matching logs. Its endpoint was `127.0.0.1`, so this result does not
+qualify NVL72. [`TWO_HOST_VALIDATION.md`](TWO_HOST_VALIDATION.md) records the
+cross-host acceptance commands and stop conditions for when a second host is
+available. Source head at this follow-up: `46706ee5`.

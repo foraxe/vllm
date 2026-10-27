@@ -1,0 +1,100 @@
+"""Exercise the remote-consumer probe against a real same-host owner."""
+
+import json
+import os
+import secrets
+import socket
+import subprocess
+import sys
+import tempfile
+from pathlib import Path
+
+from run_pd_smoke import LoggedProcess
+
+ARTIFACTS = Path("/workspace/vllm_dsv41/artifacts/engram-shared-nvl72")
+
+
+def main() -> None:
+    with tempfile.TemporaryDirectory() as temporary:
+        token_file = Path(temporary) / "token"
+        token_file.write_text(secrets.token_hex(32))
+        os.chmod(token_file, 0o600)
+        with socket.socket() as probe:
+            probe.bind(("127.0.0.1", 0))
+            port = probe.getsockname()[1]
+        owner = LoggedProcess(
+            [
+                sys.executable,
+                "-m",
+                "vllm.models.deepseek_v41.nvidia.ops.shared_engram_owner",
+                "--model-dir",
+                "/data/models/DeepSeek-V4.1-Flash",
+                "--listen-host",
+                "127.0.0.1",
+                "--listen-port",
+                str(port),
+                "--token-file",
+                str(token_file),
+                "--device",
+                "0",
+            ],
+            os.environ.copy(),
+            ARTIFACTS / "remote_probe_local_owner.log",
+            ready_text="ENGRAM_OWNER_READY",
+        )
+        try:
+            owner.wait_ready("owner", 1200)
+            generation = next(
+                line.split("generation=", 1)[1]
+                for line in owner.lines
+                if "ENGRAM_OWNER_READY" in line
+            )
+            output = ARTIFACTS / "remote_consumer_probe_local.json"
+            with (ARTIFACTS / "remote_consumer_probe_local.log").open("w") as log:
+                result = subprocess.run(
+                    [
+                        sys.executable,
+                        str(ARTIFACTS / "remote_consumer_probe.py"),
+                        "--model-dir",
+                        "/data/models/DeepSeek-V4.1-Flash",
+                        "--endpoint",
+                        f"127.0.0.1:{port}",
+                        "--token-file",
+                        str(token_file),
+                        "--generation",
+                        generation,
+                        "--device",
+                        "1",
+                        "--output",
+                        str(output),
+                    ],
+                    stdout=log,
+                    stderr=subprocess.STDOUT,
+                    timeout=600,
+                )
+            if result.returncode:
+                tail = (ARTIFACTS / "remote_consumer_probe_local.log").read_text().splitlines()
+                print("\n".join(tail[-35:]), flush=True)
+                raise RuntimeError(f"consumer probe failed: {result.returncode}")
+            report = json.loads(output.read_text())
+            print(
+                json.dumps(
+                    {
+                        "result": report["result"],
+                        "local_only": True,
+                        "generation": generation,
+                        "layers": [row["layer"] for row in report["tables"]],
+                        "checked_positions": [
+                            len(row["checked_positions"]) for row in report["tables"]
+                        ],
+                    }
+                ),
+                flush=True,
+            )
+        finally:
+            owner.stop()
+            print(json.dumps({"owner_exit_code": owner.process.returncode}), flush=True)
+
+
+if __name__ == "__main__":
+    main()

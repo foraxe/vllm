@@ -1,0 +1,177 @@
+"""Direct mapped Engram verification from any GPU in one IMEX/NVLink domain.
+
+Run this on a *different* NVL72 host for the cross-host acceptance gate. A
+same-host run checks the script and provider contract but cannot qualify the
+remote fabric route.
+"""
+
+import argparse
+import hashlib
+import json
+import socket
+from pathlib import Path
+
+import psutil
+import torch
+from safetensors import safe_open
+
+from vllm.models.deepseek_v41.common.engram import _engram_lookup_kernel
+from vllm.models.deepseek_v41.nvidia.ops.shared_engram_owner import (
+    _checkpoint_tables,
+    attach_table,
+    detach_table,
+)
+
+
+def selected_rows(rows: int, head_sizes: tuple[int, ...]) -> list[int]:
+    first = head_sizes[0]
+    half = sum(head_sizes[: len(head_sizes) // 2])
+    return sorted({0, first - 1, first, half - 1, half, rows // 2, rows - 1})
+
+
+def checkpoint_reference(
+    model_dir: Path, spec: dict, layer: int, positions: list[int]
+) -> torch.Tensor:
+    weight_key, scale_key = spec["keys"]
+    weight_file, scale_file = spec["files"]
+    with safe_open(model_dir / weight_file, framework="pt", device="cpu") as source:
+        weight = source.get_slice(weight_key)
+        values = torch.cat([weight[row : row + 1] for row in positions])
+    with safe_open(model_dir / scale_file, framework="pt", device="cpu") as source:
+        scales = source.get_slice(scale_key)
+        exponent = torch.cat([scales[row : row + 1] for row in positions])
+    if values.dtype != torch.float8_e4m3fn or exponent.dtype != torch.float8_e8m0fnu:
+        raise ValueError(f"layer {layer} has unexpected checkpoint encoding")
+    block = 32
+    scale = (exponent.view(torch.uint8).to(torch.int32) << 23).view(torch.float32)
+    output = values.to(torch.float32).unflatten(-1, (-1, block))
+    return (output * scale.unsqueeze(-1)).flatten(-2).to(torch.bfloat16)
+
+
+def gather(mapping, rows: int, dim: int, ids: torch.Tensor, output: torch.Tensor):
+    weight_bytes = rows * dim
+    weight = mapping.cuda[:weight_bytes].view(torch.float8_e4m3fn).view(rows, dim)
+    scales = mapping.cuda[weight_bytes:].view(rows, dim // 32)
+    _engram_lookup_kernel[(1,)](
+        weight,
+        scales,
+        ids,
+        ids,
+        output,
+        0,
+        rows,
+        ids.shape[0],
+        1,
+        1,
+        HEAD_START=0,
+        LOCAL_HEADS=1,
+        TOTAL_HEADS=1,
+        DIM=dim,
+        QUANT_BLOCK=32,
+        BLOCK_R=16,
+        GRID=1,
+        SORTED=False,
+        PACKED=False,
+        OUT_STRIDE=dim,
+    )
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--model-dir", type=Path, required=True)
+    parser.add_argument("--endpoint", required=True)
+    parser.add_argument("--token-file", type=Path, required=True)
+    parser.add_argument("--generation", required=True)
+    parser.add_argument("--device", type=int, default=0)
+    parser.add_argument("--output", type=Path, required=True)
+    args = parser.parse_args()
+    torch.cuda.set_device(args.device)
+    _, tables = _checkpoint_tables(args.model_dir)
+    reports = []
+    for layer_text, spec in tables.items():
+        layer = int(layer_text)
+        rows, dim = spec["rows"], spec["dim"]
+        head_sizes = tuple(spec["head_sizes"])
+        positions = selected_rows(rows, head_sizes)
+        before_rss = psutil.Process().memory_info().rss
+        connection, mapping, manifest = attach_table(
+            args.endpoint,
+            args.token_file,
+            layer,
+            rows,
+            dim,
+            head_sizes,
+            args.device,
+            expected_generation=args.generation,
+            checkpoint_dir=args.model_dir,
+        )
+        after_rss = psutil.Process().memory_info().rss
+        try:
+            expected = checkpoint_reference(args.model_dir, spec, layer, positions)
+            ids = torch.tensor(positions, dtype=torch.int32, device="cuda")[:, None]
+            output = torch.empty((len(positions), dim), dtype=torch.bfloat16, device="cuda")
+            gather(mapping, rows, dim, ids, output)
+            torch.cuda.synchronize()
+            torch.testing.assert_close(output.cpu(), expected, rtol=0, atol=0)
+            graph = torch.cuda.CUDAGraph()
+            with torch.cuda.graph(graph):
+                gather(mapping, rows, dim, ids, output)
+            graph.replay()
+            torch.cuda.synchronize()
+            torch.testing.assert_close(output.cpu(), expected, rtol=0, atol=0)
+            ids.copy_(torch.tensor(list(reversed(positions)), dtype=torch.int32, device="cuda")[:, None])
+            graph.replay()
+            torch.cuda.synchronize()
+            torch.testing.assert_close(
+                output.cpu(), expected.flip(0), rtol=0, atol=0
+            )
+            del graph
+            reports.append(
+                {
+                    "layer": layer,
+                    "rows": rows,
+                    "checked_positions": positions,
+                    "table_bytes": mapping.table.size_bytes,
+                    "padded_bytes": mapping.table.padded_bytes,
+                    "fabric_handles": len(mapping.table.fabric_handles),
+                    "chunk_numa_nodes": list(mapping.table.placement),
+                    "imported_va": mapping.address,
+                    "owner_peer_address": connection.getpeername()[0],
+                    "consumer_rss_delta_bytes": after_rss - before_rss,
+                    "owner_weight_sha256": manifest["tables"][layer_text]["weight_sha256"],
+                    "owner_scale_sha256": manifest["tables"][layer_text]["scale_sha256"],
+                    "expected_output_sha256": hashlib.sha256(
+                        expected.view(torch.uint8).numpy().tobytes()
+                    ).hexdigest(),
+                    "graph_changed_ids": True,
+                }
+            )
+        finally:
+            detach_table(connection, mapping, manifest["lease"])
+    report = {
+        "result": "pass",
+        "consumer_hostname": socket.gethostname(),
+        "owner_endpoint": args.endpoint,
+        "generation": args.generation,
+        "device": args.device,
+        "model_dir": str(args.model_dir),
+        "tables": reports,
+    }
+    args.output.parent.mkdir(parents=True, exist_ok=True)
+    args.output.write_text(json.dumps(report, indent=2) + "\n")
+    print(
+        json.dumps(
+            {
+                "result": "pass",
+                "consumer_hostname": report["consumer_hostname"],
+                "owner_endpoint": args.endpoint,
+                "layers": [item["layer"] for item in reports],
+                "checked_rows_per_layer": [len(item["checked_positions"]) for item in reports],
+            }
+        ),
+        flush=True,
+    )
+
+
+if __name__ == "__main__":
+    main()
