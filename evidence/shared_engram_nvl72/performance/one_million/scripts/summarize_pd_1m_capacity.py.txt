@@ -1,0 +1,83 @@
+"""Create a compact, auditable summary of local 1M P/D waves."""
+
+import hashlib
+import json
+import statistics
+from pathlib import Path
+
+ROOT = Path("/workspace/vllm_dsv41/artifacts/engram-shared-nvl72")
+REPORTS = {
+    "shared": ROOT / "capacity_1m/shared_20261027T232729Z/report.json",
+    "ordinary": ROOT / "capacity_1m/ordinary_20261027T233851Z/report.json",
+    "shared_11": ROOT / "capacity_1m/shared_20261027T234915Z/report.json",
+}
+OUTPUT = ROOT / "capacity_1m/summary.json"
+
+
+def sha256(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def main() -> None:
+    reports = {key: json.loads(path.read_text()) for key, path in REPORTS.items()}
+    assert {report["prompt_sha256"] for report in reports.values()} == {
+        reports["shared"]["prompt_sha256"]
+    }
+    assert all(report["input_tokens"] == 1_000_000 for report in reports.values())
+    output = {
+        "source_commit": reports["shared"]["source_commit"],
+        "hardware": reports["shared"]["hardware"],
+        "fixture_provenance": reports["shared"]["fixture_provenance"],
+        "prompt_sha256": reports["shared"]["prompt_sha256"],
+        "model_config_sha256": "8be45ce0476004a3f529fd896115a4a2e800a129ad2d3ec05b16050f52e21879",
+        "model_index_sha256": "74b0686a3d2891980d5e303251b075a3bccae2c2ff650747db2620a649b98fa8",
+        "input_tokens_per_request": 1_000_000,
+        "output_tokens_per_request": 32,
+        "max_model_len": 1_000_512,
+        "prefill_batched_tokens": 16_384,
+        "decode_batched_tokens": 8_192,
+        "kv_gib_per_rank": 24,
+        "raw_local_report_sha256": {key: sha256(path) for key, path in REPORTS.items()},
+        "runs": {},
+    }
+    for key, report in reports.items():
+        waves = []
+        for wave in report["waves"]:
+            rows = wave["rows"]
+            assert len(rows) == wave["concurrency"]
+            assert all(
+                row["prompt_tokens"] == 1_000_000
+                and row["completion_tokens"] == 32
+                and row["transfer_mode"] == "pull"
+                for row in rows
+            )
+            waves.append(
+                {
+                    "concurrency": wave["concurrency"],
+                    "wave_seconds": round(wave["wall_seconds"], 3),
+                    "input_tokens_per_second": round(
+                        wave["input_tokens_per_second"], 1
+                    ),
+                    "prefill_seconds_sorted": sorted(
+                        round(row["prefill_seconds"], 3) for row in rows
+                    ),
+                    "decode_seconds_median": round(
+                        statistics.median(row["decode_seconds"] for row in rows), 3
+                    ),
+                    "gpu_used_mib_after_wave": wave["gpu_used_mib_after_wave"],
+                    "completion_text_sha256": [
+                        row["text_sha256"] for row in rows
+                    ],
+                }
+            )
+        output["runs"][key] = {
+            "max_num_seqs": report["max_num_seqs"],
+            "gpu_used_mib_at_ready": report["gpu_used_mib_at_ready"],
+            "waves": waves,
+        }
+    OUTPUT.write_text(json.dumps(output, indent=2) + "\n")
+    print(OUTPUT)
+
+
+if __name__ == "__main__":
+    main()

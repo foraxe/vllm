@@ -155,3 +155,11 @@ recommendation without a substantive gain.
   the required next hardware validation before a cross-host performance
   claim. No Engram kernel performance PR is warranted from these local
   profiles.
+
+## Follow-up: 1M input and concurrency
+
+The later [one-million-token local P/D screen](one_million/README.md) uses
+1,000,000 input tokens and concurrent waves up to eleven requests. It includes
+the matched ordinary/shared controls, compact per-request results, raw reports,
+reproduction scripts, and a conditional remote-read sensitivity calculation.
+It is single-host evidence and does not establish cross-host NVL72 performance.

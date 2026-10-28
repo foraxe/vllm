@@ -1,0 +1,10 @@
+{"ready": "prefill"}
+{"ready": "decode"}
+{"storage": "ordinary", "concurrency": 1, "wave": 1, "wall_seconds": 27.75294252601452, "input_tokens_per_second": 36032.21528897843, "prefill_seconds": [17.603816920192912], "decode_seconds": [10.142214176943526]}
+{"storage": "ordinary", "concurrency": 1, "wave": 2, "wall_seconds": 22.80880597885698, "input_tokens_per_second": 43842.71587591947, "prefill_seconds": [16.326696302043274], "decode_seconds": [6.476689744973555]}
+{"storage": "ordinary", "concurrency": 2, "wave": 3, "wall_seconds": 38.20014991099015, "input_tokens_per_second": 52355.81547873983, "prefill_seconds": [32.13453801488504, 16.60257259500213], "decode_seconds": [6.018960224930197, 5.867051622131839]}
+{"storage": "ordinary", "concurrency": 2, "wave": 4, "wall_seconds": 38.229334199102595, "input_tokens_per_second": 52315.84702950303, "prefill_seconds": [16.608382269041613, 32.2118654679507], "decode_seconds": [5.953368095913902, 6.011513466946781]}
+{"storage": "ordinary", "concurrency": 4, "wave": 5, "wall_seconds": 69.64412719989195, "input_tokens_per_second": 57434.85001282643, "prefill_seconds": [47.7836765779648, 63.51314294990152, 16.73341123503633, 32.26579230604693], "decode_seconds": [5.985370757989585, 6.002191131003201, 5.913330266019329, 6.0505329999141395]}
+{"storage": "ordinary", "concurrency": 8, "wave": 6, "wall_seconds": 131.78595390589908, "input_tokens_per_second": 60704.496669746375, "prefill_seconds": [79.13228329317644, 125.58722993708216, 110.19675566488877, 32.4685888690874, 94.77524327207357, 47.947388705099, 63.56300640502013, 17.11252258392051], "decode_seconds": [6.215865595033392, 5.904480479890481, 6.033099323976785, 6.135315349092707, 6.039092093938962, 6.329782267101109, 5.944759307894856, 5.926952650072053]}
+{"result": "pass", "storage": "ordinary", "report": "/workspace/vllm_dsv41/artifacts/engram-shared-nvl72/capacity_1m/ordinary_20261027T233851Z/report.json"}
+{"exit_codes": [0, 0]}

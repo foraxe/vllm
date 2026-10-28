@@ -1,0 +1,21 @@
+W1027 18:49:19.287000 142600 .venv/lib/python3.12/site-packages/torch/_opaque_base.py:6] torch._opaque_base is deprecated, use torch._custom_class_base instead
+W1027 18:49:19.287000 142600 .venv/lib/python3.12/site-packages/torch/_library/opaque_object.py:288] register_opaque_type is deprecated, use register_custom_class instead
+W1027 18:49:19.287000 142600 .venv/lib/python3.12/site-packages/torch/_library/opaque_object.py:211] typ='value' is deprecated, use typ='constant' instead
+ENGRAM_OWNER_BACKING {"table_bytes": 202758032400, "padded_bytes": 202758946816, "node_bytes": {"1": 185579077632, "0": 17179869184}}
+ENGRAM_OWNER_READY 127.0.0.1:41839 generation=d00cfec9b9c4c32dcb06eb4dd5121b58
+ENGRAM_OWNER_ATTACH {"client": {"device": 0, "hostname": "gpuidi14aaf1029.idi1", "layer": 1, "peer": "127.0.0.1", "pid": 148358}, "generation": "d00cfec9b9c4c32dcb06eb4dd5121b58", "lease": "f27e5343bc64014904aedddaaa14b60f"}
+ENGRAM_OWNER_ATTACH {"client": {"device": 1, "hostname": "gpuidi14aaf1029.idi1", "layer": 1, "peer": "127.0.0.1", "pid": 148359}, "generation": "d00cfec9b9c4c32dcb06eb4dd5121b58", "lease": "82251f52c9e608e8305489a5db530939"}
+ENGRAM_OWNER_ATTACH {"client": {"device": 0, "hostname": "gpuidi14aaf1029.idi1", "layer": 14, "peer": "127.0.0.1", "pid": 148358}, "generation": "d00cfec9b9c4c32dcb06eb4dd5121b58", "lease": "bf5fc60f12bfc380717681df2ca4cc20"}
+ENGRAM_OWNER_ATTACH {"client": {"device": 1, "hostname": "gpuidi14aaf1029.idi1", "layer": 14, "peer": "127.0.0.1", "pid": 148359}, "generation": "d00cfec9b9c4c32dcb06eb4dd5121b58", "lease": "7d240f3df644e6712ff8deebf822ab4a"}
+ENGRAM_OWNER_ATTACH {"client": {"device": 1, "hostname": "gpuidi14aaf1029.idi1", "layer": 1, "peer": "127.0.0.1", "pid": 153263}, "generation": "d00cfec9b9c4c32dcb06eb4dd5121b58", "lease": "40788e1bcb70d3a662b3b30c0d18c2bb"}
+ENGRAM_OWNER_ATTACH {"client": {"device": 0, "hostname": "gpuidi14aaf1029.idi1", "layer": 1, "peer": "127.0.0.1", "pid": 153262}, "generation": "d00cfec9b9c4c32dcb06eb4dd5121b58", "lease": "26d0a0b7090c713a6be8e207ef75dd84"}
+ENGRAM_OWNER_ATTACH {"client": {"device": 1, "hostname": "gpuidi14aaf1029.idi1", "layer": 14, "peer": "127.0.0.1", "pid": 153263}, "generation": "d00cfec9b9c4c32dcb06eb4dd5121b58", "lease": "a1ab3c2c3ab2ddc2dd9830e128084179"}
+ENGRAM_OWNER_ATTACH {"client": {"device": 0, "hostname": "gpuidi14aaf1029.idi1", "layer": 14, "peer": "127.0.0.1", "pid": 153262}, "generation": "d00cfec9b9c4c32dcb06eb4dd5121b58", "lease": "4cf49c4207b8045238e8267d0fe7e67a"}
+ENGRAM_OWNER_DETACH {"client": {"device": 1, "hostname": "gpuidi14aaf1029.idi1", "layer": 14, "peer": "127.0.0.1", "pid": 153263}, "generation": "d00cfec9b9c4c32dcb06eb4dd5121b58", "lease": "a1ab3c2c3ab2ddc2dd9830e128084179"}
+ENGRAM_OWNER_DETACH {"client": {"device": 1, "hostname": "gpuidi14aaf1029.idi1", "layer": 1, "peer": "127.0.0.1", "pid": 153263}, "generation": "d00cfec9b9c4c32dcb06eb4dd5121b58", "lease": "40788e1bcb70d3a662b3b30c0d18c2bb"}
+ENGRAM_OWNER_DETACH {"client": {"device": 0, "hostname": "gpuidi14aaf1029.idi1", "layer": 14, "peer": "127.0.0.1", "pid": 153262}, "generation": "d00cfec9b9c4c32dcb06eb4dd5121b58", "lease": "4cf49c4207b8045238e8267d0fe7e67a"}
+ENGRAM_OWNER_DETACH {"client": {"device": 0, "hostname": "gpuidi14aaf1029.idi1", "layer": 1, "peer": "127.0.0.1", "pid": 153262}, "generation": "d00cfec9b9c4c32dcb06eb4dd5121b58", "lease": "26d0a0b7090c713a6be8e207ef75dd84"}
+ENGRAM_OWNER_DETACH {"client": {"device": 0, "hostname": "gpuidi14aaf1029.idi1", "layer": 14, "peer": "127.0.0.1", "pid": 148358}, "generation": "d00cfec9b9c4c32dcb06eb4dd5121b58", "lease": "bf5fc60f12bfc380717681df2ca4cc20"}
+ENGRAM_OWNER_DETACH {"client": {"device": 0, "hostname": "gpuidi14aaf1029.idi1", "layer": 1, "peer": "127.0.0.1", "pid": 148358}, "generation": "d00cfec9b9c4c32dcb06eb4dd5121b58", "lease": "f27e5343bc64014904aedddaaa14b60f"}
+ENGRAM_OWNER_DETACH {"client": {"device": 1, "hostname": "gpuidi14aaf1029.idi1", "layer": 14, "peer": "127.0.0.1", "pid": 148359}, "generation": "d00cfec9b9c4c32dcb06eb4dd5121b58", "lease": "7d240f3df644e6712ff8deebf822ab4a"}
+ENGRAM_OWNER_DETACH {"client": {"device": 1, "hostname": "gpuidi14aaf1029.idi1", "layer": 1, "peer": "127.0.0.1", "pid": 148359}, "generation": "d00cfec9b9c4c32dcb06eb4dd5121b58", "lease": "82251f52c9e608e8305489a5db530939"}
