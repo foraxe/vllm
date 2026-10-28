@@ -2,6 +2,7 @@
 
 import hashlib
 import json
+import re
 import statistics
 from pathlib import Path
 
@@ -10,6 +11,9 @@ REPORTS = {
     "shared": ROOT / "capacity_1m/shared_20261027T232729Z/report.json",
     "ordinary": ROOT / "capacity_1m/ordinary_20261027T233851Z/report.json",
     "shared_11": ROOT / "capacity_1m/shared_20261027T234915Z/report.json",
+}
+PREFILL_LOGS = {
+    key: path.parent / "prefill.log" for key, path in REPORTS.items()
 }
 OUTPUT = ROOT / "capacity_1m/summary.json"
 
@@ -41,6 +45,14 @@ def main() -> None:
         "runs": {},
     }
     for key, report in reports.items():
+        scheduler = [
+            (int(running), int(waiting))
+            for running, waiting in re.findall(
+                r"Running: (\d+) reqs, Waiting: (\d+) reqs",
+                PREFILL_LOGS[key].read_text(),
+            )
+        ]
+        assert scheduler
         waves = []
         for wave in report["waves"]:
             rows = wave["rows"]
@@ -72,6 +84,8 @@ def main() -> None:
             )
         output["runs"][key] = {
             "max_num_seqs": report["max_num_seqs"],
+            "prefill_max_running_observed": max(running for running, _ in scheduler),
+            "prefill_max_waiting_observed": max(waiting for _, waiting in scheduler),
             "gpu_used_mib_at_ready": report["gpu_used_mib_at_ready"],
             "waves": waves,
         }

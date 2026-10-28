@@ -19,6 +19,8 @@
   "runs": {
     "shared": {
       "max_num_seqs": 8,
+      "prefill_max_running_observed": 1,
+      "prefill_max_waiting_observed": 7,
       "gpu_used_mib_at_ready": [
         181059,
         180365,
@@ -162,6 +164,8 @@
     },
     "ordinary": {
       "max_num_seqs": 8,
+      "prefill_max_running_observed": 1,
+      "prefill_max_waiting_observed": 7,
       "gpu_used_mib_at_ready": [
         180363,
         180363,
@@ -305,6 +309,8 @@
     },
     "shared_11": {
       "max_num_seqs": 11,
+      "prefill_max_running_observed": 1,
+      "prefill_max_waiting_observed": 10,
       "gpu_used_mib_at_ready": [
         181051,
         180357,

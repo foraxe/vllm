@@ -24,10 +24,11 @@ matched storage comparison and eleven for a separate shared-only edge check.
 
 Acceptance required exact 1,000,000 input and 32 output tokens for every
 request, NIXL pull metadata, clean P/D/owner shutdown and no GPU lease leak.
-The sweep stopped at eleven because P reported 11.59 million KV-token capacity
-at 24 GiB and throughput had already plateaued by eight. A twelve-request
-wave with this fixed KV reservation would exceed the reported full-context
-concurrency estimate, so it was not launched.
+The sweep stopped at eleven because throughput had already plateaued by eight.
+P reported 11.59 million KV-token capacity at 24 GiB, sufficient for roughly
+eleven fully resident 1M sequences in isolation; this is a cache-capacity
+calculation, not a count of actively scheduled requests. More queued clients
+could be accepted, but testing them would add little to this throughput screen.
 
 ## Captured results
 
@@ -44,14 +45,17 @@ waves; C4, C8 and C11 each have one.
 | 8 | 131.79 / 60.70K | 130.43 / 61.34K |
 | 11 | not run | 178.92 / 61.48K |
 
-All 28 shared and 17 ordinary request completions in the retained waves had
+All 28 shared and 17 ordinary client-request completions in the retained waves had
 the exact requested token counts; all processes exited zero. (Including the
 warmup waves: 30 shared and 18 ordinary completions.) Shared C11's first and
 last P phases took 17.12 and 172.68 seconds; median D phase was 6.07 seconds.
 P completion times in C4/C8 advanced approximately one 1M request every 15-16
-seconds. C8 to C11 added only 0.23% aggregate input throughput but increased
-the last P phase by about 39%. D ran on separate GPUs and stayed around six
-seconds per request, so P scheduling/compute dominated this workload.
+seconds. The P scheduler logs recorded at most **one running request** in each
+run; at C11 they recorded ten waiting. Thus C11 means eleven simultaneous
+clients accepted and completed, not eleven prefills active together. C8 to C11
+added only 0.23% aggregate input throughput but increased the last P phase by
+about 39%. D ran on separate GPUs and stayed around six seconds per request,
+so P scheduling/compute dominated this workload.
 
 The local shared/ordinary C1, C4 and C8 wave rates differ by about 1-2%; C2
 varied more between sequential waves. This one-order comparison does not prove
@@ -60,9 +64,11 @@ GPU memory was 181,059/180,365 MiB on shared P ranks and 175,977 MiB on D
 ranks. After waves, shared P rank 0 used 184,477 MiB of 189,471 MiB total:
 about 4,994 MiB headroom. P reported 11,592,407 KV tokens at 24 GiB,
 corresponding to 11.59 full 1,000,512-token sequences. D reported 13,993,910
-KV tokens. Eleven is the tested admission capacity for this exact setup;
-roughly four to eight is the useful throughput range before marginal gains
-collapse. Latency-sensitive serving may prefer fewer than four.
+KV tokens. Eleven is the largest completed **client wave** tested for this
+setup; it is not the maximum accepted queue length or active P concurrency.
+The observed active P concurrency was one. Roughly four to eight simultaneous
+clients reached near-peak aggregate wave throughput before marginal gains
+collapsed. Latency-sensitive serving may prefer fewer than four.
 
 ## Conditional remote Engram estimate
 
@@ -70,7 +76,8 @@ The current GB200 path runs a host lookup inline on the main stream when a
 scheduled chunk contains at least 4,096 tokens. Most 16K P chunks meet that
 threshold, so their lookup cost is not hidden by earlier-layer compute on the
 same stream. Smaller chunks can prefetch on a second stream. Concurrency here
-did not turn the large P chunks into parallel completed prefills.
+did not turn the large P chunks into parallel active prefills; scheduler logs
+showed one running P request and the rest waiting.
 
 For a full 1M request, the nominal FP8/E8M0 source-read volume per TP rank is
 `1,000,000 tokens * 12 local hash columns * (256 + 8) bytes * 2 layers =

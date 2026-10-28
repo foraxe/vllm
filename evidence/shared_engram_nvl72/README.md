@@ -184,8 +184,9 @@ summary are archived in `logs/`.
 
 ## Follow-up: 1M P/D capacity
 
-The [local one-million-token screen](performance/one_million/README.md) admitted
-eleven simultaneous P/D requests using one shared generation. Input throughput
+The [local one-million-token screen](performance/one_million/README.md) completed
+eleven simultaneously submitted P/D client requests using one shared generation;
+the P scheduler ran one and queued the others. Input throughput
 plateaued around 61K tokens/s by eight requests while prefill tail latency
 grew. Ordinary/shared matched waves at concurrency 1, 2, 4 and 8 did not show
 a reliable local storage-mode speedup. The report keeps cross-host remote-read
