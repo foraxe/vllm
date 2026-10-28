@@ -163,3 +163,12 @@ The later [one-million-token local P/D screen](one_million/README.md) uses
 the matched ordinary/shared controls, compact per-request results, raw reports,
 reproduction scripts, and a conditional remote-read sensitivity calculation.
 It is single-host evidence and does not establish cross-host NVL72 performance.
+
+## Follow-up: P/D sequence cap 128
+
+The [matched cap-8/cap-128 screen](sequence_cap_128/README.md) keeps the
+four-GPU shared-owner P/D layout and one-million-token server context. The
+1M C1/C4/C8 waves did not regress at cap 128. At 8K input and 128 offered
+clients, cap 128 removed a large D queue bottleneck in both arm orders.
+P8/D128 retained that benefit and passed a final 1M screen. This is local
+configuration evidence, not a cross-host or production SLO result.

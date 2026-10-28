@@ -191,3 +191,11 @@ plateaued around 61K tokens/s by eight requests while prefill tail latency
 grew. Ordinary/shared matched waves at concurrency 1, 2, 4 and 8 did not show
 a reliable local storage-mode speedup. The report keeps cross-host remote-read
 performance as a conditional estimate; it has not been observed.
+
+## Follow-up: 128 sequence cap
+
+The [local sequence-cap comparison](performance/sequence_cap_128/README.md)
+tested both P/D caps at 8 and 128 in reversed order, then P8/D128. The
+larger D cap improved high-concurrency 8K request waves substantially while
+the 1M C1/C4/C8 waves remained similar. The source PR does not contain a
+performance edit for this configuration result.

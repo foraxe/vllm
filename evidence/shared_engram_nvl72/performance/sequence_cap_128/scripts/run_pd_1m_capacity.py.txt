@@ -1,0 +1,223 @@
+"""Bounded local 1M P/D concurrency screen for ordinary/shared Engram."""
+
+import argparse
+import concurrent.futures
+import datetime as dt
+import hashlib
+import json
+import os
+import secrets
+import socket
+import sys
+import tempfile
+import threading
+import time
+from pathlib import Path
+
+import httpx
+
+from run_pd_long import gpu_memory_used_mib, set_flag
+from run_pd_profile import one_pd_request
+from run_pd_smoke import LoggedProcess, server_command
+
+ARTIFACTS = Path("/workspace/vllm_dsv41/artifacts/engram-shared-nvl72")
+SOURCE = Path("/workspace/vllm_dsv41/artifacts/engram-wkv-32k/prompts.json")
+SHORT_SOURCE = Path(
+    "/workspace/vllm_dsv41/artifacts/decoder-tail-diagnosis/long-eval-prompts.json"
+)
+LENGTH = 1_000_000
+MAX_MODEL_LEN = LENGTH + 512
+KV_GIB = 24
+MAX_SEQS = 8
+P_BUDGET = 16384
+D_BUDGET = 8192
+
+
+def load_ids(length: int) -> list[int]:
+    if length == 8192:
+        ids = json.loads(SHORT_SOURCE.read_text())[0]["prompt_token_ids"]
+        if len(ids) != length:
+            raise ValueError("saved 8K prompt fixture size changed")
+        return ids
+    if length != LENGTH:
+        raise ValueError("unsupported prompt fixture length")
+    saved = json.loads(SOURCE.read_text())
+    seed = [token for item in saved for token in item["prompt_token_ids"]]
+    if len(seed) != 524288:
+        raise ValueError("saved 32K prompt fixture size changed")
+    return (seed * 2)[:length]
+
+
+def run_wave(ids: list[int], concurrency: int) -> dict:
+    barrier = threading.Barrier(concurrency)
+
+    def request(index: int) -> dict:
+        barrier.wait(timeout=30)
+        started = time.monotonic()
+        row = one_pd_request(ids)
+        return {"index": index, "start_offset_s": started - wave_start, **row}
+
+    wave_start = time.monotonic()
+    with concurrent.futures.ThreadPoolExecutor(max_workers=concurrency) as pool:
+        futures = [pool.submit(request, i) for i in range(concurrency)]
+        rows = [future.result(timeout=900) for future in futures]
+    wall = time.monotonic() - wave_start
+    rows.sort(key=lambda row: row["index"])
+    assert all(row["prompt_tokens"] == len(ids) and row["completion_tokens"] == 32 for row in rows)
+    return {
+        "concurrency": concurrency,
+        "wall_seconds": wall,
+        "input_tokens_per_second": concurrency * len(ids) / wall,
+        "rows": rows,
+        "gpu_used_mib_after_wave": gpu_memory_used_mib(),
+    }
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--baseline", action="store_true")
+    parser.add_argument("--max-seqs", type=int, default=MAX_SEQS)
+    parser.add_argument("--prefill-max-seqs", type=int)
+    parser.add_argument("--decode-max-seqs", type=int)
+    parser.add_argument("--waves", default="1,1,2,2,4,8")
+    parser.add_argument("--prompt-tokens", type=int, choices=(8192, LENGTH), default=LENGTH)
+    args = parser.parse_args()
+    role_max_seqs = {
+        "prefill": args.prefill_max_seqs or args.max_seqs,
+        "decode": args.decode_max_seqs or args.max_seqs,
+    }
+    waves = tuple(int(value) for value in args.waves.split(","))
+    if not waves or min(waves) < 1:
+        parser.error("waves must contain positive client counts")
+    label = "ordinary" if args.baseline else "shared"
+    run_id = dt.datetime.now(dt.timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    out = ARTIFACTS / "capacity_1m" / f"{label}_{run_id}"
+    out.mkdir(parents=True, exist_ok=False)
+    ids = load_ids(args.prompt_tokens)
+    prompt_hash = hashlib.sha256(json.dumps(ids).encode()).hexdigest()
+    processes: list[LoggedProcess] = []
+    with tempfile.TemporaryDirectory() as temporary:
+        token_file = Path(temporary) / "token"
+        token_file.write_text(secrets.token_hex(32))
+        os.chmod(token_file, 0o600)
+        with socket.socket() as probe:
+            probe.bind(("127.0.0.1", 0))
+            owner_port = probe.getsockname()[1]
+        generation = None
+        try:
+            if not args.baseline:
+                owner = LoggedProcess(
+                    [
+                        sys.executable,
+                        "-m",
+                        "vllm.models.deepseek_v41.nvidia.ops.shared_engram_owner",
+                        "--model-dir",
+                        "/data/models/DeepSeek-V4.1-Flash",
+                        "--listen-host",
+                        "127.0.0.1",
+                        "--listen-port",
+                        str(owner_port),
+                        "--token-file",
+                        str(token_file),
+                        "--device",
+                        "0",
+                    ],
+                    os.environ.copy(),
+                    out / "owner.log",
+                    ready_text="ENGRAM_OWNER_READY",
+                )
+                processes.append(owner)
+                owner.wait_ready("owner", 1200)
+                generation = next(
+                    line.split("generation=", 1)[1]
+                    for line in owner.lines
+                    if "ENGRAM_OWNER_READY" in line
+                )
+            for role, gpus, port, internal, side in (
+                ("prefill", "0,1", 8100, 20000, 5559),
+                ("decode", "2,3", 8200, 30000, 5659),
+            ):
+                environment = os.environ.copy()
+                environment.update(
+                    {
+                        "CUDA_VISIBLE_DEVICES": gpus,
+                        "VLLM_PORT": str(internal),
+                        "VLLM_NIXL_SIDE_CHANNEL_PORT": str(side),
+                        "VLLM_ENGINE_READY_TIMEOUT_S": "3600",
+                        "VLLM_DEEP_GEMM_WARMUP": "skip",
+                        "UCX_TLS": "cuda_copy,cuda_ipc,tcp",
+                        "UCX_NET_DEVICES": "all",
+                    }
+                )
+                command = server_command(
+                    role, port, owner_port, token_file, generation, args.baseline
+                )
+                for flag, value in (
+                    ("--max-model-len", MAX_MODEL_LEN),
+                    ("--max-num-seqs", role_max_seqs[role]),
+                    ("--max-num-batched-tokens", P_BUDGET if role == "prefill" else D_BUDGET),
+                    ("--kv-cache-memory-bytes", KV_GIB * 2**30),
+                ):
+                    set_flag(command, flag, value)
+                server = LoggedProcess(
+                    command,
+                    environment,
+                    out / f"{role}.log",
+                    ready_text="Application startup complete.",
+                )
+                processes.append(server)
+                server.wait_ready(role, 3600)
+                with httpx.Client(timeout=30) as client:
+                    client.get(f"http://127.0.0.1:{port}/v1/models").raise_for_status()
+            report = {
+                "storage": label,
+                "generation": generation,
+                "source_commit": "46706ee5e5ade3f622b6f606bbd05b84b06a9b96",
+                "hardware": "single host, 4x GB200, P TP2 GPUs 0/1, D TP2 GPUs 2/3",
+                "fixture": str(SHORT_SOURCE if args.prompt_tokens == 8192 else SOURCE),
+                "fixture_provenance": (
+                    "first saved 8K retrieval prompt ID fixture"
+                    if args.prompt_tokens == 8192
+                    else "repeat sixteen saved 32K engineering-document prompt ID fixtures and truncate to one million"
+                ),
+                "prompt_sha256": prompt_hash,
+                "input_tokens": len(ids),
+                "output_tokens": 32,
+                "max_model_len": MAX_MODEL_LEN,
+                "max_num_seqs": args.max_seqs,
+                "role_max_num_seqs": role_max_seqs,
+                "prefill_budget": P_BUDGET,
+                "decode_budget": D_BUDGET,
+                "kv_cache_memory_bytes_per_rank": KV_GIB * 2**30,
+                "gpu_used_mib_at_ready": gpu_memory_used_mib(),
+                "waves": [],
+            }
+            (out / "report_partial.json").write_text(json.dumps(report, indent=2) + "\n")
+            for concurrency in waves:
+                wave = run_wave(ids, concurrency)
+                report["waves"].append(wave)
+                (out / "report_partial.json").write_text(json.dumps(report, indent=2) + "\n")
+                print(
+                    json.dumps(
+                        {
+                            "storage": label,
+                            "concurrency": concurrency,
+                            "wave": len(report["waves"]),
+                            "wall_seconds": wave["wall_seconds"],
+                            "input_tokens_per_second": wave["input_tokens_per_second"],
+                            "prefill_seconds": [row["prefill_seconds"] for row in wave["rows"]],
+                            "decode_seconds": [row["decode_seconds"] for row in wave["rows"]],
+                        }
+                    ),
+                    flush=True,
+                )
+            (out / "report.json").write_text(json.dumps(report, indent=2) + "\n")
+            print(json.dumps({"result": "pass", "storage": label, "report": str(out / "report.json")}), flush=True)
+        finally:
+            for process in reversed(processes):
+                process.stop()
+            print(json.dumps({"exit_codes": [p.process.returncode for p in processes]}), flush=True)
+
+
+if __name__ == "__main__":
+    main()

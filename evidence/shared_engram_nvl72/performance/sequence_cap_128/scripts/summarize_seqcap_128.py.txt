@@ -1,0 +1,114 @@
+"""Summarize matched P/D sequence-cap experiments from raw reports and logs."""
+
+import hashlib
+import json
+import re
+import statistics
+from pathlib import Path
+
+ROOT = Path("/workspace/vllm_dsv41/artifacts/engram-shared-nvl72/capacity_1m")
+RUNS = {
+    "long_cap8": "shared_20261027T232729Z",
+    "long_cap128": "shared_20261028T141423Z",
+    "long_p8_d128": "shared_20261028T150642Z",
+    "short_cap128_first": "shared_20261028T142515Z",
+    "short_cap8_second": "shared_20261028T143209Z",
+    "short_cap8_first": "shared_20261028T144147Z",
+    "short_cap128_second": "shared_20261028T145104Z",
+    "short_p8_d128": "shared_20261028T145840Z",
+}
+OUTPUT = ROOT / "seqcap_128_summary.json"
+
+
+def sha256(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def main() -> None:
+    summary = {
+        "source_commit": "46706ee5e5ade3f622b6f606bbd05b84b06a9b96",
+        "hardware": "single 4x GB200 host, P TP2 GPUs 0/1, D TP2 GPUs 2/3",
+        "max_model_len": 1_000_512,
+        "prefill_budget": 16_384,
+        "decode_budget": 8_192,
+        "kv_gib_per_rank": 24,
+        "storage": "shared Engram",
+        "runs": {},
+    }
+    for label, directory in RUNS.items():
+        root = ROOT / directory
+        report_path = root / "report.json"
+        report = json.loads(report_path.read_text())
+        if label.startswith("long_"):
+            assert report["input_tokens"] == 1_000_000
+        else:
+            assert report["input_tokens"] == 8_192
+        schedulers = {}
+        for role in ("prefill", "decode"):
+            log = root / f"{role}.log"
+            counts = [
+                (int(running), int(waiting))
+                for running, waiting in re.findall(
+                    r"Running: (\d+) reqs, Waiting: (\d+) reqs",
+                    log.read_text(),
+                )
+            ]
+            assert counts
+            schedulers[role] = {
+                "max_running_observed": max(running for running, _ in counts),
+                "max_waiting_observed": max(waiting for _, waiting in counts),
+                "raw_local_log_sha256": sha256(log),
+            }
+        waves = []
+        for wave in report["waves"]:
+            rows = wave["rows"]
+            assert len(rows) == wave["concurrency"]
+            assert all(
+                row["prompt_tokens"] == report["input_tokens"]
+                and row["completion_tokens"] == 32
+                and row["transfer_mode"] == "pull"
+                for row in rows
+            )
+            waves.append(
+                {
+                    "concurrency": wave["concurrency"],
+                    "wall_seconds": round(wave["wall_seconds"], 3),
+                    "input_tokens_per_second": round(
+                        wave["input_tokens_per_second"], 1
+                    ),
+                    "prefill_median_seconds": round(
+                        statistics.median(row["prefill_seconds"] for row in rows),
+                        3,
+                    ),
+                    "prefill_max_seconds": round(
+                        max(row["prefill_seconds"] for row in rows), 3
+                    ),
+                    "decode_median_seconds": round(
+                        statistics.median(row["decode_seconds"] for row in rows),
+                        3,
+                    ),
+                    "decode_max_seconds": round(
+                        max(row["decode_seconds"] for row in rows), 3
+                    ),
+                    "gpu_used_mib_after_wave": wave["gpu_used_mib_after_wave"],
+                }
+            )
+        summary["runs"][label] = {
+            "report_dir": directory,
+            "input_tokens": report["input_tokens"],
+            "prompt_sha256": report["prompt_sha256"],
+            "role_max_num_seqs": report.get(
+                "role_max_num_seqs",
+                {"prefill": report["max_num_seqs"], "decode": report["max_num_seqs"]},
+            ),
+            "gpu_used_mib_at_ready": report["gpu_used_mib_at_ready"],
+            "schedulers": schedulers,
+            "waves": waves,
+            "raw_local_report_sha256": sha256(report_path),
+        }
+    OUTPUT.write_text(json.dumps(summary, indent=2) + "\n")
+    print(OUTPUT)
+
+
+if __name__ == "__main__":
+    main()
