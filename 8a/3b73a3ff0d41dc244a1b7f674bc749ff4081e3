@@ -1,0 +1,18 @@
+vllm/model_executor/model_loader/default_loader.py
+  h_02e4646417b93d 87-89,304-312,348-352,360-364,399-402,410,419-432
+tests/model_executor/model_loader/test_filter_duplicate_safetensors.py
+  h_02e4646417b93d 142-242
+vllm/model_executor/model_loader/weight_utils.py
+  h_02e4646417b93d 1102,1135,1228-1230,1240-1241,1246-1252
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "8a3b73a3ff0d41dc244a1b7f674bc749ff4081e3",
+  "prompts": {},
+  "humans": {
+    "h_02e4646417b93d": {
+      "author": "yunzhi <ningyunxiao.nyx@antgroup.com>"
+    }
+  }
+}
