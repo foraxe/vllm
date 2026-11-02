@@ -1,0 +1,14 @@
+vllm/model_executor/model_loader/default_loader.py
+  h_02e4646417b93d 424
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "7b363812cab6bbfa634238a9d482203c77c8f033",
+  "prompts": {},
+  "humans": {
+    "h_02e4646417b93d": {
+      "author": "yunzhi <ningyunxiao.nyx@antgroup.com>"
+    }
+  }
+}
