@@ -421,6 +421,7 @@ class DefaultModelLoader(BaseModelLoader):
                 def skip_secondary(
                     name, prefix=source.prefix, existing=source.is_unused_weight
                 ):
+                    assert unused_weight is not None
                     return (existing is not None and existing(name)) or unused_weight(
                         prefix + name
                     )
