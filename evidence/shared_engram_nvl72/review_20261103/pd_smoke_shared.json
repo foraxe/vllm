@@ -1,0 +1,34 @@
+{
+  "result": "pass",
+  "storage": "shared",
+  "generation": "7c6baec4cc2905fba498da9331a57c06",
+  "request_id": "b43a65dc-2a4e-4e13-82c5-a8d18a02ff56",
+  "prompt_sha256": "dea8286190c5efde184059effd057c6066bcfa5b256ab67bdcbf8ed4e8ab728a",
+  "prefill_seconds": 0.8749291168060154,
+  "decode_seconds": 8.813476907089353,
+  "transfer_keys": [
+    "dcp_size",
+    "do_remote_decode",
+    "do_remote_prefill",
+    "pp_size",
+    "remote_block_ids",
+    "remote_blocks_expiry_time",
+    "remote_engine_id",
+    "remote_host",
+    "remote_num_tokens",
+    "remote_port",
+    "remote_prefill_cached_tokens",
+    "remote_registration_generation",
+    "remote_request_id",
+    "tp_size",
+    "transfer_mode"
+  ],
+  "usage": {
+    "prompt_tokens": 14,
+    "total_tokens": 46,
+    "completion_tokens": 32,
+    "completion_tokens_details": null
+  },
+  "finish_reason": "length",
+  "text": " (1 sentence)\nA CUDA graph needs stable table addresses because the graph captures the addresses of the tables at the time of capture, and if the tables are"
+}
