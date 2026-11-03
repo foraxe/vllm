@@ -1,0 +1,66 @@
+{
+  "vllm": {
+    "baseline": "6b3488cc97eed1f3b0414d84699e95c686723ebb",
+    "candidate": "91816168bf16bc6192386b8afb1182926cc773e1",
+    "pr_head": "e50524f1ecaea17028a7ec82e9d8e5e0ba4498ea",
+    "tree": "5e9fe374e27dd4a3dfeb6c8b4c7c55b8c235fb6b",
+    "focused_owner_loader": 12,
+    "engram_config": 48,
+    "direct_reload_compat": 13,
+    "pd_request": true,
+    "real_rows_per_layer": [
+      7,
+      7
+    ],
+    "full_model_graph": true,
+    "full_model_output_tokens": [
+      32,
+      32
+    ],
+    "real_graph_changed_ids": [
+      true,
+      true
+    ]
+  },
+  "sglang": {
+    "baseline": "99fd01047d67bb249641a8e50282a1a5218afc63",
+    "candidate": "e12dfd2421b336e14d1a86f6b1670b480a2d4606",
+    "pr_head": "cf1b37ee058b96611faee9a3879e5ee7f1baebe5",
+    "tree": "73ac4b9bf70c0dabf5fdb47451925c4e47f1bf1c",
+    "external_unit": 7,
+    "engram_history": 2,
+    "pd_request": true,
+    "synthetic_graph_changed_ids": true,
+    "full_model_graph_requests": 2,
+    "full_model_graph_ids_match": true
+  },
+  "owner_counts": {
+    "first": {
+      "attach": 10,
+      "detach": 10,
+      "uncertain": 0
+    },
+    "vllm_pd": {
+      "attach": 8,
+      "detach": 8,
+      "uncertain": 0
+    },
+    "real_probe": {
+      "attach": 2,
+      "detach": 2,
+      "uncertain": 0
+    },
+    "vllm_graph": {
+      "attach": 4,
+      "detach": 4,
+      "uncertain": 0
+    },
+    "sglang_graph": {
+      "attach": 4,
+      "detach": 4,
+      "uncertain": 0
+    }
+  },
+  "cross_host_nvl72_tested": false,
+  "rdma_files_in_candidates": 0
+}

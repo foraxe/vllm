@@ -1,0 +1,215 @@
+"""Launch one real SGLang TP2 engine against the vLLM Engram owner."""
+
+import argparse
+import json
+import os
+import secrets
+import signal
+import socket
+import subprocess
+import sys
+import tempfile
+from pathlib import Path
+
+import httpx
+
+sys.path.insert(0, "/workspace/vllm_dsv41/artifacts/engram-shared-nvl72")
+from run_pd_smoke import LoggedProcess
+
+ARTIFACTS = Path("/workspace/vllm_dsv41/artifacts/engram-vmm-port-20261103/graph_sglang")
+VLLM_SOURCE = Path("/workspace/vllm_dsv41/vllm-engram-vmm-port")
+SGLANG_SOURCE = Path("/workspace/vllm_dsv41/sglang-engram-vmm-port")
+VLLM_PYTHON = VLLM_SOURCE / ".venv/bin/python"
+MODEL = "/data/models/DeepSeek-V4.1-Flash"
+
+
+def stop_sglang(server: LoggedProcess) -> None:
+    """Let the main process drain requests and send ShutdownReq to workers."""
+    if server.process.poll() is None:
+        server.process.send_signal(signal.SIGTERM)
+        try:
+            server.process.wait(timeout=180)
+        except subprocess.TimeoutExpired:
+            os.killpg(server.process.pid, signal.SIGTERM)
+            try:
+                server.process.wait(timeout=30)
+            except subprocess.TimeoutExpired:
+                os.killpg(server.process.pid, signal.SIGKILL)
+                server.process.wait()
+    server.thread.join(timeout=10)
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--decode-graph", action="store_true")
+    args = parser.parse_args()
+    label = "model_graph" if args.decode_graph else "model"
+    with tempfile.TemporaryDirectory() as temporary:
+        token_file = Path(temporary) / "token"
+        token_file.write_text(secrets.token_hex(32))
+        os.chmod(token_file, 0o600)
+        with socket.socket() as probe:
+            probe.bind(("127.0.0.1", 0))
+            owner_port = probe.getsockname()[1]
+        owner_env = os.environ.copy()
+        owner_env["PYTHONPATH"] = str(VLLM_SOURCE)
+        owner = LoggedProcess(
+            [
+                str(VLLM_PYTHON),
+                "-m",
+                "vllm.distributed.engram_share.vmm.owner",
+                "--model-dir",
+                MODEL,
+                "--listen-host",
+                "127.0.0.1",
+                "--listen-port",
+                str(owner_port),
+                "--token-file",
+                str(token_file),
+                "--device",
+                "0",
+            ],
+            owner_env,
+            ARTIFACTS / f"{label}_owner.log",
+            ready_text="ENGRAM_OWNER_READY",
+        )
+        server = None
+        try:
+            owner.wait_ready("owner", 1200)
+            generation = next(
+                line.split("generation=", 1)[1]
+                for line in owner.lines
+                if "ENGRAM_OWNER_READY" in line
+            )
+            engram = {
+                "placement": "external",
+                "shared_host_endpoint": f"127.0.0.1:{owner_port}",
+                "shared_host_token_file": str(token_file),
+                "shared_host_generation": generation,
+            }
+            server_env = os.environ.copy()
+            server_env["PYTHONPATH"] = str(SGLANG_SOURCE / "python")
+            server_env["CUDA_VISIBLE_DEVICES"] = "0,1"
+            server_env["SGLANG_OPT_USE_TILELANG_MHC_PRE"] = "0"
+            server_env["SGLANG_OPT_USE_TILELANG_MHC_POST"] = "0"
+            command = [
+                sys.executable,
+                "-m",
+                "sglang.launch_server",
+                "--model-path",
+                MODEL,
+                "--host",
+                "127.0.0.1",
+                "--port",
+                "31000",
+                "--tp",
+                "2",
+                "--ep-size",
+                "1",
+                "--language-model-only",
+                "--context-length",
+                "32768",
+                "--mem-fraction-static",
+                "0.90",
+                "--max-running-requests",
+                "2",
+                "--chunked-prefill-size",
+                "8192",
+                "--load-format",
+                "safetensors",
+                "--bf16-gemm-backend",
+                "torch",
+                "--fp8-gemm-backend",
+                "triton",
+                "--engram-config",
+                json.dumps(engram),
+                "--disable-flashinfer-autotune",
+                "--watchdog-timeout",
+                "3600",
+            ]
+            if args.decode_graph:
+                command.extend(
+                    [
+                        "--cuda-graph-backend-prefill",
+                        "disabled",
+                        "--cuda-graph-backend-decode",
+                        "full",
+                        "--cuda-graph-max-bs-decode",
+                        "4",
+                    ]
+                )
+            else:
+                command.append("--disable-cuda-graph")
+            server = LoggedProcess(
+                command,
+                server_env,
+                ARTIFACTS / f"{label}_shared.log",
+                ready_text="Uvicorn running on",
+            )
+            server.wait_ready("sglang", 3600)
+            # The first FlashInfer MoE call may build a CUDA extension.
+            with httpx.Client(timeout=900) as client:
+                response = client.post(
+                    "http://127.0.0.1:31000/generate",
+                    json={
+                        "text": "What is 17 times 19? Return only the number.",
+                        "sampling_params": {
+                            "temperature": 0,
+                            "min_new_tokens": 32,
+                            "max_new_tokens": 32,
+                            "ignore_eos": True,
+                        },
+                    },
+                )
+                response.raise_for_status()
+                answer = response.json()
+                answers = [answer]
+                if args.decode_graph:
+                    replay = client.post(
+                        "http://127.0.0.1:31000/generate",
+                        json={
+                            "text": "What is 17 times 19? Return only the number.",
+                            "sampling_params": {
+                                "temperature": 0,
+                                "min_new_tokens": 32,
+                                "max_new_tokens": 32,
+                                "ignore_eos": True,
+                            },
+                        },
+                    )
+                    replay.raise_for_status()
+                    answers.append(replay.json())
+            if any(len(item.get("output_ids", [])) != 32 for item in answers):
+                raise RuntimeError("SGLang did not generate the requested 32 tokens")
+            if "323" not in answers[0].get("text", ""):
+                raise RuntimeError("multiplication canary missed 323")
+            (ARTIFACTS / f"{label}_shared.json").write_text(
+                json.dumps(answers if args.decode_graph else answer, indent=2) + "\n"
+            )
+            print(
+                json.dumps(
+                    {
+                        "result": "pass",
+                        "output": answer.get("text", ""),
+                        "output_ids": answer.get("output_ids", []),
+                        "meta_info": answer.get("meta_info", {}),
+                        "graph_replay_requests": len(answers),
+                        "output_ids_match": (
+                            answers[0]["output_ids"] == answers[-1]["output_ids"]
+                        ),
+                    }
+                ),
+                flush=True,
+            )
+        finally:
+            if server is not None:
+                stop_sglang(server)
+                print(json.dumps({"server_exit_code": server.process.returncode}))
+            owner.stop()
+            print(json.dumps({"owner_exit_code": owner.process.returncode}))
+            if owner.process.returncode != 0:
+                raise RuntimeError("Engram owner did not drain cleanly")
+
+
+if __name__ == "__main__":
+    main()
