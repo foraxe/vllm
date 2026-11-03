@@ -1,0 +1,415 @@
+"""Matched SGLang P TP2 / D TP2 Engram backing smoke on four GB200 GPUs."""
+
+import argparse
+import concurrent.futures
+import hashlib
+import json
+import os
+import secrets
+import signal
+import socket
+import subprocess
+import sys
+import tempfile
+import threading
+import time
+from pathlib import Path
+
+import httpx
+
+sys.path.insert(0, "/workspace/vllm_dsv41/artifacts/engram-shared-nvl72")
+from run_pd_smoke import LoggedProcess
+
+ARTIFACTS = Path("/workspace/vllm_dsv41/artifacts/sglang-engram-shared/merge_ready_20261103")
+VLLM_SOURCE = Path("/workspace/vllm_dsv41/vllm-engram-shared-nvl72")
+SGLANG_SOURCE = Path("/workspace/vllm_dsv41/sglang-engram-shared-fabric")
+VLLM_PYTHON = VLLM_SOURCE / ".venv/bin/python"
+MODEL = "/data/models/DeepSeek-V4.1-Flash"
+PROMPT = "What is 17 times 19? Return only the number."
+LONG_SOURCE = Path(
+    "/workspace/vllm_dsv41/artifacts/decoder-tail-diagnosis/long-eval-prompts.json"
+)
+OUTPUT_TOKENS = 32
+
+
+def stop_process(process: LoggedProcess, *, graceful: bool = True) -> None:
+    if process.process.poll() is None:
+        if graceful:
+            process.process.send_signal(signal.SIGTERM)
+        else:
+            os.killpg(process.process.pid, signal.SIGINT)
+        try:
+            process.process.wait(timeout=180)
+        except subprocess.TimeoutExpired:
+            os.killpg(process.process.pid, signal.SIGTERM)
+            try:
+                process.process.wait(timeout=30)
+            except subprocess.TimeoutExpired:
+                os.killpg(process.process.pid, signal.SIGKILL)
+                process.process.wait()
+    process.thread.join(timeout=10)
+
+
+def gpu_used_mib() -> list[int]:
+    result = subprocess.run(
+        [
+            "nvidia-smi",
+            "--query-gpu=memory.used",
+            "--format=csv,noheader,nounits",
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    return [int(line) for line in result.stdout.splitlines()]
+
+
+def host_free_kib() -> dict[int, int]:
+    free = {}
+    for node in (0, 1):
+        path = Path(f"/sys/devices/system/node/node{node}/meminfo")
+        for line in path.read_text().splitlines():
+            if " MemFree:" in line:
+                free[node] = int(line.split()[-2])
+                break
+    return free
+
+
+def wait_http_ready(url: str, process: LoggedProcess, timeout: float) -> None:
+    deadline = time.monotonic() + timeout
+    with httpx.Client(timeout=5) as client:
+        while time.monotonic() < deadline:
+            if process.process.poll() is not None:
+                raise RuntimeError(
+                    f"{process.log_path.name} exited before ready: "
+                    + "\n".join(process.lines[-15:])
+                )
+            try:
+                response = client.get(url)
+                if response.status_code == 200:
+                    return
+            except httpx.HTTPError:
+                pass
+            time.sleep(1)
+    raise TimeoutError(f"{process.log_path.name} readiness timed out")
+
+
+def request(client: httpx.Client, ids: list[int] | None = None, *, stream=False) -> dict:
+    payload = {
+        "sampling_params": {
+            "temperature": 0,
+            "min_new_tokens": OUTPUT_TOKENS,
+            "max_new_tokens": OUTPUT_TOKENS,
+            "ignore_eos": True,
+        },
+        "stream": stream,
+    }
+    if ids is None:
+        payload["text"] = PROMPT
+    else:
+        payload["input_ids"] = ids
+    expected_prompt_tokens = 13 if ids is None else len(ids)
+    started = time.monotonic()
+    first_token = last_token = None
+    progress_events = previous_count = 0
+    if stream:
+        body = None
+        with client.stream(
+            "POST", "http://127.0.0.1:31002/generate", json=payload
+        ) as response:
+            response.raise_for_status()
+            for line in response.iter_lines():
+                if not line.startswith("data: ") or line == "data: [DONE]":
+                    continue
+                body = json.loads(line[6:])
+                token_count = len(body.get("output_ids", []))
+                if token_count > previous_count:
+                    progress_events += 1
+                    now = time.monotonic()
+                    if first_token is None:
+                        first_token = now
+                    last_token = now
+                    previous_count = token_count
+        if body is None:
+            raise RuntimeError("stream returned no generation event")
+    else:
+        response = client.post("http://127.0.0.1:31002/generate", json=payload)
+        response.raise_for_status()
+        body = response.json()
+    elapsed = time.monotonic() - started
+    ids = body["output_ids"]
+    if len(ids) != OUTPUT_TOKENS:
+        raise ValueError(f"wrong generated token count: {len(ids)}")
+    if body["meta_info"]["prompt_tokens"] != expected_prompt_tokens:
+        raise ValueError("wrong prompt token count")
+    return {
+        "wall_seconds": elapsed,
+        "prompt_tokens": body["meta_info"]["prompt_tokens"],
+        "completion_tokens": body["meta_info"]["completion_tokens"],
+        "output_ids": ids,
+        "text": body["text"],
+        "text_sha256": hashlib.sha256(body["text"].encode()).hexdigest(),
+        "output_ids_sha256": hashlib.sha256(json.dumps(ids).encode()).hexdigest(),
+        "meta_info": body["meta_info"],
+        "ttft_seconds": first_token - started if first_token is not None else None,
+        "tpot_seconds": (
+            (last_token - first_token) / (OUTPUT_TOKENS - 1)
+            if progress_events > 1
+            else None
+        ),
+        "token_progress_events": progress_events,
+    }
+
+
+def concurrent_wave(ids: list[int], concurrency: int = 4) -> dict:
+    barrier = threading.Barrier(concurrency)
+
+    def one(index: int) -> dict:
+        barrier.wait(timeout=30)
+        with httpx.Client(timeout=900) as client:
+            return {"index": index, **request(client, ids, stream=True)}
+
+    started = time.monotonic()
+    with concurrent.futures.ThreadPoolExecutor(max_workers=concurrency) as pool:
+        futures = [pool.submit(one, index) for index in range(concurrency)]
+        rows = [future.result(timeout=900) for future in futures]
+    wall = time.monotonic() - started
+    rows.sort(key=lambda row: row["index"])
+    return {
+        "concurrency": concurrency,
+        "wall_seconds": wall,
+        "output_tokens_per_second": concurrency * OUTPUT_TOKENS / wall,
+        "rows": rows,
+    }
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--baseline", action="store_true")
+    parser.add_argument("--long", action="store_true")
+    args = parser.parse_args()
+    mode = "cpu" if args.baseline else "shared"
+    out = ARTIFACTS / f"pd_{mode}{'_8k_stream' if args.long else ''}_review_20261103"
+    out.mkdir(parents=True, exist_ok=True)
+    prompt_ids = None
+    if args.long:
+        prompt_ids = json.loads(LONG_SOURCE.read_text())[0]["prompt_token_ids"]
+        if len(prompt_ids) != 8192:
+            raise ValueError("saved retrieval fixture changed length")
+    processes: list[LoggedProcess] = []
+    with tempfile.TemporaryDirectory() as temporary:
+        token_file = Path(temporary) / "token"
+        token_file.write_text(secrets.token_hex(32))
+        os.chmod(token_file, 0o600)
+        with socket.socket() as probe:
+            probe.bind(("127.0.0.1", 0))
+            owner_port = probe.getsockname()[1]
+        generation = None
+        free_before = host_free_kib()
+        try:
+            if not args.baseline:
+                owner_env = os.environ.copy()
+                owner_env["PYTHONPATH"] = str(VLLM_SOURCE)
+                owner = LoggedProcess(
+                    [
+                        str(VLLM_PYTHON),
+                        "-m",
+                        "vllm.models.deepseek_v41.nvidia.ops.shared_engram_owner",
+                        "--model-dir",
+                        MODEL,
+                        "--listen-host",
+                        "127.0.0.1",
+                        "--listen-port",
+                        str(owner_port),
+                        "--token-file",
+                        str(token_file),
+                        "--device",
+                        "0",
+                    ],
+                    owner_env,
+                    out / "owner.log",
+                    ready_text="ENGRAM_OWNER_READY",
+                )
+                processes.append(owner)
+                owner.wait_ready("owner", 1200)
+                generation = next(
+                    line.split("generation=", 1)[1]
+                    for line in owner.lines
+                    if "ENGRAM_OWNER_READY" in line
+                )
+            engram = (
+                {"placement": "cpu", "replication": "none"}
+                if args.baseline
+                else {
+                    "placement": "external",
+                    "shared_host_endpoint": f"127.0.0.1:{owner_port}",
+                    "shared_host_token_file": str(token_file),
+                    "shared_host_generation": generation,
+                }
+            )
+            for role, base_gpu_id, port, nccl_port in (
+                ("prefill", 0, 31000, 30000),
+                ("decode", 2, 31001, 30100),
+            ):
+                environment = os.environ.copy()
+                environment.update(
+                    {
+                        "PYTHONPATH": str(SGLANG_SOURCE / "python"),
+                        "SGLANG_OPT_USE_TILELANG_MHC_PRE": "0",
+                        "SGLANG_OPT_USE_TILELANG_MHC_POST": "0",
+                        "UCX_TLS": "cuda_copy,cuda_ipc,tcp",
+                        "UCX_NET_DEVICES": "all",
+                    }
+                )
+                command = [
+                    sys.executable,
+                    "-m",
+                    "sglang.launch_server",
+                    "--model-path",
+                    MODEL,
+                    "--host",
+                    "127.0.0.1",
+                    "--port",
+                    str(port),
+                    "--tp",
+                    "2",
+                    "--base-gpu-id",
+                    str(base_gpu_id),
+                    "--nccl-port",
+                    str(nccl_port),
+                    "--ep-size",
+                    "1",
+                    "--language-model-only",
+                    "--disaggregation-mode",
+                    role,
+                    "--disaggregation-transfer-backend",
+                    "nixl",
+                    "--disaggregation-bootstrap-port",
+                    "31500",
+                    "--context-length",
+                    "32768",
+                    "--mem-fraction-static",
+                    "0.90",
+                    "--max-running-requests",
+                    "2",
+                    "--chunked-prefill-size",
+                    "8192",
+                    "--load-format",
+                    "safetensors",
+                    "--model-loader-extra-config",
+                    '{"enable_multithread_load":false}',
+                    "--bf16-gemm-backend",
+                    "torch",
+                    "--fp8-gemm-backend",
+                    "triton",
+                    "--engram-config",
+                    json.dumps(engram),
+                    "--disable-cuda-graph",
+                    "--disable-flashinfer-autotune",
+                    "--watchdog-timeout",
+                    "3600",
+                ]
+                if args.long:
+                    command.append("--disable-radix-cache")
+                server = LoggedProcess(
+                    command,
+                    environment,
+                    out / f"{role}.log",
+                    ready_text="Uvicorn running on",
+                )
+                processes.append(server)
+                server.wait_ready(role, 3600)
+            for role, port in (("prefill", 31000), ("decode", 31001)):
+                server = next(
+                    process
+                    for process in processes
+                    if process.log_path.name == f"{role}.log"
+                )
+                wait_http_ready(f"http://127.0.0.1:{port}/health", server, 120)
+            free_ready = host_free_kib()
+            gpu_ready = gpu_used_mib()
+            router = LoggedProcess(
+                [
+                    sys.executable,
+                    "-m",
+                    "sglang_router.launch_router",
+                    "--pd-disaggregation",
+                    "--mini-lb",
+                    "--prefill",
+                    "http://127.0.0.1:31000",
+                    "--decode",
+                    "http://127.0.0.1:31001",
+                    "--host",
+                    "127.0.0.1",
+                    "--port",
+                    "31002",
+                ],
+                os.environ.copy(),
+                out / "router.log",
+                ready_text=None,
+            )
+            processes.append(router)
+            wait_http_ready("http://127.0.0.1:31002/health", router, 120)
+            with httpx.Client(timeout=900) as client:
+                warmup = request(client, prompt_ids)
+                print(json.dumps({"warmup_seconds": warmup["wall_seconds"]}))
+                retained = [
+                    request(client, prompt_ids, stream=args.long) for _ in range(3)
+                ]
+            concurrent = concurrent_wave(prompt_ids) if args.long else None
+            report = {
+                "mode": mode,
+                "source_commit": subprocess.check_output(
+                    ["git", "rev-parse", "HEAD"], cwd=SGLANG_SOURCE, text=True
+                ).strip(),
+                "model": MODEL,
+                "generation": generation,
+                "prompt_sha256": hashlib.sha256(
+                    json.dumps(prompt_ids).encode()
+                    if prompt_ids is not None
+                    else PROMPT.encode()
+                ).hexdigest(),
+                "prompt_fixture": str(LONG_SOURCE) if args.long else None,
+                "prefix_cache_disabled": args.long,
+                "gpu_used_mib_at_ready": gpu_ready,
+                "host_memfree_kib_before": free_before,
+                "host_memfree_kib_at_ready": free_ready,
+                "warmup": warmup,
+                "retained": retained,
+                "concurrent": concurrent,
+            }
+            (out / "report.json").write_text(json.dumps(report, indent=2) + "\n")
+            print(
+                json.dumps(
+                    {
+                        "result": "pass",
+                        "mode": mode,
+                        "retained_seconds": [row["wall_seconds"] for row in retained],
+                        "retained_hashes": [
+                            row["text_sha256"] for row in retained
+                        ],
+                        "concurrent_seconds": (
+                            concurrent["wall_seconds"] if concurrent is not None else None
+                        ),
+                    }
+                ),
+                flush=True,
+            )
+        finally:
+            for process in reversed(processes):
+                stop_process(process, graceful=process.ready_text != "ENGRAM_OWNER_READY")
+                print(
+                    json.dumps(
+                        {
+                            "stopped": process.log_path.name,
+                            "exit_code": process.process.returncode,
+                        }
+                    ),
+                    flush=True,
+                )
+            if not args.baseline and processes and processes[0].process.returncode:
+                raise RuntimeError("shared Engram owner did not drain cleanly")
+
+
+if __name__ == "__main__":
+    main()

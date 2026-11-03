@@ -1,0 +1,110 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+______________ test_verify_direct_reload_compat[external-engram] _______________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0xfff928299c70>
+mode = 'direct'
+overrides = {'engram_config': EngramConfig(cpu_offload=True, disk_offload=False, embedding_across_dp=False, dp_shared_memory=None,...p=False, shared_host_endpoint='owner:56000', shared_host_token_file='/tmp/token', shared_host_generation='generation')}
+match = 'immutable external Engram'
+
+    @pytest.mark.parametrize(
+        "mode,overrides,match",
+        [
+            ("direct", {}, None),
+            ("layerwise", {"lora_config": object()}, None),
+            (
+                "direct",
+                {
+                    "engram_config": EngramConfig(
+                        shared_host_endpoint="owner:56000",
+                        shared_host_token_file="/tmp/token",
+                        shared_host_generation="generation",
+                    )
+                },
+                "immutable external Engram",
+            ),
+            (
+                "direct",
+                {
+                    "offload_config": SimpleNamespace(
+                        offload_backend="uva",
+                        prefetch=SimpleNamespace(offload_group_size=0),
+                        uva=SimpleNamespace(cpu_offload_gb=0),
+                    )
+                },
+                "weight offloading",
+            ),
+            (
+                "direct",
+                {
+                    "offload_config": SimpleNamespace(
+                        offload_backend="auto",
+                        prefetch=SimpleNamespace(offload_group_size=2),
+                        uva=SimpleNamespace(cpu_offload_gb=0),
+                    )
+                },
+                "weight offloading",
+            ),
+            (
+                "direct",
+                {
+                    "offload_config": SimpleNamespace(
+                        offload_backend="auto",
+                        prefetch=SimpleNamespace(offload_group_size=0),
+                        uva=SimpleNamespace(cpu_offload_gb=1),
+                    )
+                },
+                "weight offloading",
+            ),
+            (
+                "direct",
+                {"model_config": SimpleNamespace(quantization="torchao")},
+                "torchao",
+            ),
+            ("direct", {"quant_config": _ONLINE}, "online quantization"),
+            (
+                "direct",
+                {"quant_config": SimpleNamespace(online_quantization_config=_ONLINE)},
+                "online quantization",
+            ),
+            ("direct", {"lora_config": object()}, "LoRA"),
+            (
+                "direct",
+                {"speculative_config": SimpleNamespace(draft_lm_head_quantization="fp8")},
+                "draft_lm_head_quantization",
+            ),
+            (
+                "direct",
+                {"weight_transfer_config": SimpleNamespace(backend="sharded_rdt")},
+                "sharded_rdt",
+            ),
+        ],
+        ids=[
+            "defaults",
+            "layerwise-lora",
+            "external-engram",
+            "offload-backend",
+            "offload-prefetch",
+            "offload-uva",
+            "torchao",
+            "online-config",
+            "online-composed",
+            "lora",
+            "draft-lm-head-quant",
+            "sharded-rdt",
+        ],
+    )
+    def test_verify_direct_reload_compat(monkeypatch, mode, overrides, match):
+        monkeypatch.setenv("VLLM_RELOAD_MODE", mode)
+        config = _config(**overrides)
+        if match is None:
+            VllmConfig._verify_direct_reload_compat(config)
+        else:
+>           with pytest.raises(ValueError, match=match):
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           Failed: DID NOT RAISE ValueError
+
+../vllm-engram-direct-reload-red/tests/model_executor/model_loader/test_direct_reload.py:612: Failed
+=========================== short test summary info ============================
+FAILED ../vllm-engram-direct-reload-red/tests/model_executor/model_loader/test_direct_reload.py::test_verify_direct_reload_compat[external-engram]
+1 failed, 36 deselected in 2.08s
