@@ -1,0 +1,189 @@
+"""Local exact-script gate for one owner and sequential SGLang/vLLM P/D clients."""
+
+import json
+import os
+import secrets
+import signal
+import subprocess
+import sys
+import tempfile
+import threading
+import time
+from pathlib import Path
+from urllib.request import urlopen
+
+BASE = Path(__file__).resolve().parent
+VLLM = Path("/workspace/vllm_dsv41/vllm-engram-shared-nvl72")
+SGLANG = Path("/workspace/vllm_dsv41/sglang-engram-shared-fabric")
+VLLM_PYTHON = VLLM / ".venv/bin/python"
+SGLANG_PYTHON = SGLANG / ".venv/bin/python"
+MODEL = "/data/models/DeepSeek-V4.1-Flash"
+VLLM_SCRIPT = VLLM / "examples/disaggregated/shared_engram/launch.sh"
+SGLANG_SCRIPT = SGLANG / "examples/engram_shared/launch.sh"
+
+
+class LoggedProcess:
+    def __init__(self, name, command, cwd, env, ready_text):
+        self.name = name
+        self.ready_text = ready_text
+        self.ready = threading.Event()
+        self.lines = []
+        self.log = (BASE / f"{name}.log").open("w")
+        self.process = subprocess.Popen(
+            command,
+            cwd=cwd,
+            env=env,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            bufsize=1,
+            start_new_session=True,
+        )
+        self.thread = threading.Thread(target=self._pump, daemon=True)
+        self.thread.start()
+
+    def _pump(self):
+        assert self.process.stdout is not None
+        for line in self.process.stdout:
+            self.log.write(line)
+            self.log.flush()
+            self.lines.append(line.strip())
+            if self.ready_text and self.ready_text in line:
+                self.ready.set()
+        self.ready.set()
+
+    def wait_ready(self, timeout):
+        if not self.ready.wait(timeout):
+            raise TimeoutError(f"{self.name} not ready: {self.lines[-12:]}")
+        if self.process.poll() is not None:
+            raise RuntimeError(f"{self.name} exited: {self.lines[-12:]}")
+        if self.ready_text and not any(self.ready_text in line for line in self.lines):
+            raise RuntimeError(f"{self.name} ended before ready: {self.lines[-12:]}")
+        print(json.dumps({"ready": self.name}), flush=True)
+
+    def stop(self, signum=signal.SIGTERM, *, force=True):
+        if self.process.poll() is None:
+            self.process.send_signal(signum)
+            try:
+                self.process.wait(timeout=180)
+            except subprocess.TimeoutExpired:
+                if not force:
+                    raise RuntimeError(
+                        f"{self.name} still draining; inspect leases before teardown"
+                    ) from None
+                os.killpg(self.process.pid, signal.SIGKILL)
+                self.process.wait()
+        self.thread.join(timeout=10)
+        self.log.close()
+        print(json.dumps({"stopped": self.name, "exit": self.process.returncode}), flush=True)
+
+
+def http_ready(url, process, timeout=120):
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline:
+        if process.process.poll() is not None:
+            raise RuntimeError(f"{process.name} exited: {process.lines[-12:]}")
+        try:
+            with urlopen(url, timeout=3) as response:
+                if response.status == 200:
+                    return
+        except Exception:
+            pass
+        time.sleep(1)
+    raise TimeoutError(f"{url} not ready: {process.lines[-12:]}")
+
+
+def run_request(name, script, cwd, python, env):
+    path = BASE / f"{name}_request.log"
+    with path.open("w") as output:
+        result = subprocess.run(
+            [str(python), str(script)],
+            cwd=cwd,
+            env=env,
+            stdout=output,
+            stderr=subprocess.STDOUT,
+            text=True,
+            timeout=900,
+        )
+    if result.returncode:
+        raise RuntimeError(f"{name} request failed: {path.read_text()[-1200:]}")
+    print(json.dumps({"request": name, "result": "pass"}), flush=True)
+
+
+def launch(name, script, role, cwd, env, marker):
+    process = LoggedProcess(name, ["bash", str(script), role], cwd, env, marker)
+    process.wait_ready(3600 if role in ("prefill", "decode", "owner") else 120)
+    return process
+
+
+def main():
+    BASE.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory() as temporary:
+        token = Path(temporary) / "token"
+        token.write_text(secrets.token_hex(32))
+        token.chmod(0o600)
+        common = {
+            **os.environ,
+            "MODEL_DIR": MODEL,
+            "TOKEN_FILE": str(token),
+            "OWNER_ENDPOINT": "127.0.0.1:56000",
+            "VLLM_PYTHON": str(VLLM_PYTHON),
+            "SGLANG_PYTHON": str(SGLANG_PYTHON),
+        }
+        owner = launch("owner", VLLM_SCRIPT, "owner", VLLM, common, "ENGRAM_OWNER_READY")
+        try:
+            generation = next(
+                line.split("generation=", 1)[1]
+                for line in owner.lines
+                if "ENGRAM_OWNER_READY" in line
+            )
+            common["GENERATION"] = generation
+            senv = {**common, "PYTHONPATH": str(SGLANG / "python")}
+            sglang = []
+            try:
+                for role, port in (("prefill", 31000), ("decode", 31001)):
+                    process = launch(
+                        f"sglang_{role}", SGLANG_SCRIPT, role, SGLANG, senv,
+                        "Uvicorn running on",
+                    )
+                    sglang.append(process)
+                    http_ready(f"http://127.0.0.1:{port}/health", process)
+                router = LoggedProcess(
+                    "sglang_router", ["bash", str(SGLANG_SCRIPT), "router"],
+                    SGLANG, senv, None,
+                )
+                sglang.append(router)
+                http_ready("http://127.0.0.1:31002/health", router)
+                run_request(
+                    "sglang", SGLANG / "examples/engram_shared/request.py",
+                    SGLANG, SGLANG_PYTHON, senv,
+                )
+            finally:
+                for process in reversed(sglang):
+                    process.stop(signal.SIGTERM)
+
+            if "--sglang-only" not in sys.argv:
+                venv = {**common, "PYTHONPATH": str(VLLM)}
+                vllm = []
+                try:
+                    for role, port in (("prefill", 8100), ("decode", 8200)):
+                        process = launch(
+                            f"vllm_{role}", VLLM_SCRIPT, role, VLLM, venv,
+                            "Application startup complete.",
+                        )
+                        vllm.append(process)
+                        http_ready(f"http://127.0.0.1:{port}/v1/models", process)
+                    run_request(
+                        "vllm", VLLM / "examples/disaggregated/shared_engram/request.py",
+                        VLLM, VLLM_PYTHON, venv,
+                    )
+                finally:
+                    for process in reversed(vllm):
+                        process.stop(signal.SIGINT)
+            print(json.dumps({"result": "pass", "generation": generation}), flush=True)
+        finally:
+            owner.stop(signal.SIGTERM, force=False)
+
+
+if __name__ == "__main__":
+    main()

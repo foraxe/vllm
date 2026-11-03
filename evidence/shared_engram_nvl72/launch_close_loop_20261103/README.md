@@ -1,0 +1,14 @@
+# Shared Engram launch path, two PRs, one host
+
+PRs: [vLLM #64082](https://github.com/vllm-project/vllm/pull/64082) and
+[SGLang #47478](https://github.com/sgl-project/sglang/pull/47478).
+
+Captured 2026-11-03 on one four-GPU GB200 host. vLLM owner/consumer source before the launch-example commit was `192d3200ad347d08b980fb118d16be74f1bcb5b4`; the final vLLM example is in `35e127746c112899c85043c3dd6f2ada7837e970`. SGLang consumer source before the launch-example commit was `1266fc7fd24cab3b295ce8bdd46093b857c6c342`; the final SGLang example is in `2f86dd2c6a33f8e5d56550963d84ba1300321483`. Launch commands themselves were unchanged between execution and those commits, except that the vLLM request helper gained a completion-count assertion after observing 32 tokens. The published scripts are in the PRs, not only here.
+
+## What was exercised
+
+- One vLLM HOST_NUMA/FABRIC owner generation was published from the original DeepSeek-V4.1-Flash checkpoint (202,758,032,400 table bytes). Both SGLang and vLLM P TP2 + D TP2 launch scripts served against the *same* generation, sequentially on GPUs 0-3. Each engine completed one routed 32-token request. vLLM used NixlConnector directly; SGLang used its NIXL P/D router. The first run is protocol/serving evidence but its SGLang teardown was invalid: the harness sent SIGTERM to the entire process group, directly killing worker ranks. The owner recorded 16 attaches, 8 vLLM detaches and 8 uncertain SGLang leases. After all consumer GPU contexts exited, the owner was force-stopped. See `group_signal_diagnostic__*` logs. No clean-lifecycle claim is based on this run.
+- The SGLang path was rerun with a fresh vLLM owner, signaling each SGLang launcher PID only. One routed request passed with 32 output tokens; P and D exited zero, the owner logged 8 attaches and 8 protocol detaches, no uncertain lease, and exited zero. See `clean__*` logs. This validates the stop procedure documented in the SGLang example.
+- `bash -n`, command-generation dry runs for each launch role, and the applicable pre-commit hooks passed for both examples. The pre-commit logs are included. The source/role commands use the actual example `launch.sh` and `request.py` files in the PRs.
+
+The checkpoint `config.json` SHA256 was `8be45ce0476004a3f529fd896115a4a2e800a129ad2d3ec05b16050f52e21879`; the index SHA256 was `74b0686a3d2891980d5e303251b075a3bccae2c2ff650747db2620a649b98fa8`. vLLM used Torch 2.14.0+cu130 and SGLang Torch 2.14.1+cu130 in separate isolated environments. The owner was vLLM source `192d3200a` in both runs. GPUs were leased exclusively and released after teardown. Cross-host NVL72/IMEX operation, mixed-engine KV transfer, concurrency performance and production SLOs remain untested. Both engines use their own P/D KV transfer; only the Engram owner contract is shared.
