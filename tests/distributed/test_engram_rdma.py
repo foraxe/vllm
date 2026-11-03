@@ -10,14 +10,14 @@ from pathlib import Path
 
 import pytest
 
-from vllm.distributed.engram_rdma.owner import (
+from vllm.distributed.engram_share.rdma.owner import (
     MAX_COPY_CHUNK,
     _copy_and_sample_row264,
     build_owner_metadata,
     inspect_checkpoint,
 )
-from vllm.distributed.engram_rdma.provider import ReaderRuntime
-from vllm.distributed.engram_rdma.runtime import ControlError, OwnerClient, OwnerServer
+from vllm.distributed.engram_share.rdma.provider import ReaderRuntime
+from vllm.distributed.engram_share.rdma.runtime import ControlError, OwnerClient, OwnerServer
 
 
 class OwnerControlTests(unittest.TestCase):

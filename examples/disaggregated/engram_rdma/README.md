@@ -1,7 +1,7 @@
 # Experimental remote Engram owner and reader
 
 vLLM ships the application-side owner, lease protocol, checkpoint validation,
-reader and provider under `vllm.distributed.engram_rdma`. A separately built
+reader and provider under `vllm.distributed.engram_share.rdma`. A separately built
 GPU GET transport is still required. The current reader expects the legacy
 ABI-3 NIXL/GPUNETIO shim, not an ordinary NIXL wheel or the proposed interface
 in [NIXL #2544](https://github.com/ai-dynamo/nixl/pull/2544). The tested
@@ -32,7 +32,7 @@ export LD_LIBRARY_PATH="$NIXL_LIBRARY_DIRECTORY:${LD_LIBRARY_PATH:-}"
 export GPUNETIO_DEVICE_API_RDMA="$RDMA_DEVICE"
 export GPUNETIO_DEVICE_API_GID_INDEX="$GID_INDEX"
 export GPUNETIO_DEVICE_API_OOB_INTERFACE="$NETWORK_INTERFACE"
-python -m vllm.distributed.engram_rdma.owner \
+python -m vllm.distributed.engram_share.rdma.owner \
   --checkpoint "$MODEL" --library "$ENGRAM_NIXL_SHIM" --owner-gpu 0 \
   --rdma-port "$OWNER_RDMA_PORT" --control-host "$OWNER_BIND_IP" \
   --advertise-host "$OWNER_REACHABLE_IP" --control-port "$OWNER_CONTROL_PORT" \
@@ -60,7 +60,7 @@ export ENGRAM_SHARED_READER_PORT_BASE="$READER_PORT_BASE"
 
 Use a unique reader port base per vLLM instance. TP ranks derive their ports
 from the visible GPU ordinal. Launch vLLM with `--engram-config
-'{"cpu_offload":true,"rdma_provider":"vllm.distributed.engram_rdma.provider"}'`,
+'{"cpu_offload":true,"rdma_provider":"vllm.distributed.engram_share.rdma.provider"}'`,
 `--load-format safetensors --safetensors-load-strategy lazy` and a nonzero
 `--shutdown-timeout`. Follow the model's regular P/D setup separately. The
 provider verifies checkpoint identity and sampled content before attaching;

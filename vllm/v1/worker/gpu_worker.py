@@ -1887,6 +1887,12 @@ class Worker(WorkerBase):
             import importlib
 
             importlib.import_module(engram_config.rdma_provider).close_reader()
+        if engram_config is not None and engram_config.shared_host_endpoint:
+            from vllm.distributed.engram_share.vmm.owner import (
+                close_attached_tables,
+            )
+
+            close_attached_tables()
 
         # Release kept-alive cumem pools while the pluggable allocator wrappers
         # and callbacks are still alive, so MemPool teardown is not deferred to

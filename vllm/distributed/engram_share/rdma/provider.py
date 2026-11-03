@@ -14,12 +14,12 @@ import torch.nn.functional as F
 import triton
 import triton.language as tl
 
-from vllm.distributed.engram_rdma.runtime import Context, OwnerClient
+from vllm.distributed.engram_share.rdma.runtime import Context, OwnerClient
 
 
 def verify_checkpoint_samples():
     """Reject mismatched owner weights using published boundary-row samples."""
-    from vllm.distributed.engram_rdma.owner import inspect_checkpoint
+    from vllm.distributed.engram_share.rdma.owner import inspect_checkpoint
 
     ready = json.loads(Path(os.environ["ENGRAM_SHARED_READY"]).read_text())
     samples = ready.get("sample_validation")

@@ -22,7 +22,7 @@ import time
 from contextlib import ExitStack
 from pathlib import Path
 
-from vllm.distributed.engram_rdma.runtime import ControlError, OwnerServer
+from vllm.distributed.engram_share.rdma.runtime import ControlError, OwnerServer
 
 LAYERS = (1, 14)
 WEIGHT_DTYPE = "F8_E4M3"
@@ -397,7 +397,7 @@ class RealCheckpointOwner:
     def start(self):
         import torch
 
-        from vllm.distributed.engram_rdma.runtime import Context
+        from vllm.distributed.engram_share.rdma.runtime import Context
 
         self.manifest = inspect_checkpoint(self.args.checkpoint)
         storage_layout = getattr(self.args, "storage_layout", "row264")

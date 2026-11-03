@@ -135,8 +135,8 @@ Costs and limits:
 
 `--engram-config.rdma_provider` selects a Python module that supplies an
 experimental remote-table reader. vLLM includes a provider, checkpoint-backed
-owner and reader lifecycle control in `vllm.distributed.engram_rdma`; set
-`rdma_provider` to `vllm.distributed.engram_rdma.provider` to use them. The
+owner and reader lifecycle control in `vllm.distributed.engram_share.rdma`; set
+`rdma_provider` to `vllm.distributed.engram_share.rdma.provider` to use them. The
 GPU GET transport remains a separately built NIXL dependency. The current
 prototype needs the experimental ABI-3 shim, not an ordinary NIXL wheel.
 See the [setup and verification example](../../examples/disaggregated/engram_rdma/README.md).
@@ -206,6 +206,11 @@ and falls back to per-replica (or DP-sharded) tables with a warning when:
 
 Requirements: `cpu_offload` enabled, `--data-parallel-size > 1`, and a shared
 IPC namespace across the co-located replicas.
+
+Independent prefill and decode instances can opt into a persistent external
+table generation on supported CUDA Fabric systems; see
+[shared host-backed Engram tables](engram_shared_host.md) for setup, lifetime,
+and validation limits.
 
 ## Limitations
 

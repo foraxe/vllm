@@ -238,6 +238,12 @@ def _select_dsv4_attn_cls(vllm_config: VllmConfig) -> type[DeepseekV4Attention]:
             return DeepseekV4FlashInferSM120Attention
         return DeepseekV4FlashInferMLAAttention
     if backend is AttentionBackendEnum.FLASHMLA_MEGA_ATTN_DSV41:
+        # FlashMLA mega attention reads the grouped ``wo_a`` weight directly
+        # from its fused quantized output. LoRA wraps that layer after model
+        # construction, so use the split-KV path whose grouped projection
+        # explicitly applies the adapter delta.
+        if vllm_config.lora_config is not None:
+            return DeepseekV4FlashMLAAttention
         return DeepseekV4MegaAttnAttention
     if backend in (
         AttentionBackendEnum.FLASHMLA_SPARSE,
@@ -254,7 +260,9 @@ def _select_dsv4_attn_cls(vllm_config: VllmConfig) -> type[DeepseekV4Attention]:
     # implementation itself stores. It declines topologies it cannot serve
     # (non-SM100, TP that leaves fewer than WV_GROUP_SIZE heads per wo_a
     # group, a build without the kernel), which then fall through to FlashMLA.
-    if DeepseekV4MegaAttnAttention.is_available_for(vllm_config):
+    if vllm_config.lora_config is None and DeepseekV4MegaAttnAttention.is_available_for(
+        vllm_config
+    ):
         return DeepseekV4MegaAttnAttention
     return DeepseekV4FlashMLAAttention
 
@@ -296,6 +304,12 @@ def maybe_init_gemm_rs(vllm_config: VllmConfig, use_sequence_parallel: bool) -> 
     collective, so every TP rank must take the same decision here.
     """
     if not (use_sequence_parallel and envs.VLLM_ENABLE_GEMM_RS):
+        return False
+    if vllm_config.lora_config is not None:
+        # The fused kernel reads wo_b's base weight and has no LoRA epilogue.
+        logger.warning_once(
+            "DeepSeek-V4.1 GEMM-RS is disabled because LoRA is enabled."
+        )
         return False
 
     # The kernel module pulls in cute_dsl, so import it only once opted in.
@@ -869,6 +883,7 @@ class DeepseekV4Model(nn.Module, EagleModelMixin):
             cut < self.end_layer - 1
             and self._decoder_replay_supported(vllm_config, cut)
             and self.layers[cut].attn.swa_cache_layer.bounded_replay
+            and vllm_config.lora_config is None
         ):
             assert self.layers[cut].attn.compress_ratio <= 1
             # The last KV source writes every row's KV, then replays.
@@ -1405,6 +1420,7 @@ class DeepseekV4Model(nn.Module, EagleModelMixin):
                         and loaded_weight.dtype == torch.float8_e8m0fnu
                     ):
                         loaded_weight = loaded_weight.view(torch.uint8)
+                    name_mapped = None
                     for mapping in expert_mapping:
                         param_name, weight_name, expert_id, expert_shard_id = mapping
                         if weight_name not in name:
@@ -1430,7 +1446,8 @@ class DeepseekV4Model(nn.Module, EagleModelMixin):
                         if success:
                             name = name_mapped
                             break
-                    loaded_params.add(name_mapped)
+                    if name_mapped is not None:
+                        loaded_params.add(name_mapped)
                     continue
                 else:
                     if is_pp_missing_parameter(name, self):
@@ -1734,15 +1751,15 @@ class DeepseekV41LLMForCausalLM(
         loaded_params = loader.load_weights(weights, mapper=self.hf_to_vllm_mapper)
         if self.model.vllm_config.engram_config and (
             self.model.vllm_config.engram_config.rdma_provider
+            or self.model.vllm_config.engram_config.shared_host_endpoint
         ):
-            import importlib
+            if self.model.vllm_config.engram_config.rdma_provider:
+                import importlib
 
-            provider = importlib.import_module(
-                self.model.vllm_config.engram_config.rdma_provider
-            )
-            # Validate the owner and establish the registered reader before
-            # accepting externally backed parameters as loaded.
-            provider.get_reader()
+                provider = importlib.import_module(
+                    self.model.vllm_config.engram_config.rdma_provider
+                )
+                provider.get_reader()
             loaded_params.update(
                 name
                 for name, param in self.named_parameters()
@@ -1750,22 +1767,10 @@ class DeepseekV41LLMForCausalLM(
             )
         return loaded_params
 
-    def is_unused_checkpoint_weight(self, name: str) -> bool:
-        engram = self.model.vllm_config.engram_config
-        if engram is None or not engram.rdma_provider:
-            return False
-        layout = self.model.engram_layout
-        assert layout is not None
-        return any(
-            name == f"layers.{layer}.engram.embed.{suffix}"
-            for layer in layout.layer_ids
-            for suffix in ("weight", "scale")
-        )
-
     @property
     def filter_unused_checkpoint_weights(self) -> bool:
         engram = self.model.vllm_config.engram_config
-        return bool(engram and engram.rdma_provider)
+        return bool(engram and (engram.rdma_provider or engram.shared_host_endpoint))
 
     def process_weights_after_loading(self) -> None:
         self.model.finalize_mhc_broadcast_weights()
@@ -1783,6 +1788,19 @@ class DeepseekV41LLMForCausalLM(
             ):
                 if layer.engram is not None:
                     layer.engram.embed_tokens.collapse_huge_pages()
+
+    def is_unused_checkpoint_weight(self, name: str) -> bool:
+        """Exclude only owner-supplied table tensors before safetensors reads."""
+        engram = self.model.vllm_config.engram_config
+        if engram is None or not (engram.shared_host_endpoint or engram.rdma_provider):
+            return False
+        layout = self.model.engram_layout
+        assert layout is not None
+        return any(
+            name == f"layers.{layer}.engram.embed.{suffix}"
+            for layer in layout.layer_ids
+            for suffix in ("weight", "scale")
+        )
 
     def get_expert_mapping(self) -> list[tuple[str, str, int, str]]:
         return self.model.get_expert_mapping()

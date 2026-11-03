@@ -32,7 +32,7 @@ class FakeRuntime:
         pass
 
 
-from vllm.distributed.engram_rdma import provider as vllm_rdma_provider  # noqa: E402
+from vllm.distributed.engram_share.rdma import provider as vllm_rdma_provider  # noqa: E402
 
 vllm_rdma_provider.ReaderRuntime = FakeRuntime
 vllm_rdma_provider.verify_checkpoint_samples = lambda: None
