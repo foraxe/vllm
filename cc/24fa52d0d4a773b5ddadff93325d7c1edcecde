@@ -1,0 +1,24 @@
+examples/disaggregated/engram_rdma/test_provider_gpu.py
+  h_02e4646417b93d 6,37
+examples/disaggregated/engram_rdma/verify_rows.py
+  h_02e4646417b93d 15
+tests/distributed/test_engram_rdma.py
+  h_02e4646417b93d 3,5,11-12,19-110,162,177,213,284-304
+vllm/distributed/engram_rdma/owner.py
+  h_02e4646417b93d 6,25,310,313,315,331,384,400,403-404,467,650
+vllm/distributed/engram_rdma/provider.py
+  h_02e4646417b93d 5-6,17-18,89-93,95-202,204-206
+vllm/distributed/engram_rdma/runtime.py
+  h_02e4646417b93d 12,18,22-23,252-423
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "cc24fa52d0d4a773b5ddadff93325d7c1edcecde",
+  "prompts": {},
+  "humans": {
+    "h_02e4646417b93d": {
+      "author": "yunzhi <ningyunxiao.nyx@antgroup.com>"
+    }
+  }
+}
