@@ -1,0 +1,20 @@
+{
+  "vllm_source": "5234ec5e3fea541a6835358b44407185d60942e8",
+  "sglang_source": "64dbce72f96994e3f01d5ab57acea51fc7e9f2a5",
+  "vl_wrapper": true,
+  "output_tokens": [
+    32,
+    32
+  ],
+  "output_text_sha256": [
+    "4dd59b87beb5557cbda3cc2f34c92aa02ca952f8c06c9bc34acfb7f207949ab7",
+    "51b99b7f2eb81132f324552b274cf8dfcf915a42639ae4e2ec155798b77cfbcb"
+  ],
+  "output_ids_sha256": [
+    "c1f62de5ced89e0920c78ae03c313851dde7999fb3f88ebfc32c0b87645a45c3",
+    "8347758ee3bb237121dfe66217b50dfaea89ad2e6aa511337d25bbdac6aaa33e"
+  ],
+  "owner_attach": 4,
+  "owner_detach": 4,
+  "uncertain_leases": 0
+}

@@ -1,0 +1,47 @@
+W1103 04:48:35.301000 180318 torch/utils/_pytree.py:630] <enum 'KernelPreference'> is an Enum subclass and is now natively supported by torch.compile as an opaque value type. Calling register_constant() on Enum subclasses is deprecated and will be an error in a future release.
+W1103 04:48:35.326000 180318 torch/utils/_pytree.py:630] <enum 'ScaleCalculationMode'> is an Enum subclass and is now natively supported by torch.compile as an opaque value type. Calling register_constant() on Enum subclasses is deprecated and will be an error in a future release.
+test_online_weight_update_requires_new_owner_generation (__main__.TestExternalEngram.test_online_weight_update_requires_new_owner_generation) ... [CI Test Method] TestExternalEngram.test_online_weight_update_requires_new_owner_generation
+Traceback (most recent call last):
+  File "/workspace/vllm_dsv41/sglang-engram-shared-fabric/python/sglang/srt/utils/common.py", line 3829, in retry
+    return fn()
+           ^^^^
+  File "/workspace/vllm_dsv41/sglang-engram-shared-fabric/python/sglang/test/test_utils.py", line 2503, in <lambda>
+    lambda: super(CustomTestCase, self)._callTestMethod(method),
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/.local/share/uv/python/cpython-3.12.13-linux-aarch64-gnu/lib/python3.12/unittest/case.py", line 589, in _callTestMethod
+    if method() is not None:
+       ^^^^^^^^
+  File "/workspace/vllm_dsv41/sglang-engram-shared-fabric/test/registered/unit/layers/test_engram_external.py", line 39, in test_online_weight_update_requires_new_owner_generation
+    self.assertEqual(
+  File "/root/.local/share/uv/python/cpython-3.12.13-linux-aarch64-gnu/lib/python3.12/unittest/case.py", line 885, in assertEqual
+    assertion_func(first, second, msg=msg)
+  File "/root/.local/share/uv/python/cpython-3.12.13-linux-aarch64-gnu/lib/python3.12/unittest/case.py", line 878, in _baseAssertEqual
+    raise self.failureException(msg)
+AssertionError: None != 'Online weight updates require a new external Engram owner generation.'
+ERROR
+
+======================================================================
+ERROR: test_online_weight_update_requires_new_owner_generation (__main__.TestExternalEngram.test_online_weight_update_requires_new_owner_generation)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/vllm_dsv41/sglang-engram-shared-fabric/python/sglang/srt/utils/common.py", line 3829, in retry
+    return fn()
+           ^^^^
+  File "/workspace/vllm_dsv41/sglang-engram-shared-fabric/python/sglang/test/test_utils.py", line 2503, in <lambda>
+    lambda: super(CustomTestCase, self)._callTestMethod(method),
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: None != 'Online weight updates require a new external Engram owner generation.'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/workspace/vllm_dsv41/sglang-engram-shared-fabric/python/sglang/test/test_utils.py", line 2502, in _callTestMethod
+    retry(
+  File "/workspace/vllm_dsv41/sglang-engram-shared-fabric/python/sglang/srt/utils/common.py", line 3844, in retry
+    raise Exception(f"retry() exceed maximum number of retries.")
+Exception: retry() exceed maximum number of retries.
+
+----------------------------------------------------------------------
+Ran 1 test in 0.014s
+
+FAILED (errors=1)
