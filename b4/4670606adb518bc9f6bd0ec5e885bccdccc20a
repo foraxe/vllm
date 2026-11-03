@@ -1,0 +1,42 @@
+examples/disaggregated/engram_rdma/vllm_rdma_provider.py
+  h_02e4646417b93d 3,5,7
+tests/distributed/test_engram_owner_checkpoint.py
+  h_02e4646417b93d 1-209
+examples/disaggregated/engram_rdma/verify_rows.py
+  h_02e4646417b93d 1-140
+vllm/distributed/engram_rdma/owner.py
+  h_02e4646417b93d 1-748
+vllm/distributed/engram_rdma/control.py
+  h_02e4646417b93d 1-247
+vllm/distributed/engram_rdma/provider.py
+  h_02e4646417b93d 1-160
+tests/distributed/test_engram_reader_lifecycle.py
+  h_02e4646417b93d 1-32
+examples/disaggregated/engram_rdma/make_tiny_checkpoint.py
+  h_02e4646417b93d 1-55
+examples/disaggregated/engram_rdma/README.md
+  h_02e4646417b93d 1,3-17,19-20,23,26-93
+tests/distributed/test_engram_owner_control.py
+  h_02e4646417b93d 1-101
+vllm/distributed/engram_rdma/__init__.py
+  h_02e4646417b93d 1-2
+docs/features/engram.md
+  h_02e4646417b93d 136-144
+vllm/distributed/engram_rdma/reader.py
+  h_02e4646417b93d 1-131
+vllm/distributed/engram_rdma/transport.py
+  h_02e4646417b93d 1-199
+examples/disaggregated/engram_rdma/test_provider_gpu.py
+  h_02e4646417b93d 36,40,66-74
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "b44670606adb518bc9f6bd0ec5e885bccdccc20a",
+  "prompts": {},
+  "humans": {
+    "h_02e4646417b93d": {
+      "author": "yunzhi <ningyunxiao.nyx@antgroup.com>"
+    }
+  }
+}
