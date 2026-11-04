@@ -1,0 +1,28 @@
+docs/features/engram.md
+  h_02e4646417b93d 143-149
+examples/disaggregated/engram_rdma/test_provider_gpu.py
+  h_02e4646417b93d 16,38,61
+examples/disaggregated/engram_rdma/verify_rows.py
+  h_02e4646417b93d 56
+tests/distributed/test_engram_rdma.py
+  h_02e4646417b93d 19-22,310,312-343
+tests/v1/worker/test_gpu_worker_weight_transfer.py
+  h_02e4646417b93d 104-117
+vllm/distributed/engram_share/rdma/provider.py
+  h_02e4646417b93d 20,28-35,101-102,131,214,217-219,275,278-284
+vllm/models/deepseek_v41/nvidia/model.py
+  h_02e4646417b93d 1760-1765
+vllm/v1/worker/gpu_worker.py
+  h_02e4646417b93d 694-696,1748-1750
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "f02b6b050142c848b8e054a33f7fdf55f9a57c09",
+  "prompts": {},
+  "humans": {
+    "h_02e4646417b93d": {
+      "author": "yunzhi <ningyunxiao.nyx@antgroup.com>"
+    }
+  }
+}
