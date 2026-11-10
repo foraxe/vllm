@@ -1,0 +1,44 @@
+vllm/models/deepseek_v41/nvidia/model.py
+  s_3cf79041d34315::t_0d94484dff41e0 1753
+  s_3cf79041d34315::t_cc913cb30f64d0 1755
+vllm/distributed/engram_share/provider.py
+  s_3cf79041d34315::t_0d94484dff41e0 1-46
+docs/features/engram.md
+  s_3cf79041d34315::t_0d94484dff41e0 146-149
+vllm/models/deepseek_v41/common/engram.py
+  s_3cf79041d34315::t_0d94484dff41e0 68,1321
+  s_3cf79041d34315::t_cc913cb30f64d0 101-104
+examples/disaggregated/engram_rdma/test_provider_gpu.py
+  s_3cf79041d34315::t_0d94484dff41e0 95
+vllm/v1/worker/gpu_worker.py
+  s_3cf79041d34315::t_0d94484dff41e0 1893,1895
+examples/disaggregated/engram_rdma/verify_rows.py
+  s_3cf79041d34315::t_4a9eef6a200f8e 117
+vllm/distributed/engram_share/rdma/provider.py
+  s_3cf79041d34315::t_0d94484dff41e0 17,215-216,237,242-243,304-307,329
+  s_3cf79041d34315::t_d4f703dadc5b74 223-232
+  s_3cf79041d34315::t_4a9eef6a200f8e 238-241
+  s_3cf79041d34315::t_55b67c38c1f878 269-271
+tests/distributed/test_engram_rdma.py
+  s_3cf79041d34315::t_55b67c38c1f878 387-389
+  s_3cf79041d34315::t_4a9eef6a200f8e 13,32-49
+  s_3cf79041d34315::t_0afd6ddac0abad 50-54
+  s_3cf79041d34315::t_c6ef7f828ef47c 14,55-87
+  s_3cf79041d34315::t_2b34fb8648a7b5 88-89
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "2d39dffc6e7e1ec5e3974306b6adc6d0646e2728",
+  "prompts": {},
+  "sessions": {
+    "s_3cf79041d34315": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1834a-b744-7223-a82f-250c1c976df0",
+        "model": "gpt-6.1-terra"
+      },
+      "human_author": "yunzhi <ningyunxiao.nyx@antgroup.com>"
+    }
+  }
+}
