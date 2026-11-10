@@ -1,0 +1,26 @@
+tests/models/test_deepseek_v41_replay_batch.py
+  s_3cf79041d34315::t_676aa72c0daea7 337
+tests/model_executor/model_loader/test_filter_duplicate_safetensors.py
+  s_3cf79041d34315::t_4df201fd30771c 223
+  s_3cf79041d34315::t_dd2f353e9d8338 192,236
+  s_3cf79041d34315::t_79bbd45969895d 224-226
+  s_3cf79041d34315::t_221b518b9d5b85 188-190
+tests/distributed/test_engram_rdma.py
+  s_3cf79041d34315::t_2f1988ff445753 251
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "7d49fdfaebaf0d6092df6f41923ad095eb962160",
+  "prompts": {},
+  "sessions": {
+    "s_3cf79041d34315": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1834a-b744-7223-a82f-250c1c976df0",
+        "model": "gpt-6.1-terra"
+      },
+      "human_author": "yunzhi <ningyunxiao.nyx@antgroup.com>"
+    }
+  }
+}
