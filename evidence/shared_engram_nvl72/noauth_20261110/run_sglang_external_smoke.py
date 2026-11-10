@@ -1,0 +1,233 @@
+"""Check SGLang's direct gather against a separate vLLM FABRIC table owner."""
+
+import argparse
+import json
+import os
+import signal
+import socket
+import subprocess
+import sys
+import tempfile
+import threading
+from contextlib import suppress
+from pathlib import Path
+
+import torch
+from safetensors.torch import save_file
+
+ARTIFACTS = Path("/workspace/vllm_dsv41/artifacts/engram-vmm-noauth-20261110/synthetic_sglang")
+VLLM_SOURCE = Path("/workspace/vllm_dsv41/vllm-engram-shared-nvl72")
+VLLM_PYTHON = VLLM_SOURCE / ".venv/bin/python"
+ROWS = 3
+DIM = 64
+
+
+def checkpoint(directory: Path) -> None:
+    config = {
+        "text_config": {
+            "engram_layer_ids": [1],
+            "engram_num_embeddings": [ROWS],
+            "engram_max_ngram_size": 2,
+            "engram_vocab_size": 3,
+            "engram_n_heads": 1,
+            "engram_head_dim": DIM,
+            "engram_pad_token_id": 0,
+            "engram_compressed_vocab_size": 3,
+        }
+    }
+    (directory / "config.json").write_text(json.dumps(config))
+    weight_key = "layers.1.engram.embed.weight"
+    scale_key = "layers.1.engram.embed.scale"
+    weights = torch.ones((ROWS, DIM), dtype=torch.float32).to(torch.float8_e4m3fn)
+    weights[-1] = 2
+    scales = torch.full((ROWS, DIM // 32), 127, dtype=torch.uint8).view(
+        torch.float8_e8m0fnu
+    )
+    filename = "model-00001-of-00001.safetensors"
+    save_file({weight_key: weights, scale_key: scales}, directory / filename)
+    (directory / "model.safetensors.index.json").write_text(
+        json.dumps({"weight_map": {weight_key: filename, scale_key: filename}})
+    )
+
+
+def consumer(endpoint: str, generation: str, model_dir: Path) -> None:
+    from sglang.kernels.ops.embeddings.engram_gather import engram_gather
+    from sglang.srt.engram_share.vmm.external import attach_table, close_attached_tables
+
+    torch.cuda.set_device(1)
+    table = attach_table(
+        endpoint=endpoint,
+        generation=generation,
+        checkpoint_dir=model_dir,
+        layer=1,
+        rows=ROWS,
+        dim=DIM,
+        head_sizes=(ROWS,),
+        device=1,
+    )
+    ids = torch.tensor([0, 1, 2], dtype=torch.int32, device="cuda")
+    out = torch.empty((3, DIM), dtype=torch.bfloat16, device="cuda")
+    expected = torch.ones_like(out)
+    expected[-1] = 2
+    try:
+        engram_gather(table.weight_ptr, table.scale_ptr, ids, out, DIM, 32)
+        torch.cuda.synchronize()
+        torch.testing.assert_close(out, expected, rtol=0, atol=0)
+        graph = torch.cuda.CUDAGraph()
+        with torch.cuda.graph(graph):
+            engram_gather(table.weight_ptr, table.scale_ptr, ids, out, DIM, 32)
+        graph.replay()
+        torch.cuda.synchronize()
+        torch.testing.assert_close(out, expected, rtol=0, atol=0)
+        ids.copy_(torch.tensor([2, 1, 0], dtype=torch.int32, device="cuda"))
+        graph.replay()
+        torch.cuda.synchronize()
+        torch.testing.assert_close(out, expected.flip(0), rtol=0, atol=0)
+        del graph
+        print(
+            json.dumps(
+                {
+                    "result": "pass",
+                    "rows": ROWS,
+                    "mapped_bytes": table.mapping.table.size_bytes,
+                    "graph_changed_ids": True,
+                }
+            ),
+            flush=True,
+        )
+    finally:
+        close_attached_tables()
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--consumer", action="store_true")
+    parser.add_argument("--endpoint")
+    parser.add_argument("--generation")
+    parser.add_argument("--model-dir", type=Path)
+    args = parser.parse_args()
+    if args.consumer:
+        consumer(args.endpoint, args.generation, args.model_dir)
+        return
+    ARTIFACTS.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory() as temporary:
+        model_dir = Path(temporary) / "model"
+        model_dir.mkdir()
+        checkpoint(model_dir)
+        with socket.socket() as probe:
+            probe.bind(("127.0.0.1", 0))
+            port = probe.getsockname()[1]
+        endpoint = f"127.0.0.1:{port}"
+        environment = os.environ.copy()
+        environment["PYTHONPATH"] = str(VLLM_SOURCE)
+        environment["CUDA_VISIBLE_DEVICES"] = "0,1"
+        ready = threading.Event()
+        lines: list[str] = []
+        with (ARTIFACTS / "owner.log").open("w") as log:
+            owner = subprocess.Popen(
+                [
+                    str(VLLM_PYTHON),
+                    "-m",
+                    "vllm.distributed.engram_share.vmm.owner",
+                    "--model-dir",
+                    str(model_dir),
+                    "--listen-host",
+                    "127.0.0.1",
+                    "--listen-port",
+                    str(port),
+                    "--device",
+                    "0",
+                ],
+                env=environment,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                text=True,
+                start_new_session=True,
+            )
+
+            def read_owner() -> None:
+                assert owner.stdout is not None
+                for line in owner.stdout:
+                    lines.append(line)
+                    log.write(line)
+                    log.flush()
+                    if "ENGRAM_OWNER_READY" in line:
+                        ready.set()
+                ready.set()
+
+            thread = threading.Thread(target=read_owner)
+            thread.start()
+            try:
+                if not ready.wait(timeout=600):
+                    raise RuntimeError("owner did not publish: " + "".join(lines[-20:]))
+                ready_line = next(
+                    (line for line in lines if "ENGRAM_OWNER_READY" in line), None
+                )
+                if ready_line is None:
+                    raise RuntimeError("owner exited before ready: " + "".join(lines[-20:]))
+                generation = ready_line.split("generation=", 1)[1].strip()
+                result = subprocess.run(
+                    [
+                        sys.executable,
+                        str(Path(__file__).resolve()),
+                        "--consumer",
+                        "--endpoint",
+                        endpoint,
+                        "--generation",
+                        generation,
+                        "--model-dir",
+                        str(model_dir),
+                    ],
+                    capture_output=True,
+                    text=True,
+                    timeout=180,
+                    env={**os.environ, "CUDA_VISIBLE_DEVICES": "0,1"},
+                )
+                (ARTIFACTS / "consumer.log").write_text(result.stdout + result.stderr)
+                if result.returncode:
+                    raise RuntimeError(
+                        f"consumer exit code {result.returncode}: "
+                        + "\n".join((result.stdout + result.stderr).splitlines()[-20:])
+                    )
+                print(result.stdout.strip(), flush=True)
+                vllm_result = subprocess.run(
+                    [
+                        str(VLLM_PYTHON),
+                        str(ARTIFACTS / "vllm_consumer.py"),
+                        "--endpoint",
+                        endpoint,
+                        "--generation",
+                        generation,
+                        "--model-dir",
+                        str(model_dir),
+                    ],
+                    capture_output=True,
+                    text=True,
+                    timeout=180,
+                    env={**os.environ, "PYTHONPATH": str(VLLM_SOURCE), "CUDA_VISIBLE_DEVICES": "0,1"},
+                )
+                (ARTIFACTS / "vllm_consumer.log").write_text(
+                    vllm_result.stdout + vllm_result.stderr
+                )
+                if vllm_result.returncode:
+                    raise RuntimeError(
+                        f"vLLM consumer failed: {vllm_result.returncode}: "
+                        + "\n".join((vllm_result.stdout + vllm_result.stderr).splitlines()[-20:])
+                    )
+                print(vllm_result.stdout.strip(), flush=True)
+            finally:
+                with suppress(ProcessLookupError):
+                    os.killpg(owner.pid, signal.SIGTERM)
+                try:
+                    owner.wait(timeout=120)
+                except subprocess.TimeoutExpired:
+                    os.killpg(owner.pid, signal.SIGKILL)
+                    owner.wait()
+                thread.join(timeout=10)
+            if owner.returncode:
+                raise RuntimeError(f"owner exit code {owner.returncode}")
+            print(json.dumps({"owner_exit_code": owner.returncode}), flush=True)
+
+
+if __name__ == "__main__":
+    main()
