@@ -1,0 +1,19 @@
+W1110 01:35:54.108000 458865 .venv/lib/python3.12/site-packages/torch/_opaque_base.py:6] torch._opaque_base is deprecated, use torch._custom_class_base instead
+W1110 01:35:54.108000 458865 .venv/lib/python3.12/site-packages/torch/_library/opaque_object.py:288] register_opaque_type is deprecated, use register_custom_class instead
+W1110 01:35:54.108000 458865 .venv/lib/python3.12/site-packages/torch/_library/opaque_object.py:211] typ='value' is deprecated, use typ='constant' instead
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/workspace/vllm_dsv41/vllm-engram-shared-nvl72/vllm/distributed/engram_share/vmm/owner.py", line 517, in <module>
+    main()
+  File "/workspace/vllm_dsv41/vllm-engram-shared-nvl72/vllm/distributed/engram_share/vmm/owner.py", line 509, in main
+    run_owner(
+  File "/workspace/vllm_dsv41/vllm-engram-shared-nvl72/vllm/distributed/engram_share/vmm/owner.py", line 318, in run_owner
+    manifest, mappings = publish_checkpoint(model_dir, device)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/vllm_dsv41/vllm-engram-shared-nvl72/vllm/distributed/engram_share/vmm/owner.py", line 138, in publish_checkpoint
+    mapping = create_table(
+              ^^^^^^^^^^^^^
+  File "/workspace/vllm_dsv41/vllm-engram-shared-nvl72/vllm/distributed/engram_share/vmm/mapping.py", line 322, in create_table
+    raise MemoryError(
+MemoryError: HOST_NUMA allocation failed at 46.0/94.4 GiB: node 0 free 25.9 GiB, node 1 free 14.0 GiB

@@ -1,0 +1,4 @@
+{"result": "pass", "mapped_bytes": 198}
+W1110 01:41:15.723000 471196 .venv/lib/python3.12/site-packages/torch/_opaque_base.py:6] torch._opaque_base is deprecated, use torch._custom_class_base instead
+W1110 01:41:15.724000 471196 .venv/lib/python3.12/site-packages/torch/_library/opaque_object.py:288] register_opaque_type is deprecated, use register_custom_class instead
+W1110 01:41:15.724000 471196 .venv/lib/python3.12/site-packages/torch/_library/opaque_object.py:211] typ='value' is deprecated, use typ='constant' instead

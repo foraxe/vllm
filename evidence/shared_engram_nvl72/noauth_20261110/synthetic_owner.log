@@ -1,0 +1,9 @@
+W1110 01:41:05.127000 470666 .venv/lib/python3.12/site-packages/torch/_opaque_base.py:6] torch._opaque_base is deprecated, use torch._custom_class_base instead
+W1110 01:41:05.127000 470666 .venv/lib/python3.12/site-packages/torch/_library/opaque_object.py:288] register_opaque_type is deprecated, use register_custom_class instead
+W1110 01:41:05.127000 470666 .venv/lib/python3.12/site-packages/torch/_library/opaque_object.py:211] typ='value' is deprecated, use typ='constant' instead
+ENGRAM_OWNER_BACKING {"table_bytes": 198, "padded_bytes": 2097152, "node_bytes": {"0": 2097152}}
+ENGRAM_OWNER_READY 127.0.0.1:38533 generation=3a0e2de8627bdfafe6a033ddc206be5b
+ENGRAM_OWNER_ATTACH {"client": {"device": 1, "hostname": "gpuidi14aaf1029.idi1", "layer": 1, "peer": "127.0.0.1", "pid": 471053}, "generation": "3a0e2de8627bdfafe6a033ddc206be5b", "lease": "f95f22d45c7fb9e8b7cc87d9105c536e"}
+ENGRAM_OWNER_DETACH {"client": {"device": 1, "hostname": "gpuidi14aaf1029.idi1", "layer": 1, "peer": "127.0.0.1", "pid": 471053}, "generation": "3a0e2de8627bdfafe6a033ddc206be5b", "lease": "f95f22d45c7fb9e8b7cc87d9105c536e"}
+ENGRAM_OWNER_ATTACH {"client": {"device": 1, "hostname": "gpuidi14aaf1029.idi1", "layer": 1, "peer": "127.0.0.1", "pid": 471196}, "generation": "3a0e2de8627bdfafe6a033ddc206be5b", "lease": "c27cf850be5e656a76702885e60e66fc"}
+ENGRAM_OWNER_DETACH {"client": {"device": 1, "hostname": "gpuidi14aaf1029.idi1", "layer": 1, "peer": "127.0.0.1", "pid": 471196}, "generation": "3a0e2de8627bdfafe6a033ddc206be5b", "lease": "c27cf850be5e656a76702885e60e66fc"}
