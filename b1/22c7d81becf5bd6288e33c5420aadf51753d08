@@ -1,0 +1,19 @@
+docs/features/engram.md
+  s_3cf79041d34315::t_189f5e6a7a62a9 167
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "b122c7d81becf5bd6288e33c5420aadf51753d08",
+  "prompts": {},
+  "sessions": {
+    "s_3cf79041d34315": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1834a-b744-7223-a82f-250c1c976df0",
+        "model": "gpt-6.1-terra"
+      },
+      "human_author": "yunzhi <ningyunxiao.nyx@antgroup.com>"
+    }
+  }
+}
