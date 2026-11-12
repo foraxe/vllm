@@ -1,0 +1,1462 @@
+docs/serving/online_serving/derenderer.md
+  s_3cf79041d34315::t_dcc7feef1a2e1b 93,95
+vllm/model_executor/model_loader/weight_cache/seed.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 185-186
+vllm/models/glm5next/nvidia/specialized_decode/kda.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-169
+vllm/models/deepseek_v41/nvidia/specialized_decode/attention/step.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 29-32,170,277-278,286,301,400,402,408-418
+rust/src/bench/src/sweep.rs
+  s_3cf79041d34315::t_dcc7feef1a2e1b 6,74-76,138-140,196-199
+vllm/entrypoints/pooling/base/io_processor.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 23
+.buildkite/intel_jobs/lm_eval_intel.yaml
+  s_3cf79041d34315::t_dcc7feef1a2e1b 11,28
+vllm/distributed/kv_transfer/kv_connector/v1/mooncake_store/data.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-426
+recipes/models/inclusionAI/Ming-3.0-asr-tiny.yaml
+  s_3cf79041d34315::t_dcc7feef1a2e1b 7,11-12,55-60,98-112
+  s_3cf79041d34315::t_1e33c2592b3dd3 113
+tests/entrypoints/openai/responses/test_simple.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 60,65
+tests/entrypoints/pooling/scoring/test_utils.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 8
+tests/v1/core/test_kv_cache_planning.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1512-1541
+vllm/models/glm5next/nvidia/specialized_decode/gemm.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-95
+tests/basic_correctness/cpu_offload/test_cpu_offload.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 7,145-246
+recipes/models/Qwen/Qwen3.5-9B.yaml
+  s_3cf79041d34315::t_dcc7feef1a2e1b 7,93-108,128-129,131,138-141
+tests/v1/attention/test_mla_backends.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 25,387-447
+  s_3cf79041d34315::t_c4059b45be3ce4 448-449
+vllm/distributed/kv_transfer/kv_connector/v1/mooncake_store/metrics.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-189
+vllm/entrypoints/launchers/api_server/app_state.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 114
+vllm/model_executor/models/bailing_moe_v3.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 70,181-191,199,201-202,204-206,497
+vllm/model_executor/layers/quantization/quark/quark_moe.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1337-1343,1354-1355,1365-1366
+tests/entrypoints/openai/chat_completion/test_enable_force_include_usage.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 62-70
+vllm/models/deepseek_v41/nvidia/specialized_decode/moe/step.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 14-19,80-81,84-88,92-106,112-113,131-146
+  s_3cf79041d34315::t_1886fec00f183b 147
+tests/tools/test_docker_build_metadata_args.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 100
+rust/src/parser/src/unified/hy/hy_v4.rs
+  s_3cf79041d34315::t_dcc7feef1a2e1b 161
+csrc/rocm/torch_bindings.cpp
+  s_3cf79041d34315::t_dcc7feef1a2e1b 85-109
+vllm/models/deepseek_v41/nvidia/specialized_decode/sampling/__init__.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-2
+.buildkite/image_build/image_build_torch_nightly.sh
+  s_3cf79041d34315::t_dcc7feef1a2e1b 48-51
+rust/src/server/src/utils.rs
+  s_3cf79041d34315::t_dcc7feef1a2e1b 5-6,9,14,16,19,64-105
+  s_3cf79041d34315::t_3bb3e86238d40f 106
+tests/kernels/moe/test_moe.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 129-175
+vllm/entrypoints/speech_to_text/base/serving.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 26
+tests/distributed/test_engram_rdma.py
+  s_3cf79041d34315::t_cc9a37dc25c717 32-38
+tests/v1/worker/test_gpu_ubatch_slicing.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 551
+docs/serving/integrations/claude_code.md
+  s_3cf79041d34315::t_dcc7feef1a2e1b 82-83
+tests/kernels/moe/test_modular_kernel_combinations.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 56,1130,1379,1493
+vllm/model_executor/layers/fused_moe/experts/fused_batched_moe.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 96,128,130-139,239,292,348,430,480,562,602,605-608,725,1164,1211
+vllm/model_executor/models/bailing_moe_v3_vl.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 5-7,24,33,38,57,61-63,66,77,81-145,158-165,167-177,184-187,190,192-194,209-218,222,226-303,309,311-327,339-342,351-365,369-378,380-381,404,426-441,443-444,448,456-457,472,481,491-513,529-530,553-555,588-590,592-593,601,605,639-650,652-656,658-681,684-703,731-733
+vllm/model_executor/models/transformers/utils.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 19,25-34,52,397-422
+  s_3cf79041d34315::t_1b9754caa5c05e 423-424
+tests/models/glm5next/test_specialized_decode_kpool.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-213
+tests/v1/kv_connector/unit/test_mooncake_store_coordinator.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 9,13
+tests/multimodal/media/test_video.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 390
+tests/models/deepseek_v41/nvidia/specialized_decode/test_layers.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 8-10,18-21,159-160,164-168,287,295-296,310-314,409,513-515,519-520,523,525-526,534-535,538-539
+vllm/models/muse_spark/amd/ops/router_bf16x3.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 8-9,14-16,25-45,49,58
+tests/v1/kv_connector/unit/test_mooncake_store_scheduler.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 10,13,22,334
+tests/entrypoints/launchers/test_run_batch.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1427-1453
+.buildkite/intel_jobs/lora_intel.yaml
+  s_3cf79041d34315::t_dcc7feef1a2e1b 175-178,185-189
+vllm/model_executor/model_loader/reload/layerwise.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 389-406
+tests/fusion/test_quant_activation_contract.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 15-17,79
+tests/v1/worker/test_mixed_warmup_gate.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 60,102,127
+vllm/models/glm5next/nvidia/specialized_decode/__init__.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-2
+tests/standalone_tests/python_only_compile.sh
+  s_3cf79041d34315::t_dcc7feef1a2e1b 190-194,201-202,206-208,210-212,214-215
+vllm/models/minimax_m3/common/dspark.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 356-359
+tests/models/multimodal/processing/test_mimo_v2_omni.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-112
+rust/src/chat/tests/roundtrip.rs
+  s_3cf79041d34315::t_dcc7feef1a2e1b 36,58-61,228,242,256,270,284,303,317,331,345,364,378,392,416,434,454,476,499,513,532,546,560,574,588,830-835
+rust/src/parser/src/tool/deepseek_dsml/deepseek_v41.rs
+  s_3cf79041d34315::t_dcc7feef1a2e1b 11
+tests/transformers_utils/test_bailing_moe_v3_vl_config.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 42-45,47-49,74-80,113-120,123,127-142,179-186
+vllm/models/deepseek_v32/attention.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 38,224-230,236,310-326,330-331,338
+tools/build_hybrid_test_wheels.sh
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-59
+vllm/models/glm5next/nvidia/specialized_decode/logits_gather.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-192
+tests/v1/worker/test_attn_utils.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 27,887,889,951-953,955
+vllm/model_executor/model_loader/weight_cache/warmup_cache/base.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-24
+tests/v1/engine/test_engine_args.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 4,6,12,14-15,439,446-450,461-558,563-567,585,630,649-650,654-658
+recipes/models/moonshotai/Kimi-K3.yaml
+  s_3cf79041d34315::t_dcc7feef1a2e1b 7,22,93,97,113,123,200,226-228,304,306,309,1886
+vllm/model_executor/models/qwen3_5.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 61
+vllm/models/deepseek_v4/nvidia/model.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 128-135,238,479,847,1000
+vllm/models/kimi_k3/amd/linear.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 89-92,965-981,1074
+.buildkite/test-amd.yaml
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1401-1406,1427-1432,1451-1457,1460-1461,1540
+tests/kernels/moe/test_zen_cpu_int8_moe.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 194
+vllm/model_executor/layers/quantization/fp8.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 772-774
+rust/src/parser/src/tool/deepseek_dsml/deepseek_v4.rs
+  s_3cf79041d34315::t_dcc7feef1a2e1b 26,261,297,299
+vllm/model_executor/models/transformers/fuser.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 109-111,113-122
+docs/features/speculative_decoding/README.md
+  s_3cf79041d34315::t_dcc7feef1a2e1b 141
+tests/models/transformers/fusers/test_linear.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 24,750-753,812-813
+vllm/models/deepseek_v41/nvidia/ops/mhc.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 5,24,193-215,236,242-244,315,332-339
+tests/models/glm5next/test_specialized_decode_indexer.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-168
+tests/models/multimodal/processing/test_bailing_moe_v3_vl.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 5,12,16-18,20-32,34-36,42,60-62,66-77,82,84-89,92-106,108-115,117-118,120-125,127,129-132,137,141-142,144,146,161-306
+vllm/models/deepseek_v41/nvidia/specialized_decode/sampling/sharded_markov_cute.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-1048
+tests/renderers/test_kimi_k3.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 4,7,9-11,13-14,18,85-128
+  s_3cf79041d34315::t_e0c40b62701a2d 129-130
+vllm/engine/arg_utils.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 838,1146-1148,2827-2832
+vllm/entrypoints/pooling/scoring/utils.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 22
+tests/kernels/attention/test_minimax_m3_indexer_cp.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 340-357
+docs/features/preload.md
+  s_3cf79041d34315::t_dcc7feef1a2e1b 91,94,100,103,108-129,133-135,139-144,156-169,175-176,307-314,364-365
+tests/models/multimodal/processing/test_gemma4.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 372
+vllm/models/glm5next/common/mtp.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 32-34,50-52,149-171,197-209
+vllm/models/deepseek_v41/nvidia/specialized_decode/moe/routed_expert_gemm.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 20-21,35-37,68,159-160,185,358-376,478-493,642,645-647,673
+vllm/models/glm5next/nvidia/specialized_decode/all_reduce_mhc.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-1231
+rust/src/cmd/src/cli/logging.rs
+  s_3cf79041d34315::t_dcc7feef1a2e1b 6
+tests/distributed/test_engram_dp_shard.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 15-16,55,64,77-79,82-86,106-113,200,245-246,249-250,260-263,267,276,280-289,296-360,474,477,550,555,557,562-563,565,567,570,573,577-579,581-586,596-602,638-640,643,645-650,688-689,825,976,981,1028
+vllm/model_executor/models/alice_ai.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 50,257
+vllm/models/glm5next/nvidia/specialized_decode/policy.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-85
+vllm/models/glm5next/nvidia/specialized_decode/runtime/draft.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-232
+rust/src/parser/src/unified/kimi_k3.rs
+  s_3cf79041d34315::t_dcc7feef1a2e1b 61,661-664
+rust/src/parser/src/tool/minimax_m3.rs
+  s_3cf79041d34315::t_dcc7feef1a2e1b 14,124-126
+tests/kernels/moe/test_cpu_fused_moe.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 686
+vllm/distributed/kv_transfer/kv_connector/v1/multi_connector.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 12,237-247
+  s_3cf79041d34315::t_639752398df2e3 248
+vllm/models/deepseek_v41/nvidia/specialized_decode/__init__.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 4,7-8,14,17,32-34,139-148,155,175-193
+docs/usage/security.md
+  s_3cf79041d34315::t_dcc7feef1a2e1b 316-319
+.buildkite/intel_jobs/rust_frontend_intel.yaml
+  s_3cf79041d34315::t_dcc7feef1a2e1b 81,90-93,102-105,110-113,123-125,127-128
+docs/contributing/ci/nightly_builds.md
+  s_3cf79041d34315::t_dcc7feef1a2e1b 11,15,58,70,124
+tests/models/kimi_k3/test_amd_attn_res.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 4-5,9,11-12,15-16,306-401
+requirements/test/cpu.txt
+  s_3cf79041d34315::t_dcc7feef1a2e1b 6785,6794-6797,6823-6826
+vllm/model_executor/models/registry.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 716,792
+rust/src/cmd/src/main.rs
+  s_3cf79041d34315::t_dcc7feef1a2e1b 98
+rust/src/parser/src/tool/minimax_m2.rs
+  s_3cf79041d34315::t_dcc7feef1a2e1b 14,91-93
+.buildkite/test_areas/models_basic.yaml
+  s_3cf79041d34315::t_dcc7feef1a2e1b 189-196,256-258,263,284-292,307,699-714,729-736
+recipes/models/Qwen/Qwen3.5-2B.yaml
+  s_3cf79041d34315::t_dcc7feef1a2e1b 7,73,93-94,96
+tests/kernels/attention/test_cache.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 5,173-220
+  s_3cf79041d34315::t_606ee8450df329 221-222
+rust/src/engine-core-client/src/client/imp.rs
+  s_3cf79041d34315::t_dcc7feef1a2e1b 24,402-403,406-423,677-681,684,686,705-768
+  s_3cf79041d34315::t_ddb1620f6a6fc6 769-770
+tests/models/glm5next/test_specialized_decode_logits_gather.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-48
+vllm/models/glm5next/nvidia/specialized_decode/indexer_query.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-241
+rust/src/bench/src/backends/mod.rs
+  s_3cf79041d34315::t_dcc7feef1a2e1b 160-163,182
+rust/src/tracing/Cargo.toml
+  s_3cf79041d34315::t_dcc7feef1a2e1b 9-12,16,19-20
+  s_3cf79041d34315::t_1e282cac25db58 21
+tests/benchmarks/test_endpoint_request_func_timing.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 79-84,90,92,411-432
+  s_3cf79041d34315::t_e88dd584268538 433-434
+.buildkite/test_areas/misc.yaml
+  s_3cf79041d34315::t_dcc7feef1a2e1b 519,521,526,529,533,541,865-867
+vllm/entrypoints/pooling/token_embed/late_chunking.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 13
+vllm/model_executor/layers/quantization/humming.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 645-647
+vllm/models/deepseek_v41/amd/model.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 64,154-156,545,1217,1221-1222
+vllm/models/deepseek_v41/nvidia/specialized_decode/boundary/boundary.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 75,77-84,86,94-100,155,186-188,190-194,201,203,229
+rust/proto/inference.proto
+  s_3cf79041d34315::t_dcc7feef1a2e1b 67-70
+vllm/entrypoints/pooling/types.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-218
+docs/training/async_rl.md
+  s_3cf79041d34315::t_dcc7feef1a2e1b 54-55
+tests/kernels/moe/test_triton_moe_ptpc_fp8.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 155
+rust/src/server/src/routes/openai/completions.rs
+  s_3cf79041d34315::t_dcc7feef1a2e1b 16,19,51-54,149-150
+tests/distributed/test_eplb_migration_scheduler.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 368-409
+tests/model_executor/model_loader/test_weight_cache.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 38,1497,1522,1559,1633,1649-1824,1963-1967,1988-2002
+rust/src/server/src/lora.rs
+  s_3cf79041d34315::t_dcc7feef1a2e1b 162
+vllm/models/deepseek_v41/nvidia/model.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 81,117,502-518,656,690,732,773,1218
+tests/models/deepseek_v32/test_shardq_sequence_parallel.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-323
+vllm/model_executor/layers/pooler/seqwise/methods.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 10,82-87
+vllm/models/glm5next/nvidia/specialized_decode/all_reduce_norm.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-653
+tests/models/language/generation/test_common.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 243-244,246,259-261,268,282
+vllm/distributed/weight_transfer/sharded_rdt_engine.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 53-54,56,61-64,72,75,77-78,94-222,252-253,269-270,288-304,378-382,391-396,421,427,430-434,515-516,518-520,522-527,533,540,565-566,572-579,593-632,634,636-696,699-711,713-714,738-739,748,756,796,806-810,816-817,819-823,835,839-845,857,859-862,864-871,874,876-878,880-884,889-892,899,905,911-1021,1033,1036-1041,1079-1082,1091-1092,1111,1120-1121,1131-1134,1138,1151-1154,1156-1159,1204-1228,1231-1237,1258,1264-1266,1282-1284,1299,1305,1307,1311,1314,1408-1411,1413-1416,1421-1426,1529-1531,1538-1543,1547,1550-1557,1572-1573,1588,1590,1601,1669-1679,1692,1695,1698-1700,1708,1719-1746,1794-1797,1821-1827,1830,1832,1845-1851,1874,1883-1890,1901-1917,1926-2054
+docs/models/supported_models.md
+  s_3cf79041d34315::t_dcc7feef1a2e1b 402,508,556
+vllm/models/kimi_k3/nvidia/dspark_mla.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 30,64-69,82
+vllm/distributed/kv_transfer/kv_connector/factory.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 8,136-153,255
+vllm/models/glm5next/nvidia/specialized_decode/runtime/__init__.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-143
+docs/features/nixl_connector_compatibility.md
+  s_3cf79041d34315::t_dcc7feef1a2e1b 100-104
+tests/models/multimodal/processing/test_gemma4_unified.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 5,7,14-17,29,228-265,376-377
+vllm/entrypoints/pooling/embed/serving.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 14
+tests/v1/kv_connector/unit/offloading_connector/test_scheduler.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 799-870
+tests/models/multimodal/generation/test_transformers_audio.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 7-8,140-142,146-148
+vllm/model_executor/models/transformers/multimodal.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 59,959,963,966-967,1040-1041,1050
+vllm/entrypoints/launchers/render/app_state.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 89
+.buildkite/image_build/image_build_zen_cpu.sh
+  s_3cf79041d34315::t_dcc7feef1a2e1b 8-15
+examples/rl/rlhf_sharded_rdt_small_ep.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 91-92,131-136,144-145,185-186,243-252
+csrc/rocm/rdna_attn_common.cuh
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-84
+vllm/model_executor/models/qwen3_dflash.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 108-117,668-681,972-977
+  s_3cf79041d34315::t_37b8c948f9e1f2 978
+rust/src/parser/src/unified/muse.rs
+  s_3cf79041d34315::t_dcc7feef1a2e1b 47,197-199,837,852,873,1000,1148
+tests/distributed/test_sharded_rdt_plan.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 12-22,28-31,37-39,47,50,53-55,57-59,67-73,83-109,162-164,185,452-458,611-624,1178-1225,1598-1602,1631-1632,1636,1726-1734,1846-2935
+  s_3cf79041d34315::t_5d6cef9774bfab 2936-2937
+vllm/models/deepseek_v41/nvidia/ops/engram_fabric_table.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-303
+requirements/test/kv_connectors_cuda.txt
+  s_3cf79041d34315::t_dcc7feef1a2e1b 2,730-731,1791-1794,1800-1803,1807-1810,1815-1818,1829-1832,1836-1838,1842-1845,1849-1852,1856-1859,1871-1875,1888-1891,2788-2812
+vllm/distributed/kv_transfer/kv_connector/v1/mooncake_store/coordinator.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-497
+recipes/models/moonshotai/Kimi-K3.1-Pro.yaml
+  s_3cf79041d34315::t_dcc7feef1a2e1b 8,95-97,187-192,217-219,469-765,832-1451,1455,1526-1527,1534-1536,1560-1566,1605-1608
+tests/transformers_utils/test_muse_spark_config.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 20
+tests/compile/fusions_e2e/test_tp1_quant.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 230,249
+vllm/distributed/kv_transfer/kv_connector/v1/base.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 51,205-213
+  s_3cf79041d34315::t_a79160e4d9eee8 214
+vllm/model_executor/models/moondream3.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1092-1096,1287
+vllm/model_executor/models/dots_ocr.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 4,61,515,525,562,564-569,572,574
+vllm/distributed/kv_transfer/kv_connector/v1/mooncake_store/layout.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-848
+vllm/distributed/kv_transfer/kv_connector/v1/umbp/runtime/base.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 21-26
+rust/src/bench/src/metrics/calculator.rs
+  s_3cf79041d34315::t_dcc7feef1a2e1b 6,212-213,219-250,409-410,498-531
+  s_3cf79041d34315::t_702b0e2b0660ad 532
+requirements/build/hybrid-test-deps.in
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-7
+vllm/distributed/kv_transfer/kv_connector/v1/nixl/utils.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 6,14-20,66-77
+  s_3cf79041d34315::t_2b3bf6329c6ab0 78-79
+tests/models/multimodal/pooling/test_jinavl_reranker.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 8
+vllm/model_executor/layers/quantization/online/int8.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 142
+vllm/entrypoints/pooling/token_embed/serving.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 10
+rust/src/bench/src/metrics/mod.rs
+  s_3cf79041d34315::t_dcc7feef1a2e1b 56-72
+rust/src/server/src/routes/openai/responses.rs
+  s_3cf79041d34315::t_dcc7feef1a2e1b 48,409
+vllm/models/glm5next/nvidia/sparse_indexer.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 5-6,65-68,297-321,593,627-631,702,720-724,758-776
+tests/models/quantization/test_fp8.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 14,121-149
+  s_3cf79041d34315::t_a664c94a7e57c3 150-151
+rust/src/parser/src/unified/hf/parser.rs
+  s_3cf79041d34315::t_dcc7feef1a2e1b 35,628-629,631
+tests/multimodal/utils.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 76,85,92,95
+rust/src/parser/src/reasoning/delimited.rs
+  s_3cf79041d34315::t_dcc7feef1a2e1b 101,137-138,148,157,183-195
+rust/src/server/src/grpc/convert.rs
+  s_3cf79041d34315::t_dcc7feef1a2e1b 488
+vllm/model_executor/model_loader/weight_cache/warmup_cache/__init__.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-3
+vllm/models/minimax_m3/amd/sparse_attention_nvfp4.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 31-35
+.buildkite/test_areas/kernels.yaml
+  s_3cf79041d34315::t_dcc7feef1a2e1b 554
+tests/kernels/moe/test_batched_moe.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 226,302
+.buildkite/release-pipeline.yaml
+  s_3cf79041d34315::t_dcc7feef1a2e1b 30,44,200,203,226,229,236-238,240,248,253,261,266-267,269,271,279,284,292,297-298,339,341-342,350-351,354-355,357,359-360,368-369,372-373,454,456-458,464-466,484,486-488,494-496,527,529,534,536
+docker/Dockerfile.rocm_base_gfx1250
+  s_3cf79041d34315::t_dcc7feef1a2e1b 13
+vllm/config/vllm.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 48,599-606,2145-2153,3207-3211,3230,3232-3233,3243,3248-3249,3251-3253,3258,3260,3262-3265,3269,3271-3273
+vllm/entrypoints/launchers/run_batch.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 453
+docker/Dockerfile.cpu
+  s_3cf79041d34315::t_dcc7feef1a2e1b 454,458
+docs/features/mooncake_store_connector_usage.md
+  s_3cf79041d34315::t_dcc7feef1a2e1b 114-117,142-145,152-160,172
+vllm/models/deepseek_v41/amd/mono/attention/front.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 115
+recipes/models/Qwen/Qwen3.5-4B.yaml
+  s_3cf79041d34315::t_dcc7feef1a2e1b 7,79,94-102,122-123,125,132-135
+rust/src/cmd/src/cli.rs
+  s_3cf79041d34315::t_dcc7feef1a2e1b 46,72-77,735-737,820-827
+  s_3cf79041d34315::t_0b8b97bab220d8 828
+csrc/rocm/rdna_decode_attn.cu
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-1335
+rust/src/bench/src/backends/pooling.rs
+  s_3cf79041d34315::t_dcc7feef1a2e1b 83-91,97-105,134,137-138,147,150-151,295-297
+rust/src/chat/src/parser/tool/tests.rs
+  s_3cf79041d34315::t_dcc7feef1a2e1b 148
+rust/src/parser/src/tool/mod.rs
+  s_3cf79041d34315::t_dcc7feef1a2e1b 8,27-28
+tests/entrypoints/pooling/test_io_processor.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 12
+vllm/entrypoints/grpc_server.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 8-9,20-21
+vllm/model_executor/layers/attention/cross_attention.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 132
+tests/v1/kv_connector/unit/test_mooncake_store_layout.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 12,15
+csrc/rocm/rdna_prefill_batch_configs.h
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-826
+tests/models/multimodal/generation/test_dots_ocr.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-115
+vllm/model_executor/model_loader/weight_cache/warmup_cache/compiled.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-155
+tests/test_config.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 10,1590-1653,2152-2174
+  s_3cf79041d34315::t_05a2ca49dbd148 2175-2176
+.buildkite/scripts/check-ray-compatibility.sh
+  s_3cf79041d34315::t_dcc7feef1a2e1b 36,38
+csrc/rocm/rdna_prefill_configs.h
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-471
+recipes/models/Qwen/Qwen3-VL-4B-Instruct.yaml
+  s_3cf79041d34315::t_dcc7feef1a2e1b 6
+tests/v1/distributed/test_async_llm_dp.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 319-359
+vllm/models/glm5next/nvidia/specialized_decode/cutedsl/__init__.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-7
+rust/src/bench/src/multi_turn.rs
+  s_3cf79041d34315::t_dcc7feef1a2e1b 533,536,540,546
+vllm/model_executor/model_loader/weight_cache/warmup_cache/common.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-122
+.buildkite/test_areas/disaggregated.yaml
+  s_3cf79041d34315::t_dcc7feef1a2e1b 208,210-211,223-226
+vllm/models/deepseek_v41/amd/mono/runner.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 222,253,255-257,262-263,272,277,287,289-290,299-300,384-385
+rust/src/bench/src/backends/openai_completions.rs
+  s_3cf79041d34315::t_dcc7feef1a2e1b 41
+rust/src/server/src/grpc/inference.rs
+  s_3cf79041d34315::t_dcc7feef1a2e1b 136,154
+rust/src/parser/src/unified/hf/tests.rs
+  s_3cf79041d34315::t_dcc7feef1a2e1b 483
+tests/v1/kv_connector/umbp_integration/test_mori_standalone_gpu.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 204-205
+tests/v1/worker/test_pp_utils.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 3-4,9-10,172-219
+csrc/rocm/rdna_decode_configs.h
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-708
+tests/kernels/quantization/test_mxfp8_kernel_selection.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 9,12,137-229
+tests/v1/core/test_scheduler.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 192,194-196,217-219,221,224-225,233,238,248,253-305
+vllm/distributed/kv_transfer/kv_connector/v1/mooncake_store/__init__.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-2
+vllm/entrypoints/openai/chat_completion/message_assembly.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 3-6,19,116-163
+  s_3cf79041d34315::t_454281b8187a35 164-165
+vllm/model_executor/layers/rotary_embedding/bailing_mrope.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 4-5,126-127,139,233-235,252,257-258,267-268,279-280,282
+vllm/model_executor/models/transformers/moe.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 311-313,473,476
+vllm/model_executor/models/transformers/fusers/glu.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 6,11,17,52-62,69,175-180,203-204
+tests/entrypoints/pooling/scoring/test_late_interaction_serving.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 9
+tests/entrypoints/openai/chat_completion/test_message_assembly.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 7,12,111-121
+vllm/model_executor/layers/fused_moe/fused_moe.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 16-18,355,510-511,513-526,583-588,829,839-844,1002,1037,1044-1046,1121,1424,1616,1643,1672,1773,1831,1839-1843,1970,2010
+tests/v1/worker/test_gpu_pcp_manager.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 94
+vllm/distributed/kv_transfer/kv_connector/v1/offloading/scheduler.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 955-956,994,997-999,1003,1027,1035
+docs/features/umbp_store_connector_usage.md
+  s_3cf79041d34315::t_dcc7feef1a2e1b 133-135
+docs/features/multimodal_inputs.md
+  s_3cf79041d34315::t_dcc7feef1a2e1b 906-909,917-922
+  s_3cf79041d34315::t_b5898ef5e02ae7 923-924
+vllm/distributed/kv_transfer/kv_connector/v1/moriio/moriio_engine.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 451-453,1126
+benchmarks/kernels/benchmark_moe.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 912-919
+  s_3cf79041d34315::t_931cf87f0bbe74 911
+vllm/distributed/kv_transfer/kv_connector/v1/nixl/pull_worker.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 246-250,351-364
+  s_3cf79041d34315::t_83252849249183 365
+vllm/model_executor/layers/mamba/ops/ssd_flashinfer.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-109
+vllm/model_executor/layers/utils.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 19,109,114,150-181,188-193
+  s_3cf79041d34315::t_8f9d2ccfef46c4 194
+vllm/models/deepseek_v32/nvidia/model.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 44,133-135,145,155,165-170,234-248,274-280,306-311,345
+tests/v1/kv_connector/unit/test_mooncake_store_lookup.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 15-16,19
+tests/v1/kv_connector/unit/utils.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 25,360-373
+  s_3cf79041d34315::t_5c45d7b65f7b17 374-375
+vllm/_aiter_ops.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 4,6,19,237-239,245-246,2802-2805,2811-2814,2816,2819-2853,4452-4503,4583-4603,4605
+  s_3cf79041d34315::t_7781c6104819a7 4604
+vllm/entrypoints/pooling/pooling/serving.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 17
+vllm/entrypoints/anthropic/protocol.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 372-378
+tests/models/deepseek_v32/test_pp_topk.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 107
+vllm/distributed/kv_transfer/kv_connector/v1/mooncake_store/selective_lease.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-207
+tests/entrypoints/scale_out/derender/test_derender_parity.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 52-54,166,214-259,993
+tests/models/kimi_k3/amd_specialized_decode/test_numerics.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 4,191-206,218-222,419,582-585,1004-1005,1009,1171,1209,1237
+docker/Dockerfile.xpu
+  s_3cf79041d34315::t_dcc7feef1a2e1b 92,103-104,122-123,125,216-218,220-221
+docker/versions.json
+  s_3cf79041d34315::t_dcc7feef1a2e1b 5,26,29
+recipes/models/meta-models/Muse-Spark-Open-816B-A42B.yaml
+  s_3cf79041d34315::t_dcc7feef1a2e1b 7,16,92-117,213-219,418-439
+vllm/distributed/kv_transfer/kv_connector/v1/mooncake_store/scheduler.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-813
+vllm/models/deepseek_v41/common/engram.py
+  s_3cf79041d34315::t_cc9a37dc25c717 1073-1074
+  s_3cf79041d34315::t_dcc7feef1a2e1b 28-29,243-258,581-582,584-585,614,620-624,627,630-633,637-648,650,652,654,657-677,748-803,852-857,860-863,866,871,873,989,1042,1045-1048,1054-1055,1069-1070,1077-1079,1099-1105,1125,1149-1151,1181-1183,1212,1218,1223-1225,1227-1244,1247,1252-1254,1261-1265,1272-1274,1278,1285-1286,1299-1314,1357-1358,1388-1400,1417,1420,1423-1425,1707,1869-1873,1888-1889
+.buildkite/scripts/generate-and-upload-nightly-index.sh
+  s_3cf79041d34315::t_dcc7feef1a2e1b 12
+tests/v1/kv_connector/unit/test_mooncake_store_worker.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 24,26-27,30,33,43,51,54,77-82,812-852,2905-3007,4521,4639,4642,4681,4717,4751,5972-6041
+  s_3cf79041d34315::t_52344718a5ee4f 6042-6043
+tests/v1/spec_decode/test_mtp.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 133-163
+tests/kernels/moe/utils.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 118,149,204,493
+tests/distributed/test_pp_cudagraph.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 8,55-101
+tests/v1/worker/test_gpu_model_runner_v2_eplb.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 213-215,241
+tests/entrypoints/openai/chat_completion/test_batched_chat_completions.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 33,338,370,450-510,551
+vllm/models/deepseek_v41/nvidia/specialized_decode/moe/routed_expert_finalize_cute.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-147
+vllm/models/glm5next/nvidia/ops/kpool_compress.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 871,882,909-911,921-924,929-933,944
+vllm/models/glm5next/nvidia/model_state.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-26
+csrc/rocm/rdna_attn_instances.cuh
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-69
+recipes/models/ricursiveAI/Ripple-65B-Preview.yaml
+  s_3cf79041d34315::t_dcc7feef1a2e1b 8,14,16-17,23-25,51-58,94-114
+  s_3cf79041d34315::t_93e885f6f0b3e3 115
+tests/v1/kv_connector/unit/moriio/test_moriio_pipeline_parallel.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 202-205,261-264
+rust/src/llm/src/weight_versions.rs
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-143
+vllm/entrypoints/pooling/classify/serving.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 14
+vllm/model_executor/layers/fused_moe/deep_gemm_mega_moe.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 5-7,13-14,32-33,35,42,187-195,199-202,211-219,258-261,279-281,304,313-324,346,354-357,533-542,576-646,669-701,729-748,904-916,966-971,976
+tests/entrypoints/serve/lora/test_serving_models.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 16
+vllm/models/glm5next/nvidia/specialized_decode/cutedsl/policy.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-22
+vllm/models/glm5next/nvidia/specialized_decode/kpool.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-775
+docs/training/weight_transfer/sharded_rdt.md
+  s_3cf79041d34315::t_dcc7feef1a2e1b 14,55-72,95,114-115,139-140,154-157
+vllm/models/kimi_k3/common/dsa_cache.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 6-7,29,148-160,162-164
+vllm/models/deepseek_v4/nvidia/mtp.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 57,91,182
+vllm/distributed/eplb/eplb_state.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 60,523-524,915-917,919-926,933,935,966
+vllm/model_executor/models/gemma4_mm.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1322-1332,1339
+docs/contributing/dockerfile/dockerfile.md
+  s_3cf79041d34315::t_dcc7feef1a2e1b 23-31
+tests/entrypoints/openai/responses/conftest.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 13,22-26,404
+vllm/models/deepseek_v41/nvidia/specialized_decode/AGENTS.md
+  s_3cf79041d34315::t_dcc7feef1a2e1b 6-7,78-85,88,91,95,104-106,108
+vllm/v1/worker/gpu/spec_decode/dflash/config.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 22-23,34-50,58-59,61,63-64
+tests/entrypoints/scale_out/derender/test_derender.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 19,21,2070,2085,2160-2271
+  s_3cf79041d34315::t_6e9f4896d10820 2272-2273
+vllm/entrypoints/openai/chat_completion/batch_serving.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 13-15,333-335,352-360
+  s_3cf79041d34315::t_edab12322003cd 361
+tests/entrypoints/pooling/embed/test_online_dual_encoder.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 19-23
+csrc/rocm/ops.h
+  s_3cf79041d34315::t_dcc7feef1a2e1b 47-70
+tests/v1/kv_connector/unit/test_output_aggregator.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 18
+vllm/models/glm5next/nvidia/specialized_decode/cutedsl/finalize_publish.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-342
+docs/features/quantization/modelopt.md
+  s_3cf79041d34315::t_dcc7feef1a2e1b 30-34
+docs/serving/online_serving/token_in_token_out.md
+  s_3cf79041d34315::t_dcc7feef1a2e1b 98
+.buildkite/intel_jobs/samplers_intel.yaml
+  s_3cf79041d34315::t_dcc7feef1a2e1b 37
+rust/src/server/src/routes/tests/responses.rs
+  s_3cf79041d34315::t_dcc7feef1a2e1b 477-507
+  s_3cf79041d34315::t_ac3ead7d620ace 475-476
+vllm/distributed/kv_transfer/kv_connector/v1/moriio/moriio_connector.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 21,281-285,959,981-982,1318,1327-1331,1364
+tests/v1/kv_offload/test_factory.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 5,434-478
+  s_3cf79041d34315::t_8c0752f3cbe2ff 479-480
+vllm/models/glm5next/nvidia/specialized_decode/dense_mlp.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-346
+rust/src/parser/src/tool/qwen_coder.rs
+  s_3cf79041d34315::t_dcc7feef1a2e1b 13,128-130
+vllm/envs.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 93,668
+vllm/model_executor/layers/quantization/modelopt.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 136,1752-1892,2234-2247
+  s_3cf79041d34315::t_91e5611331d495 2248
+vllm/models/deepseek_v32/amd/rocm.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 12-15,229-237,280,291,297,302
+tests/entrypoints/openai/chat_completion/test_chat.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 17,342-343,397-408,442-450,804,808
+vllm/entrypoints/pooling/pooling/io_processor.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 11
+rust/src/chat/src/multimodal.rs
+  s_3cf79041d34315::t_dcc7feef1a2e1b 978-979,984-988,1047-1069,1247-1297
+  s_3cf79041d34315::t_dcadef4354196a 1298
+rust/src/cmd/src/cli/tests.rs
+  s_3cf79041d34315::t_dcc7feef1a2e1b 15,716-717,719-720,724-727,729-743,750,754,791,794-799,802
+vllm/entrypoints/scale_out/token_in_token_out/protocol.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 887
+vllm/model_executor/models/qwen3.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 59
+vllm/model_executor/layers/fused_moe/oracle/int8.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 155,178-179,197
+tests/entrypoints/rl/conftest.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 97-100,104-105,111-112
+vllm/model_executor/layers/quantization/utils/humming/schema.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 275,277-289,349-354,360-368,386
+vllm/models/kimi_k3/amd/specialized_decode/README.md
+  s_3cf79041d34315::t_dcc7feef1a2e1b 4-7,9-10,16-23,43,51-59,64-66,78,84-85,93-102
+vllm/entrypoints/pooling/scoring/serving.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 31
+rust/src/server/src/routes/openai/chat_completions/convert.rs
+  s_3cf79041d34315::t_dcc7feef1a2e1b 154,1767
+tests/distributed/test_sharded_rdt_trainer.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 18,23,31-34,80,84,420-424,466-550
+  s_3cf79041d34315::t_6c826e548100db 551-552
+.buildkite/test_areas/quantization.yaml
+  s_3cf79041d34315::t_dcc7feef1a2e1b 22
+vllm/distributed/kv_transfer/kv_connector/v1/mooncake_store/worker.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-3067
+vllm/models/glm5next/nvidia/specialized_decode/dsa_attention.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-511
+rust/src/tracing/src/lib.rs
+  s_3cf79041d34315::t_dcc7feef1a2e1b 6,12,28-29,37-42,119-128,130,132,138,141,153,161-162,167,169-180,208,210,212,215-216,218-221,228,233-243,254,264-268,270
+tests/test_request_input_bounds.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 32-36,478-479
+vllm/model_executor/models/llama4.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 525-534
+vllm/distributed/kv_transfer/kv_connector/v1/mooncake/transfer_engine_registry.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-58
+.buildkite/scripts/publish-release-images.sh
+  s_3cf79041d34315::t_dcc7feef1a2e1b 112
+docs/getting_started/installation/gpu.cuda.inc.md
+  s_3cf79041d34315::t_dcc7feef1a2e1b 48,53,56,58,68,150,412,422-423,462,469-474,482,489,491,503,510,512,525-532
+  s_3cf79041d34315::t_4b567e62062e8a 533
+tests/models/kimi_k3/amd_specialized_decode/test_engine_fault.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 94-112,115-118,145-148
+vllm/config/cache.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 398-401
+rust/src/text/src/output/decoded.rs
+  s_3cf79041d34315::t_dcc7feef1a2e1b 16,188,273,281,292,324,1015,1019-1020,1041-1062
+  s_3cf79041d34315::t_a51394f7a9980e 1063-1064
+tests/entrypoints/openai/completion/test_completion.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 418-420
+tests/kernels/attention/test_minimax_m3.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 5,307,327,338,358,370,390,537,547-550,552-557,559,584-585,588-620,624-658,1929-1931,1957,2103-2209,3113,3116-3119,3122-3127,3145,3148,3154-3156,3504-3576
+  s_3cf79041d34315::t_9691d3e2ff593f 3577-3580
+vllm/config/engram.py
+  s_3cf79041d34315::t_c7d9b2364054cf 93-95
+  s_3cf79041d34315::t_dcc7feef1a2e1b 76-87,112-117,151-154,186-203,214-216
+.github/mergify.yml
+  s_3cf79041d34315::t_dcc7feef1a2e1b 713
+rust/src/bench/src/main.rs
+  s_3cf79041d34315::t_dcc7feef1a2e1b 10,49
+vllm/config/kv_transfer.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 4,50-74,189-196,199-200,202-205
+rust/src/llm/src/lib.rs
+  s_3cf79041d34315::t_dcc7feef1a2e1b 26,32,37
+rust/src/parser/src/tool/deepseek_dsml/mod.rs
+  s_3cf79041d34315::t_dcc7feef1a2e1b 6,8,13,15,84-85,109-110,115,118-124,128-165,172,175-190,197-205,234-241,244-290,292-301,305-310,341,356-363,374,376-387,420-421,423,426,431,436-438,441,445-450,452-453,456-492,496,501
+vllm/model_executor/kernels/attention/dsa/candidate_blocks.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 21
+vllm/model_executor/layers/quantization/auto_gptq.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 50,250-256
+  s_3cf79041d34315::t_ff8e2ea96964c6 257
+tests/v1/kv_connector/unit/test_umbp_embedded.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 514-516,520,525-528,553,712
+vllm/model_executor/models/k2_horizon.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 123,127,129,135,616,619,802,805
+tests/v1/kv_connector/unit/test_lmcache_connector.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 3,9-10,821-847
+vllm/models/deepseek_v41/nvidia/specialized_decode/sampling/sharded_markov.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-541
+requirements/test/cuda.txt
+  s_3cf79041d34315::t_dcc7feef1a2e1b 2-5,1265-1266,3821-3824,3829-3832,3834-3837,3841-3844,3851-3854,3856-3858,3860-3863,3865-3868,3870-3873,3886-3890,3900-3903,6922-6946,6962,6971-6974,6980-7000,7004-7007
+tests/entrypoints/launchers/api_server/test_multi_api_servers.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 5,10-11,20-25,57-74
+  s_3cf79041d34315::t_be5313b4d78605 75-76
+rust/src/parser/src/tool/deepseek_dsml/deepseek_v41/tests.rs
+  s_3cf79041d34315::t_dcc7feef1a2e1b 15,39-43,55-56,63,66-71,73-74,76-77,79-80,84
+vllm/model_executor/layers/attention/mla_attention.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 785-799,1135-1145,1216-1224,2470,2609-2612
+vllm/model_executor/layers/rotary_embedding/__init__.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 74,215,232-243,252
+vllm/models/deepseek_v4/nvidia/dspark.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 58,101,242
+vllm/distributed/kv_transfer/kv_connector/v1/mooncake_store/rdma_utils.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-46
+tests/compile/test_wrapper.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 6,19,164-197
+  s_3cf79041d34315::t_b07349922c6741 198-199
+vllm/models/glm5next/nvidia/specialized_decode/grouped_moe.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-1290
+vllm/models/glm5next/nvidia/specialized_decode/kda_split.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-843
+tests/models/multimodal/pooling/test_llama_nemotron_vl.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 20
+vllm/models/minimax_m3/common/varlen_decode.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-103
+recipes/models/zai-org/GLM-5.3-Flash.yaml
+  s_3cf79041d34315::t_dcc7feef1a2e1b 7,16-18,141-146,226-262
+  s_3cf79041d34315::t_98a81502ee4f1d 263
+tests/quantization/test_humming_mxfp4_block_fp8.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 17-18,30,159-240
+tests/models/test_qwen3_dflash_mxfp8_context_kv.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 22-27,35,38,114,116,143-144
+vllm/models/muse_spark/__init__.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 10,14,20-24
+vllm/model_executor/models/mimo_v2_omni.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 35-39,685-703,711-715,741,949-950,1036-1038,1063
+tests/v1/kv_connector/nixl_integration/test_accuracy_core_sweep.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-173
+tests/models/glm5next/test_specialized_decode_mega_moe.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-274
+tests/v1/kv_connector/unit/test_mooncake_store_hma_e2e.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 17,20,23,29,33,36,133-134,138-139,143-144,147-148,151-152
+tests/tokenizers_/test_deepseek_v41.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 514-525
+tests/v1/worker/test_gpu_target_dependent_ar_speculator.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 184
+vllm/config/model.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 193-194
+vllm/model_executor/models/qwen2.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 236-244
+vllm/transformers_utils/chat_templates/__init__.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 3-6,8-11
+vllm/model_executor/layers/mamba/mamba_mixer2.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 48-52,550-565,577-581,644-651,758-776,907-967,1078-1079,1104
+tests/model_executor/layers/test_pooler_methods.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 14,279-294
+  s_3cf79041d34315::t_35495f1852d558 295
+docs/getting_started/installation/gpu.xpu.inc.md
+  s_3cf79041d34315::t_dcc7feef1a2e1b 100-102
+vllm/config/speculative.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 527-531,680-688,1508-1525,1674-1685
+  s_3cf79041d34315::t_82b8caea7f0dff 1686
+tests/models/multimodal/generation/test_bailing_moe_v3_vl.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-109
+vllm/entrypoints/pooling/scoring/io_processor.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 28,45
+tests/v1/attention/test_attention_backends.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 23,276,278,282,321,400,404,462-463,521-522,742,998-1117,1512-1590
+  s_3cf79041d34315::t_4c28ca448935cb 1591-1592
+vllm/distributed/kv_transfer/kv_connector/v1/moriio/moriio_common.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 106-107
+csrc/rocm/rdna_registry.cu
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-376
+vllm/distributed/weight_transfer/sharded_rdt_trainer.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 48,52,190-204,252-256,367-370,375-379,413-419,525,534-537,541-546,908-911,1184,1187,1273-1274,1289-1291,1319,1323,1346
+tests/quantization/test_modelopt_nvfp4_embedding.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-139
+rust/src/parser/src/tool/glm_xml/mod.rs
+  s_3cf79041d34315::t_dcc7feef1a2e1b 13,97-99
+tests/v1/worker/test_gpu_model_runner_v2.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 492
+vllm/entrypoints/openai/api_server.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 25-26,53
+vllm/model_executor/models/transformers/base.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 90,166-169,179-184,413-414,428-433,460-493,577-622,624-626,628-667,832-836,839,844,875-878
+cmake/external_projects/deepgemm.cmake
+  s_3cf79041d34315::t_dcc7feef1a2e1b 40-41,43
+recipes/models/MiniMaxAI/MiniMax-M3.1-Flash.yaml
+  s_3cf79041d34315::t_dcc7feef1a2e1b 7,19,102,117,128,142,175,206,216-218,279,289-291,304,308,1768-1771
+vllm/models/deepseek_v41/amd/dspark.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 46,312,426,515-517
+  s_3cf79041d34315::t_7a7818ebd6265c 518
+tests/models/language/generation/test_hybrid.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 317-356
+CMakeLists.txt
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1790-1798,1836-1839
+tests/v1/kv_offload/conftest.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 37,75
+vllm/models/glm5next/nvidia/specialized_decode/cutedsl/primitives.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-932
+docs/usage/troubleshooting.md
+  s_3cf79041d34315::t_dcc7feef1a2e1b 45-75
+rust/src/llm/src/request_metrics.rs
+  s_3cf79041d34315::t_dcc7feef1a2e1b 145,156,183-193
+  s_3cf79041d34315::t_860cd727b909f1 194
+tests/v1/spec_decode/test_context_kv_modules.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-109
+vllm/model_executor/model_loader/weight_cache/daemon.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 132-136,230-236,317-318,606-608
+rust/src/bench/README.md
+  s_3cf79041d34315::t_dcc7feef1a2e1b 773-779
+tests/v1/kv_connector/unit/test_mooncake_connector.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 26,76-81,247,255-257,2228-2264
+  s_3cf79041d34315::t_6b2cf6e1588109 2265-2266
+vllm/distributed/kv_transfer/kv_connector/v1/umbp/runtime/standalone.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 214-218,253,260,265,322
+rust/src/bench/src/multi_run.rs
+  s_3cf79041d34315::t_dcc7feef1a2e1b 6,106,111-113
+vllm/model_executor/kernels/linear/__init__.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 112-114,584-588
+vllm/models/deepseek_v41/amd/mono/layer.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 107-108,120-127,152,181,206,228,230,289-291,297,305,402,437,446,457,619-621,715,780-782
+tests/model_executor/layers/test_fused_shared_expert.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 8,37-38,1389-1398,1741-1744
+requirements/cuda.txt
+  s_3cf79041d34315::t_dcc7feef1a2e1b 8,10
+tests/v1/worker/test_extensible_kv_cache.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 220,238-295,341,801-902
+vllm/model_executor/models/qwen3_next.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 65
+docker/Dockerfile
+  s_3cf79041d34315::t_dcc7feef1a2e1b 25,45,48,217,281-307,926-928,941,1160-1167,1276-1277,1354
+csrc/rocm/rdna_attn_launch.h
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-74
+vllm/models/deepseek_v41/nvidia/specialized_decode/runtime/warmup.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 5,12,37,40-47,49
+vllm/models/glm5next/nvidia/specialized_decode/cutedsl/splitk.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-384
+.buildkite/intel_jobs/entrypoints_intel.yaml
+  s_3cf79041d34315::t_dcc7feef1a2e1b 88,120-123,138,140-141,143-147,152-155,164-165
+rust/src/llm/tests/generate.rs
+  s_3cf79041d34315::t_dcc7feef1a2e1b 36,436-443,449-451,454-461,608,942-947,958-959
+vllm/distributed/kv_transfer/kv_connector/v1/lmcache_connector.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 262-269
+tests/quantization/test_quark.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 41,49,1595-1745
+  s_3cf79041d34315::t_3782fdb5867da0 1746-1747
+vllm/distributed/kv_transfer/kv_connector/v1/mooncake_store/connector.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-485
+tests/v1/kv_connector/unit/moriio/test_moriio_kv_layout.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 444-476
+tests/models/glm5next/test_specialized_decode_dsa_attention.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-214
+vllm/benchmarks/lib/endpoint_request_func.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 811-814
+vllm/config/mamba.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 59-64,67,89-102,105
+tests/v1/engine/test_init_error_messaging.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 16,40-41,57-58
+tests/entrypoints/pooling/scoring/test_io_processor_unit.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 22,24
+tests/kernels/moe/test_silu_mul_token_quant.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-236
+recipes/models/Qwen/Qwen3.5-122B-A10B.yaml
+  s_3cf79041d34315::t_dcc7feef1a2e1b 7,151-163,179,181-186,188-192,211-212,214,221-224
+recipes/models/Qwen/Qwen3.5-27B.yaml
+  s_3cf79041d34315::t_dcc7feef1a2e1b 7,100-119,142-143,145,152-155
+vllm/entrypoints/openai/run_batch.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 12-13
+vllm/distributed/kv_transfer/kv_connector/v1/umbp/runtime/embedded.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 211,230-231,251-252,267,269,271
+rust/src/bench/src/output/json.rs
+  s_3cf79041d34315::t_dcc7feef1a2e1b 38-41,44,65,68-69,185-195,270-288,302,315,596-604,692-741,759,761,782-783,785-1027
+tests/entrypoints/openai/chat_completion/test_completion_with_function_calling.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 419-455
+  s_3cf79041d34315::t_9a0d7090b8bd32 418
+vllm/models/glm5next/nvidia/specialized_decode/linear.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-77
+vllm/models/glm5next/nvidia/specialized_decode/runtime/decode.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-662
+rust/src/bench/src/datasets/multi_turn.rs
+  s_3cf79041d34315::t_dcc7feef1a2e1b 146,219,231,278-279,324,485,510,517
+vllm/models/minimax_m3/amd/mono/weights.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 29,127,154-156,163,223
+tests/quantization/test_auto_gptq.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 20-29,37,148-284
+  s_3cf79041d34315::t_5f88236d26307c 285-286
+tests/kernels/attention/test_rocm_triton_attn_dsv4.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 3204-3205
+tests/tool_use/test_muse.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 41-45,109-166
+  s_3cf79041d34315::t_461f6333b2b2e6 167-168
+tests/v1/spec_decode/test_dflash_prepare_inputs.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 34,110,127,211-221
+  s_3cf79041d34315::t_90b8a00ab96d8d 222-223
+tests/v1/kv_connector/unit/test_nixl_connector_hma.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 37,87,266-346
+  s_3cf79041d34315::t_08abaf69003222 347-348
+rust/Cargo.toml
+  s_3cf79041d34315::t_dcc7feef1a2e1b 138
+vllm/models/kimi_k3/amd/specialized_decode/runtime/decode.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 53,66,69-70,74-76,78-102,156-158,203-204,216-219,223-224,226,247,269-278
+.buildkite/hardware_tests/cpu.yaml
+  s_3cf79041d34315::t_dcc7feef1a2e1b 160,164,170-171
+tests/v1/worker/test_gpu_warmup_blocks.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 118,584,586-588,591-596,601,603-604,607-613,619-687
+requirements/build/hybrid-test-deps.txt
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-37
+tests/v1/kv_connector/unit/test_umbp_standalone.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 612-613,944-946,954-955,993,1009,1031-1034,1044
+tests/kernels/moe/modular_kernel_tools/common.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 555
+tests/models/glm5next/test_specialized_decode_all_reduce_norm.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-83
+vllm/model_executor/models/qwen3_moe.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 49,98-99,103,109,118,130
+tests/v1/kv_connector/unit/moriio/test_moriio_hma_scheduler.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 23,25,663,672-717
+  s_3cf79041d34315::t_6614c910f4a38b 718-719
+vllm/model_executor/layers/fused_moe/configs/E=288,N=512,device_name=NVIDIA_H20,dtype=fp8_w8a8,block_shape=[128,128].json
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-27
+.buildkite/test_areas/distributed.yaml
+  s_3cf79041d34315::t_dcc7feef1a2e1b 557-577,661
+vllm/models/glm5next/nvidia/specialized_decode/shared_expert.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-420
+tests/kernels/quantization/test_int8_kernel.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 147
+rust/src/parser/src/unified/gemma4.rs
+  s_3cf79041d34315::t_dcc7feef1a2e1b 15,181-183
+csrc/rocm/rdna_decode_batch_configs.h
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-687
+tests/entrypoints/pooling/scoring/util.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 14
+tests/kernels/test_muse_spark_markov.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-99
+rust/src/bench/src/cli.rs
+  s_3cf79041d34315::t_dcc7feef1a2e1b 444-446,647-648
+vllm/models/minimax_m3/amd/mono/drafter/runner.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 13,52-59,118-122
+.buildkite/intel_jobs/test-intel.yaml
+  s_3cf79041d34315::t_dcc7feef1a2e1b 217-220,234-238
+rust/src/bench/src/output/console.rs
+  s_3cf79041d34315::t_dcc7feef1a2e1b 140-161
+vllm/model_executor/models/gemma4_unified.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 32,280,379-381
+rust/src/parser/src/tool/parameters.rs
+  s_3cf79041d34315::t_dcc7feef1a2e1b 137-148,172-177,179,182,990-1037
+  s_3cf79041d34315::t_c01e5857100310 1038
+tests/examples/test_offline_examples.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-134
+tests/kernels/attention/test_minimax_m3_varlen_cudagraph.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-96
+tests/quantization/test_online_shared_expert_fusion.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 7,28,63,946-950,1046-1048,1050-1053,1098,1140-1141,1151-1154
+tests/models/language/generation/test_gdn_sleep_wake.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 23-25
+tests/models/deepseek_v41/nvidia/specialized_decode/test_kernels.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 73-76,78,263-264,295-296,1340-1457
+  s_3cf79041d34315::t_bdcc6311848f7e 1458-1459
+.buildkite/scripts/docker-build-metadata-args.sh
+  s_3cf79041d34315::t_dcc7feef1a2e1b 6
+vllm/models/deepseek_v41/nvidia/specialized_decode/runtime/model_state.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 7-10,36-37,84-91
+tests/v1/distributed/test_external_lb_dp.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 189-191,194
+vllm/compilation/wrapper.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 4-5,273-274,277
+recipes/models/Qwen/Qwen3.5-35B-A3B.yaml
+  s_3cf79041d34315::t_dcc7feef1a2e1b 7,83,89,97,121-149,171-172,174,181-184
+tests/kernels/test_engram.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 20,26,695-705,708,727-730,735-739,749,751,756-761,765,767,878-879,887-890,902-903,912-913,1021-1127,1143
+tests/models/utils.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 91-127,141,172-179,234-235,290-299,558
+vllm/models/deepseek_v41/nvidia/ops/mhc_boundary.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-1200
+tests/model_executor/test_bailing_mrope.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 5-7,11-12,21-22,37,56-57,61,91,93,102-193,200,205,219,223-225,227-228,230-231,261-263
+tests/models/kimi_k3/amd_specialized_decode/test_runtime.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 164-178,305-322,533,554,558-638,670,678,682-683,707-741,769-781
+  s_3cf79041d34315::t_76a3c7ab11aa0e 782-785
+vllm/models/minimax_m3/amd/model.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 21,41-43,348-351,423-442,569,1594-1602,1607-1608,1612,1614,2023-2039,2058-2064,2097
+tests/model_executor/test_deep_gemm_warmup.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 175
+tests/models/deepseek_v32/test_sequence_parallel.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 52-63,104,115,121,180
+requirements/test/cuda.in
+  s_3cf79041d34315::t_dcc7feef1a2e1b 32-33
+.buildkite/intel_jobs/quantization_intel.yaml
+  s_3cf79041d34315::t_dcc7feef1a2e1b 13
+tests/tools/test_dependency_pins.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 6,13,186-316
+vllm/entrypoints/openai/chat_completion/serving.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 31-32,60,301-311,455,663,1096
+tests/entrypoints/anthropic/test_anthropic_messages_conversion.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1649-1711
+vllm/model_executor/layers/mamba/ops/scatter_states.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 18
+vllm/models/glm5next/nvidia/specialized_decode/indexer.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-537
+.buildkite/test_areas/models_language.yaml
+  s_3cf79041d34315::t_dcc7feef1a2e1b 64,67,73-75,77-78,80,83-84,91,98,106-108,110-111,115,134,141-143,145-153,156,164-169
+tests/models/language/generation/test_gemma.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 188-189
+tests/v1/attention/test_rocm_aiter_triton_sparse_mla.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 330-331
+rust/src/tracing/src/json.rs
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-378
+setup.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 608
+vllm/distributed/eplb/rebalance_execute.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 22,24,534-535,544-570,573-605
+rust/src/server/src/routes/openai/chat_completions.rs
+  s_3cf79041d34315::t_dcc7feef1a2e1b 16,19,53-56,136-137
+vllm/model_executor/determinism/batch_invariant_configs.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 7,11-12,1230-1269,1387-1415
+vllm/models/deepseek_v32/nvidia/mtp.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 72,75
+vllm/models/deepseek_v41/nvidia/specialized_decode/runtime/draft.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-213
+vllm/models/glm5next/nvidia/specialized_decode/mega_moe.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-622
+vllm/model_executor/layers/mamba/ops/gather_initial_states.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 10
+vllm/model_executor/model_loader/weight_cache/artifact_store.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 12
+rust/src/bench/src/benchmark.rs
+  s_3cf79041d34315::t_dcc7feef1a2e1b 16-18,991-992,1029,1049,1105-1112,1165,1168,1173,1195
+vllm/models/kimi_k3/amd/specialized_decode/runtime/mla.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 7-9
+rust/src/server/src/routes/openai/responses/convert.rs
+  s_3cf79041d34315::t_dcc7feef1a2e1b 129,233
+rust/src/server/src/routes/inference/generate.rs
+  s_3cf79041d34315::t_dcc7feef1a2e1b 19,25,47,120,180,186,241-245,643,665,738,756,796-798,802,804,810-813
+tests/models/multimodal/generation/test_mm_prefix_lm.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 108,114,123
+tests/entrypoints/pooling/embed/test_io_processor.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 22
+tests/models/test_deepseek_v4_mega_moe.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 35-41,45-46,89,238,389
+vllm/distributed/kv_transfer/kv_connector/v1/umbp/connector.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 13,104-107
+  s_3cf79041d34315::t_4b500c0851d8b7 108
+vllm/entrypoints/pooling/embed/io_processor.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 36
+vllm/model_executor/layers/fused_moe/config.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 549-551,674,686
+vllm/model_executor/layers/fused_moe/experts/triton_moe.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 33-35,548,652-677,736
+rust/src/server/src/grpc/media.rs
+  s_3cf79041d34315::t_dcc7feef1a2e1b 8-9,20,31-35,40-45,127-171,176-179,227,230-234,283,320,326-396,412,425
+rust/src/server/Cargo.toml
+  s_3cf79041d34315::t_dcc7feef1a2e1b 13
+tests/models/multimodal/pooling/test_colqwen3.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 17
+tests/v1/kv_connector/unit/test_mooncake_store_cache_prefix.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 18
+vllm/models/glm5next/nvidia/specialized_decode/cutedsl/projection.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-110
+recipes/models/Qwen/Qwen3.5-397B-A17B.yaml
+  s_3cf79041d34315::t_dcc7feef1a2e1b 7,224-249,255,257-259,261-277,323-324,346,354-357
+tests/models/glm5next/test_specialized_decode_shared_expert.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-74
+vllm/models/kimi_k3/amd/specialized_decode/runtime/__init__.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 31,43,49-50,55-60,103,111-113,199,258-263,265-266,278-279
+vllm/entrypoints/pooling/base/serving.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 20,28
+cmake/rocm_rdna_attn.cmake
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-42
+vllm/compilation/decorators.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 515-516
+tests/kernels/moe/test_deepep_moe.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 237
+tests/v1/worker/test_gpu_profiler.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 30,699,720
+vllm/model_executor/models/embedding_gemma2.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1016
+tests/kernels/quantization/test_rocm_mxfp8_linear.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 709-813
+csrc/rocm/rdna_attn_types.h
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-16
+tests/models/glm5next/test_specialized_decode_ar_mhc.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-140
+vllm/model_executor/models/transformers/mtp.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 27,89-93
+  s_3cf79041d34315::t_e83bec3e2f6325 94
+.buildkite/test_areas/plugins.yaml
+  s_3cf79041d34315::t_dcc7feef1a2e1b 7-46,69
+tests/tool_parsers/test_olmo3_tool_parser.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 71-79,81-83
+vllm/model_executor/layers/quantization/utils/humming/activation.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 12-22,33,63,74-75,79,127-129,136-138
+vllm/models/deepseek_v4/amd/dspark.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 71-73,131,302-304,341
+rust/src/bench/src/config.rs
+  s_3cf79041d34315::t_dcc7feef1a2e1b 227-235
+.buildkite/scripts/check-hybrid-test-deps.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-84
+.buildkite/intel_jobs/misc_intel.yaml
+  s_3cf79041d34315::t_dcc7feef1a2e1b 239,366-369,390-391
+.buildkite/intel_jobs/models_multimodal_intel.yaml
+  s_3cf79041d34315::t_dcc7feef1a2e1b 57-60,67-70,109-112,120-121,123-124,126
+rust/src/engine-core-client/src/client.rs
+  s_3cf79041d34315::t_dcc7feef1a2e1b 764-767,769-773,775,778,782
+rust/src/parser/src/tool/deepseek_dsml/deepseek_v32.rs
+  s_3cf79041d34315::t_dcc7feef1a2e1b 26,79,87,149-152,160-161,169-225
+tests/kernels/attention/test_prefix_prefill.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 153-155
+tests/kernels/mamba/test_ssu_dispatch.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 682-683
+vllm/distributed/kv_transfer/kv_connector/v1/nixl/connector.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 20,84-90
+  s_3cf79041d34315::t_07f18fc26eb66c 91
+docker/Dockerfile.rocm_base
+  s_3cf79041d34315::t_dcc7feef1a2e1b 13
+vllm/distributed/kv_transfer/kv_connector/v1/nixl/base_worker.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 63,1070-1074,2768-2775
+  s_3cf79041d34315::t_234d48fadfb1ee 2776
+.buildkite/image_build/image_build_arm64.sh
+  s_3cf79041d34315::t_dcc7feef1a2e1b 39
+tests/entrypoints/pooling/scoring/test_jina_ranking_io_processor_unit.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 13-14
+tests/models/test_dsv41_mono_numerics.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 402,520,533-535
+vllm/model_executor/layers/quantization/utils/humming/moe.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 503-506
+vllm/model_executor/models/diffusion_gemma.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 296
+tests/v1/streaming_input/test_scheduler_streaming.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 578
+rust/src/llm/src/log_stats.rs
+  s_3cf79041d34315::t_dcc7feef1a2e1b 16-17,32,61,145,248,279,367,534-535,548-567
+  s_3cf79041d34315::t_7685b8c5a05c9b 568-569
+rust/src/parser/src/unified/hy/hy_v3.rs
+  s_3cf79041d34315::t_dcc7feef1a2e1b 152,189-192,207-217
+vllm/entrypoints/pooling/offline.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 26-27
+vllm/entrypoints/serve/engine/types.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-68
+vllm/models/deepseek_v41/amd/mono/stages/moe.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1149-1150,1156
+vllm/models/deepseek_v41/nvidia/specialized_decode/runtime/decode.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 27-29,64,66,85,92-93,109,138-152,174-176,180,199,277-285,360,363
+vllm/models/kimi_k3/amd/specialized_decode/runtime/runner.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 61-65
+vllm/distributed/kv_transfer/kv_connector/v1/mooncake/mooncake_connector.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 27,56-59,780-784,1431-1436,1610-1611
+tests/models/glm5next/tp4.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-43
+vllm/model_executor/kernels/linear/mxfp8/aiter_flydsl.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-132
+docs/serving/online_serving/README.md
+  s_3cf79041d34315::t_dcc7feef1a2e1b 31-33
+.buildkite/intel_jobs/distributed_intel.yaml
+  s_3cf79041d34315::t_dcc7feef1a2e1b 11,27
+tests/v1/kv_connector/unit/test_mooncake_store_connector.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 21,24,29,32,38,234,255,293,297,322,348,385,415,436,478,504,618,674,695,715,734,753,768,792,842,927,1063,1089,1129,1195,1228,1238,1276,1325,1362,1383,1405
+vllm/entrypoints/cli/run_batch.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 42-44
+rust/src/server/src/routes/openai/responses/types.rs
+  s_3cf79041d34315::t_dcc7feef1a2e1b 387-390
+tests/models/test_minimax_m3_mega_moe.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 17,54-89,159,161-163,167-168,231-232
+vllm/model_executor/models/gemma4_dspark.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 234-239
+vllm/models/deepseek_v41/amd/mono/README.md
+  s_3cf79041d34315::t_dcc7feef1a2e1b 33-35
+recipes/models/autotrust/JEV-27B-VL.yaml
+  s_3cf79041d34315::t_dcc7feef1a2e1b 9,16-17,24-25,85-86,100-107,120,174-215
+  s_3cf79041d34315::t_0ce6c1041701a0 216
+docs/features/engram.md
+  s_3cf79041d34315::t_dcc7feef1a2e1b 67-68,74-81,87-89,252-272,280-281
+tests/v1/worker/test_dspark_utils.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 13,17-19,112,135-185
+  s_3cf79041d34315::t_b6642a88717f25 186-187
+vllm/models/deepseek_v41/nvidia/dspark.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 14,39,60,67-72,93,223,237,247-250,332-342,346-349,356,363-384,416-418,434-450,460-475
+  s_3cf79041d34315::t_90199796868138 476
+tests/kernels/mhc/test_mhc_kernels.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 49,176,575,677,720,779-780,842-858,883-901
+  s_3cf79041d34315::t_d0dd318665219d 902-903
+vllm/models/glm5next/nvidia/specialized_decode/cutedsl/host.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-130
+vllm/distributed/ec_transfer/ec_connector/mooncake_store_embedding/store_client.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 101
+vllm/model_executor/layers/sparse_attn_indexer.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 493-511,717-723
+tests/v1/worker/test_mamba_utils.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 508
+.buildkite/test_areas/rust_frontend.yaml
+  s_3cf79041d34315::t_dcc7feef1a2e1b 25-26,29,35,50-53,55,62,88-89,92,96,116,120,122-125,131,137-139,144,146-149,168,172,174-177,191,196,211-241,268,270,291-330,358-362
+vllm/model_executor/layers/mamba/ops/ssu_dispatch.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 393,398-402,425-430
+tests/entrypoints/scale_out/derender/test_derender_stream.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1390-1436
+rust/src/parser/src/unified/combined.rs
+  s_3cf79041d34315::t_dcc7feef1a2e1b 657,668,670,681-703
+  s_3cf79041d34315::t_eb7187c6a4ffa7 704-708
+vllm/config/kernel.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 348
+vllm/model_executor/layers/fused_moe/prepare_megamoe.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 42-43,56,254,261,265-273,279,563,594,597
+vllm/entrypoints/pooling/scoring/types.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-45
+rust/src/chat/src/request.rs
+  s_3cf79041d34315::t_dcc7feef1a2e1b 600-606,609,1054-1100
+  s_3cf79041d34315::t_96533b5e486e9b 1101-1102
+tests/models/transformers/test_backend.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 24,32,39,43,153-197,709-716
+  s_3cf79041d34315::t_d5c29880c8b251 717-718
+vllm/model_executor/warmup/deep_gemm_warmup.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 375
+tests/kernels/moe/test_deep_gemm_mega_moe.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 16,34-39,41,46-56,58-68,73-74,146,170-173,253,255-260,282-284,299-309,344,362,374-411,604-672,858-859,862-872,908,925,1070-1075,1105,1131,1142,1373-1374,1376-1377,1404,1406,1418-1420,1422-1423,1435,1442,1525-1526,1528-1531,1540
+vllm/entrypoints/pooling/scoring/protocol.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 16
+rust/src/parser/src/tool/hy.rs
+  s_3cf79041d34315::t_dcc7feef1a2e1b 18,165-167,531,540,749
+tests/models/test_deepseek_v41_amd_replay_forward.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 216
+vllm/model_executor/models/granitemoehybrid.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 7,393,451-456,499-502
+vllm/models/deepseek_v41/nvidia/specialized_decode/boundary/publishing_gemm.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 84,479-483,486-487,500
+requirements/rubin-prerelease.txt
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1,3-4,14-15
+tests/models/multimodal/pooling/test_colpali.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 17
+vllm/model_executor/model_loader/weight_cache/warmup_cache/flashinfer_autotune.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-211
+tests/entrypoints/pooling/token_embed/test_late_chunking.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 32
+rust/src/llm/src/output.rs
+  s_3cf79041d34315::t_dcc7feef1a2e1b 28,205-208,273,287,305,378-379,503,508,569
+vllm/models/glm5next/common/model.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 5,101,110-114,1195-1211,1224-1228,1277-1283,1396-1414
+  s_3cf79041d34315::t_d075cf7cb4c5dd 1415
+.buildkite/intel_jobs/models_language_intel.yaml
+  s_3cf79041d34315::t_dcc7feef1a2e1b 11
+vllm/entrypoints/serve/utils/request_logger.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 10-11
+rust/src/parser/src/tool/arguments.rs
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-465
+vllm/model_executor/layers/fused_moe/silu_mul_token_quant.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-122
+vllm/model_executor/models/interns2_mobius.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 34,159
+csrc/rocm/rdna_prefill_attn.cu
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-933
+docs/features/tool_calling.md
+  s_3cf79041d34315::t_dcc7feef1a2e1b 88-90,101,103,166
+tests/distributed/test_rocm_aiter_custom_ar.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 185
+tests/multimodal/test_video.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 48,212,215-220,249-275,662,1313-1334
+  s_3cf79041d34315::t_52acd66d778593 1335-1336
+tests/models/deepseek_v41/nvidia/specialized_decode/test_numerics.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 135,163-167,190,221,278
+tests/models/glm5next/test_specialized_decode_kda.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-238
+tests/v1/spec_decode/test_dflash_lookahead.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 4,10,33-35,42-43,48,52-55,67,69-75,82,128-200
+  s_3cf79041d34315::t_e74ebe45e2d892 201-202
+vllm/distributed/weight_transfer/sharded_rdt_common.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 11,13-14,53-55,58-101,110-111,118-122,126-127,145-156,379-381,383-387,389
+vllm/distributed/mooncake_store.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 158-161,163-180,183-203
+recipes/models/Qwen/Qwen3.5-0.8B.yaml
+  s_3cf79041d34315::t_dcc7feef1a2e1b 7,66,86-87,89
+tests/v1/spec_decode/test_adaptive_verification.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 5,11-12,15,46-131
+  s_3cf79041d34315::t_4a48f189ddfa49 132-133
+vllm/entrypoints/serve/engine/serving.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 14,17
+vllm/model_executor/layers/quantization/utils/gptq_utils.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 172-205
+tests/distributed/test_sharded_rdt_producer.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 394-400,402,697-723,970-974
+vllm/models/kimi_k3/amd/specialized_decode/runtime/layers.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 7-8,30-47,78-80,243,248,266-267
+vllm/model_executor/layers/quantization/compressed_tensors/compressed_tensors_moe/compressed_tensors_moe_w8a8_int8.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 243
+rust/src/server/src/routes/tests.rs
+  s_3cf79041d34315::t_dcc7feef1a2e1b 8336-8337,8350-8361,8363-8365,8367-8377
+tests/kernels/attention/test_attention_selector.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 4,677,679,681-682,686-688,694-724
+tests/model_executor/test_k2_horizon_rope_fold.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 632-634
+tests/model_executor/layers/test_mla_short_prefill_indexer.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 4,249-395
+  s_3cf79041d34315::t_66dbc9ce55c9eb 396-397
+tests/models/multimodal/generation/test_unlimited_ocr.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 268-269
+tests/kernels/test_minimax_m3_amd_ops.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 453-456,458-459,874-992
+  s_3cf79041d34315::t_c4bb4486b7062f 993-994
+tests/models/glm5next/test_specialized_decode_dense_mlp.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-93
+tests/entrypoints/speech_to_text/transcription/test_transcription_validation_whisper.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 71
+vllm/distributed/kv_transfer/kv_connector/v1/lmcache_mp_connector.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 14-15,473-476
+  s_3cf79041d34315::t_2d0a3b821f1b77 477
+vllm/distributed/kv_transfer/kv_connector/v1/mooncake_store/protocol.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 1-81
+.pre-commit-config.yaml
+  s_3cf79041d34315::t_dcc7feef1a2e1b 54-57,77
+vllm/distributed/kv_transfer/kv_connector/v1/umbp/scheduler.py
+  s_3cf79041d34315::t_dcc7feef1a2e1b 20,30,33,45,70-73,86-115,126-130,164,177-181,291-293,402-435,438-458,531-539,778-782,809,895-920,926-932,956-1241,1594-1597,1600-1637,1729-1730,1732-1738,1742-1751,1834-1841,1934-1940,1954-1962
+rust/Cargo.lock
+  s_3cf79041d34315::t_78d687faf094f8 5865,5974-5978,5982
+tests/kernels/attention/test_rocm_rdna_hip.py
+  s_3cf79041d34315::t_4ee69f4e0c4794 1-1673
+vllm/models/minimax_m3/amd/ops/index_topk.py
+  s_3cf79041d34315::t_4eb30d34fe2946 417,437,445-452,459,535,557,563-570,572,644,664,724,746,898-900,926,933-943,946-947,1351-1352,1369-1380,1515,1535,1560,1580,1662-1664,1690
+vllm/models/minimax_m3/common/indexer.py
+  s_3cf79041d34315::t_ba7f4dedd20c5b 45-49,98-106,200-201,208-209,233,279-282,288-291,308,335-341,349-350,508-515,574-582
+vllm/models/minimax_m3/common/ops/sparse_attn.py
+  s_3cf79041d34315::t_d7fe2984736b6d 251-253,289,296-306,316,319,642-643,645,647-657,709-711,745
+vllm/models/minimax_m3/common/sparse_attention.py
+  s_3cf79041d34315::t_2edfbb0d373f7d 52-56,178-186,232-233,238-239,267-269,277-282,311-314,332,383-389,395-396,538-539
+vllm/models/minimax_m3/common/vision_tower.py
+  s_3cf79041d34315::t_fdda21df8d3b9e 28-32,615-622,694-695
+vllm/models/minimax_m3/nvidia/model.py
+  s_3cf79041d34315::t_0502472530445a 16,306-317,564,617,1647-1663,1682-1685,1715
+vllm/models/minimax_m3/nvidia/sparse_attention_msa.py
+  s_3cf79041d34315::t_c8e199e5f6bd38 127-129
+vllm/models/muse_spark/amd/dspark.py
+  s_3cf79041d34315::t_f14a75aeb1a8e4 3,6,9,12,14,20-26,29,32-38,43-56,58,61-78,81-83,87-89,91-111,113-120,123-124,126,128-137,139-142,144-148,150-155,157-161,163-168,170-180,182-214,216,218,220-222,224-236,238-244,246-253,255-270,275,277,279-280,282-285,288-289,291,295-300,304-313,316-317,320-324,326-345,347-350,353-357,360-374,376-385
+vllm/models/muse_spark/amd/model.py
+  s_3cf79041d34315::t_48fef14daaa914 97,99-100
+vllm/models/muse_spark/common/ops/fused_rmsnorm.py
+  s_3cf79041d34315::t_198afeb7f4f896 16,283-288,298
+vllm/models/muse_spark/nvidia/dspark.py
+  s_3cf79041d34315::t_9585e763d24a3a 3,12-13,43-46,52-54,56,62-64,103-104,156,168-169,280-282,309-335,339-353,368-371,432-442,508-509,523-566,684-693
+vllm/models/muse_spark/nvidia/specialized_decode/runtime/draft.py
+  s_3cf79041d34315::t_48aacd2b1530b0 48,59,286-335,391-393,396,465,487-491,520-523,1098-1114
+vllm/models/muse_spark/nvidia/specialized_decode/runtime/markov_chain.py
+  s_3cf79041d34315::t_8029be73264916 1-152
+vllm/models/qwen3_5/nvidia/model.py
+  s_3cf79041d34315::t_bafcc75fd265a4 96
+vllm/models/qwen4_exp/nvidia/mega_moe.py
+  s_3cf79041d34315::t_b37a20042a1092 54,100,365
+vllm/models/step5/nvidia/model.py
+  s_3cf79041d34315::t_1205658bb26ed7 2092-2103
+vllm/multimodal/video_decoders/__init__.py
+  s_3cf79041d34315::t_96a6fd2c9a3671 28
+vllm/multimodal/video_decoders/pynvvideocodec.py
+  s_3cf79041d34315::t_3638bf7902dfd9 36,41-42,50,61,139-184,471-472,483,487-495,522,624-625,654-658,671-676
+vllm/platforms/rocm.py
+  s_3cf79041d34315::t_a4a26e3d05251b 700
+vllm/renderers/hf.py
+  s_3cf79041d34315::t_95d570f66923a4 52-55,329-336
+vllm/renderers/kimi_k3.py
+  s_3cf79041d34315::t_d3143cc5d4edfe 5-6,173-182,193
+vllm/renderers/online_derenderer.py
+  s_3cf79041d34315::t_7b36b5f9d59d10 18-19,86,101,182-191,350,393,397,420-425,461,464,473,547,560,566,598,704-709,810-813,815,1013-1015
+vllm/tokenizers/deepseek_v41_encoding.py
+  s_3cf79041d34315::t_9927f31409007c 505
+vllm/tool_parsers/muse_tool_parser.py
+  s_3cf79041d34315::t_730e8c27376db6 99-100,102,481-490,526-527
+vllm/tool_parsers/olmo3_tool_parser.py
+  s_3cf79041d34315::t_c51ba83e893d5d 141-147
+vllm/transformers_utils/chat_templates/registry.py
+  s_3cf79041d34315::t_50e5e98c642e0f 41,44-48,77-93
+vllm/transformers_utils/configs/bailing_moe_v3_vl.py
+  s_3cf79041d34315::t_e0864100de3917 252,275-278,309-314
+vllm/utils/deep_gemm.py
+  s_3cf79041d34315::t_0a063d045f6b9f 230-232,310-312,390-399,616-655,1240-1242
+vllm/v1/attention/backend.py
+  s_3cf79041d34315::t_fc49512d580ba9 31,677-683,1076-1081
+vllm/v1/attention/backends/flashinfer.py
+  s_3cf79041d34315::t_822ed28cfed80f 5,16,81,116-152,643-644,678-681,736-740,914-921,946-948,950-952,1168-1184,1568-1587,1691-1712,1722-1724,1823,1872-1874,1889,2054-2094,2206-2207,2345-2349,2364-2369,2373,2437-2438,2442-2445,2582-2587,2589-2595,2597-2637,2706-2708,2716,2888,2906
+vllm/v1/attention/backends/mla/rocm_aiter_mla.py
+  s_3cf79041d34315::t_3035daa83ef000 2743-2760,3625-3628,3630
+vllm/v1/attention/backends/mla/triton_mla.py
+  s_3cf79041d34315::t_1e1fe66aa9c990 214-216
+vllm/v1/attention/backends/registry.py
+  s_3cf79041d34315::t_7e6514a1dec4bd 59-61
+vllm/v1/attention/backends/rocm_attn.py
+  s_3cf79041d34315::t_aa7d705823ec09 505-510
+vllm/v1/attention/backends/rocm_rdna_attn.py
+  s_3cf79041d34315::t_5995e4bc550d2c 1-753
+vllm/v1/attention/backends/triton_attn.py
+  s_3cf79041d34315::t_0f6f1b20a31db8 565-574
+vllm/v1/attention/ops/chunked_prefill_paged_decode.py
+  s_3cf79041d34315::t_f7ff7164ea0c37 98-100
+vllm/v1/attention/ops/int4_per_token_head.py
+  s_3cf79041d34315::t_48cf2b2c916a80 1139-1143,1150-1154
+vllm/v1/attention/ops/rocm_aiter_mla_sparse.py
+  s_3cf79041d34315::t_d290083d609a2f 1505-1516
+vllm/v1/attention/ops/rocm_rdna_hip.py
+  s_3cf79041d34315::t_a92a48de717038 1-680
+vllm/v1/core/kv_cache_planning.py
+  s_3cf79041d34315::t_36871490131143 64-86,89-90,1854
+vllm/v1/core/sched/output.py
+  s_3cf79041d34315::t_813468a4ba5899 195-196,198-220,281-282
+vllm/v1/core/sched/scheduler.py
+  s_3cf79041d34315::t_6f5605d9cea87e 47,298,702-708,721,937-940,1002-1003,1622-1623,1680-1694,1742,1940,1951,1975-1978
+vllm/v1/engine/core.py
+  s_3cf79041d34315::t_dccc807a6748d2 667-668,1469-1475,2690-2691
+vllm/v1/kv_cache_interface.py
+  s_3cf79041d34315::t_31b2dcabd8b500 1428
+vllm/v1/kv_offload/tiering/spec.py
+  s_3cf79041d34315::t_0d39fa0092ac94 487-499
+vllm/v1/worker/extensible_kv_cache.py
+  s_3cf79041d34315::t_9724c2a41f4c3b 172-176,178-179,181,603,609-636
+vllm/v1/worker/gpu/attn_utils.py
+  s_3cf79041d34315::t_308fef62dfb534 4,235-236,263,265,268,463,467
+vllm/v1/worker/gpu/cp_utils.py
+  s_3cf79041d34315::t_7cd18fa78ecaa0 71,80,85
+vllm/v1/worker/gpu/cudagraph_utils.py
+  s_3cf79041d34315::t_562a02615dfee9 883-885
+vllm/v1/worker/gpu/model_runner.py
+  s_3cf79041d34315::t_2185d5d3b5f1f8 435-443,694,1204,1231-1243,2102-2103,2106-2116,2118,2224-2225,2230
+vllm/v1/worker/gpu/pp_utils.py
+  s_3cf79041d34315::t_4842f6bc1fbfc7 13,19-20,41-82,148,153-159
+vllm/v1/worker/gpu/spec_decode/adaptive_verification.py
+  s_3cf79041d34315::t_87888dc1a35bfa 462-463,549-550
+vllm/v1/worker/gpu/spec_decode/autoregressive/speculator.py
+  s_3cf79041d34315::t_7bcaff5ab06f7d 121-123
+vllm/v1/worker/gpu/spec_decode/dflash/cudagraph.py
+  s_3cf79041d34315::t_53660a8ede26bd 40
+vllm/v1/worker/gpu/spec_decode/dflash/speculator.py
+  s_3cf79041d34315::t_093e2b68fd6661 9,13,50,54-58,104-108,150-153,255-297,438,442,519-520,549-550,574-578,598,800,881-888,923,997,1046
+vllm/v1/worker/gpu/spec_decode/dspark/config.py
+  s_3cf79041d34315::t_c7609e1838670b 125,137
+vllm/v1/worker/gpu/spec_decode/dspark/speculator.py
+  s_3cf79041d34315::t_092c17912c2201 287,291,304-305,315-330,354-371
+vllm/v1/worker/gpu/spec_decode/speculator.py
+  s_3cf79041d34315::t_7059c418ec4192 14,157-164,332-336
+vllm/v1/worker/gpu/spec_decode/speculator_config.py
+  s_3cf79041d34315::t_a874e2a75fe5dd 61-62,107-115,250-258,285-291
+vllm/v1/worker/gpu/warmup.py
+  s_3cf79041d34315::t_9b5c860c70f3e8 128-144,154,157-164,167-179,182,192,194-199,206,209,216-220,222-229,256,286-318,322,327-328,330-331,381-383,406-407,424-425,427-447,452-454,527
+vllm/v1/worker/gpu_worker.py
+  s_3cf79041d34315::t_e9e40ebaf9837c 113,1027-1030,1109-1114,1313,1359-1360,1712-1721
+vllm/v1/worker/replayssm_utils.py
+  s_3cf79041d34315::t_212253aea55479 23-25,61-89
+vllm/v1/worker/utils.py
+  s_3cf79041d34315::t_711be7a0a6d7dd 397-399,401
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "6f3bd3bae1ca8b712b17f6209883d6544540d391",
+  "prompts": {},
+  "sessions": {
+    "s_3cf79041d34315": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1834a-b744-7223-a82f-250c1c976df0",
+        "model": "gpt-6.1-terra"
+      },
+      "human_author": "yunzhi <ningyunxiao.nyx@antgroup.com>"
+    }
+  }
+}
