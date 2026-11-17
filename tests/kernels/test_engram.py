@@ -3,6 +3,7 @@
 import bisect
 import inspect
 from types import SimpleNamespace
+from typing import Any, cast
 
 import pytest
 import torch
@@ -1393,3 +1394,81 @@ def test_engram_head_collectives_survive_graph_breaks():
     if torch.accelerator.device_count() < 2:
         pytest.skip("Requires two GPUs")
     torch.multiprocessing.spawn(_engram_tp_worker, args=(2, get_open_port()), nprocs=2)
+
+
+@pytest.mark.parametrize("packed", [False, True])
+@pytest.mark.parametrize("capture", [False, True])
+def test_external_mapped_storage_uses_existing_lookup_kernel(
+    dist_init, tmp_path, monkeypatch, packed, capture
+):
+    """A mapped reader supplies views without implementing or submitting fetch.
+
+    The external service uses ordinary device backing here; actual FABRIC import
+    belongs to the backend's device tests. The vLLM embedding and kernel are real.
+    """
+    from vllm.distributed.engram_share.provider import get_provider
+
+    (tmp_path / "mapped_engram_test.py").write_text(
+        "import torch\n"
+        "from vllm.distributed.engram_share.provider import EngramReaderOwner\n"
+        "class Reader:\n"
+        "    access_mode = 'mapped'\n"
+        "    uses_small_host_pages = False\n"
+        "    def __init__(self, checkpoint, **kwargs):\n"
+        "        self.backing = torch.empty(36*264, dtype=torch.uint8, device='cuda')\n"
+        "        fp8 = torch.float8_e4m3fn\n"
+        "        self.weight = self.backing[:36*256].view(fp8).view(36,256)\n"
+        "        self.scale = self.backing[36*256:].view(36,8)\n"
+        "        values = torch.arange(36*256, device='cuda') % 16\n"
+        "        self.weight.copy_(values.view(36,256))\n"
+        "        self.scale.fill_(127)\n"
+        "    def storage(self, table):\n"
+        "        lo, hi = table.vocab_start_idx, table.vocab_end_idx\n"
+        "        return self.weight[lo:hi], self.scale[lo:hi]\n"
+        "    def close(self):\n"
+        "        torch.accelerator.synchronize()\n"
+        "owner = EngramReaderOwner(Reader)\n"
+        "get_reader = owner.get_reader\n"
+        "close_reader = owner.close_reader\n"
+        "def validate_config(config): pass\n"
+    )
+    monkeypatch.syspath_prepend(str(tmp_path))
+    provider = get_provider("mapped_engram_test")
+    reader = cast(Any, provider.get_reader(str(tmp_path)))
+    try:
+        with torch.device("cuda"):
+            layer = ParallelEngramEmbedding(
+                36,
+                256,
+                (18, 18),
+                cpu_offload=True,
+                rdma_provider="mapped_engram_test",
+                rdma_layer_id=1,
+            )
+        assert layer.weight.is_meta and layer.weight_scale_inv.is_meta
+        weight, scale = layer._storage()
+        assert weight.data_ptr() == reader.weight.data_ptr()
+        assert scale.data_ptr() == reader.scale.data_ptr()
+        ids = torch.tensor(
+            [[0, 35], [17, -1], [35, 0]], dtype=torch.int32, device="cuda"
+        )
+        dtype, width = (torch.uint8, 264) if packed else (torch.bfloat16, 256)
+        out = torch.empty(3, 2, width, dtype=dtype, device="cuda")
+        layer.lookup(ids, out)
+        if capture:
+            graph = torch.cuda.CUDAGraph()
+            with torch.cuda.graph(graph):
+                layer.lookup(ids, out)
+            ids.copy_(ids.flip(0))
+            graph.replay()
+        expected = _reference_lookup(reader.weight, reader.scale, ids, 0, 36)
+        actual = (
+            dequant_mxfp8_to_bf16(
+                out[..., :256].view(torch.float8_e4m3fn), out[..., 256:]
+            )
+            if packed
+            else out
+        )
+        torch.testing.assert_close(actual, expected, rtol=0, atol=0)
+    finally:
+        provider.close_reader()

@@ -24,6 +24,8 @@ steps:
   - pytest -v -s distributed/test_shm_buffer.py
   - pytest -v -s distributed/test_shm_storage.py
   - pytest -v -s distributed/test_pipeline_partition.py
+  - pytest -v -s distributed/test_engram_provider.py
+  - pytest -v -s distributed/test_engram_rdma.py
   mirror:
     amd:
       automatic_shard: true
