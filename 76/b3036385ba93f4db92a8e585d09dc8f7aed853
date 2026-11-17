@@ -1,0 +1,81 @@
+vllm/distributed/engram_share/provider.py
+  s_b4d3bfe9c28898::t_a4de8ef815f2b9 1-168
+vllm/config/engram.py
+  s_b4d3bfe9c28898::t_f095672352bbda 64-77,92-100,107-116,127-136,166,174-175
+tests/models/test_deepseek_v41_replay_batch.py
+  s_b4d3bfe9c28898::t_85efe0f8e5e755 13-15,80-81,247-309
+vllm/models/deepseek_v41/nvidia/model.py
+  s_b4d3bfe9c28898::t_d2efc45bb0d73a 2031-2043,2045-2071
+tests/distributed/test_engram_rdma.py
+  s_d6485b3d09302c::t_49ef816a22d161 1-112
+.buildkite/test_areas/distributed.yaml
+  s_b4d3bfe9c28898::t_4c30e5d381f917 27-28
+vllm/models/deepseek_v41/nvidia/vl_model.py
+  s_b4d3bfe9c28898::t_7da8fc1f5a0740 344-350
+examples/disaggregated/engram_rdma/test_provider_gpu.py
+  s_b4d3bfe9c28898::t_5d81b96d729f52 1-95
+examples/disaggregated/engram_rdma/verify_rows.py
+  s_b4d3bfe9c28898::t_537e02c37b79dc 1-140
+tests/model_executor/model_loader/test_filter_duplicate_safetensors.py
+  s_b4d3bfe9c28898::t_8c826bb92df6a5 14,22-70,192-314
+vllm/model_executor/model_loader/default_loader.py
+  s_b4d3bfe9c28898::t_cee9922a5b67cd 89-91,306-314,350-354,365-369,407-412,419-420,429-443
+examples/disaggregated/engram_rdma/make_tiny_checkpoint.py
+  s_b4d3bfe9c28898::t_c0f3a37875840f 1-55
+benchmarks/benchmark_engram_rdma.py
+  s_d6485b3d09302c::t_1dce35ef95c754 1-179
+vllm/model_executor/model_loader/weight_utils.py
+  s_b4d3bfe9c28898::t_f42eff67e4108b 1067,1101,1162-1164,1181-1183,1201-1203,1214-1215,1220-1226
+vllm/distributed/engram_share/graph.py
+  s_b4d3bfe9c28898::t_b1dfa48fc92c7c 1-28
+tests/test_config.py
+  s_b4d3bfe9c28898::t_65f9489007b7eb 2110-2123
+vllm/distributed/engram_share/__init__.py
+  s_b4d3bfe9c28898::t_6198471b4eeaf9 1-2
+tests/model_executor/model_loader/test_ep_weight_filter.py
+  s_b4d3bfe9c28898::t_82940701a8bedd 423-460
+vllm/models/deepseek_v41/common/engram.py
+  s_d6485b3d09302c::t_bca7532213def1 31,37-39,53-59,81,1068-1069,1074-1075,1084-1086,1133,1170-1171,1198-1212,1334-1337,1340-1345,1347-1353,1380-1386,1388-1389,1814,1834-1835,1882-1883,1885-1895,1908-1913,1954-1956
+tests/v1/worker/test_gpu_worker_weight_transfer.py
+  s_d6485b3d09302c::t_5d64ac845ab4ff 104-118
+tests/kernels/test_engram.py
+  s_b4d3bfe9c28898::t_d1d05bad163649 6,1397-1474
+tests/distributed/test_engram_provider.py
+  s_d6485b3d09302c::t_68e39c6ed7053e 1-178
+examples/disaggregated/engram_rdma/README.md
+  s_d6485b3d09302c::t_80b1701616b190 1-106
+vllm/distributed/engram_share/uniengram.py
+  s_b4d3bfe9c28898::t_091b12e3434f26 1-50
+docs/features/engram.md
+  s_b4d3bfe9c28898::t_de4912816c1f5c 145-227,299-330
+vllm/distributed/engram_share/lookup.py
+  s_b4d3bfe9c28898::t_d9ccb97241061c 1-136
+vllm/v1/worker/gpu_worker.py
+  s_b4d3bfe9c28898::t_31dd3bd867051c 694-696,1740-1742,1893-1898
+.buildkite/test_areas/models_basic.yaml
+  s_b4d3bfe9c28898::t_caf5bc6661c131 621
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "76b3036385ba93f4db92a8e585d09dc8f7aed853",
+  "prompts": {},
+  "sessions": {
+    "s_b4d3bfe9c28898": {
+      "agent_id": {
+        "tool": "antcc",
+        "id": "9c5e86c0-26a8-438d-a20f-fd4f831fe050",
+        "model": "antchat/DeepSeek-V4.1-Flash-1017"
+      },
+      "human_author": "yunzhi <ningyunxiao.nyx@antgroup.com>"
+    },
+    "s_d6485b3d09302c": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1c4b6-d8aa-7320-9579-f20711e7bf1b",
+        "model": "gpt-6.1-terra"
+      },
+      "human_author": "yunzhi <ningyunxiao.nyx@antgroup.com>"
+    }
+  }
+}
