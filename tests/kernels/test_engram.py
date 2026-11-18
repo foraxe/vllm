@@ -1410,7 +1410,6 @@ def test_external_mapped_storage_uses_existing_lookup_kernel(
 
     (tmp_path / "mapped_engram_test.py").write_text(
         "import torch\n"
-        "from vllm.distributed.engram_share.provider import EngramReaderOwner\n"
         "class Reader:\n"
         "    access_mode = 'mapped'\n"
         "    uses_small_host_pages = False\n"
@@ -1427,9 +1426,15 @@ def test_external_mapped_storage_uses_existing_lookup_kernel(
         "        return self.weight[lo:hi], self.scale[lo:hi]\n"
         "    def close(self):\n"
         "        torch.accelerator.synchronize()\n"
-        "owner = EngramReaderOwner(Reader)\n"
-        "get_reader = owner.get_reader\n"
-        "close_reader = owner.close_reader\n"
+        "reader = None\n"
+        "def get_reader(checkpoint=None):\n"
+        "    global reader\n"
+        "    if reader is None: reader = Reader(checkpoint)\n"
+        "    return reader\n"
+        "def close_reader():\n"
+        "    global reader\n"
+        "    reader.close()\n"
+        "    reader = None\n"
         "def validate_config(config): pass\n"
     )
     monkeypatch.syspath_prepend(str(tmp_path))
@@ -1442,8 +1447,8 @@ def test_external_mapped_storage_uses_existing_lookup_kernel(
                 256,
                 (18, 18),
                 cpu_offload=True,
-                rdma_provider="mapped_engram_test",
-                rdma_layer_id=1,
+                connector="mapped_engram_test",
+                connector_layer_id=1,
             )
         assert layer.weight.is_meta and layer.weight_scale_inv.is_meta
         weight, scale = layer._storage()

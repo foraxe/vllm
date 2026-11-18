@@ -142,89 +142,6 @@ Costs and limits:
   `instanttensor`, or `--safetensors-load-strategy eager`);
   `--load-format dummy` serves zeros.
 
-## External Engram connector
-
-`--engram-config.connector` selects a Python module that connects the model to
-an independently managed Engram table. `rdma_provider` remains a compatibility
-spelling from the RDMA prototype; conflicting selections are rejected.
-
-The connector is a computation-side adapter. Table loading, publication,
-registrations, native mappings/connections, leases and resource retirement belong
-to the external component, such as UniEngram. The model does not start or stop
-that component. The same published table can outlive and serve several engines.
-
-The contract in `vllm.distributed.engram_share.provider` supports two paths:
-
-- `access_mode = "lookup"`: `lookup(table, indices, out, background=False)`
-  fills the existing model output on the current stream.
-- `access_mode = "mapped"`: `storage(table)` returns stable local-head weight
-  and scale views for the existing gather kernel. They must have the required
-  contiguous/aligned FP8 and E8M0 byte layout; disconnected shard mappings must
-  not be presented as a contiguous tensor.
-
-The module exposes `validate_config(config)`, `get_reader(checkpoint_path=None,
-full_decode_graph=None)` and `close_reader()`. The loader initializes one
-worker-local attachment before model lookup. Shutdown first stops model work
-and future graph replay, then closes the attachment; it does not terminate the
-shared owner. The external client must retain unsafe resources when retirement
-fails. The connector adapts output placement and framework stream/Graph usage.
-
-The reference GET integration is
-`vllm.distributed.engram_share.uniengram`. It lazily imports the optional
-independent `uniengram-runtime` package; ordinary local Engram needs no such
-package. Start its owner separately with `python -m uniengram.checkpoint`, then
-select the connector. The owner, control protocol and native GET runtime are not part of vLLM.
-The GPU GET backend still requires the qualified ABI-3 native library, not an
-ordinary NIXL wheel. See the
-[setup and verification example](../../examples/disaggregated/engram_rdma/README.md).
-
-The engine model and `ENGRAM_SHARED_MODEL` must resolve to the same local
-checkpoint directory. Remote table readers do not support online weight
-updates or weight reload; restart the engine and owner with the new checkpoint.
-
-The prototype supports DeepSeek V4.1 on CUDA, CPU-offload mode and data parallel
-size 1.
-It requires `--load-format safetensors --safetensors-load-strategy lazy` and
-single-threaded loading. The research provider accepts `--enforce-eager` or
-breakable `PIECEWISE` CUDA graphs. Experimental full decode capture can be
-enabled with `rdma_full_decode_graph: true` and `rdma_prefetch: true`, using
-`FULL_DECODE_ONLY` or breakable `FULL_AND_PIECEWISE`; full prefill capture is
-not supported. The UniEngram GET client shares a scratch buffer across layers and requires
-lookups to remain on the same prefetch stream after capture; independently
-concurrent graph executions sharing one reader are not supported. DP table sharing,
-`embedding_across_dp`, and `use_thp` cannot be combined with it. The independent client is
-responsible for checkpoint identity, remote memory registration, completion
-visibility and safe lifetime. A mapped connector performs its own capability
-checks rather than inheriting the GET graph restrictions.
-
-Remote lookups use the existing per-layer prefetch stream by default. Set
-`rdma_prefetch` to `false` in the Engram configuration to issue them inline
-for comparison or troubleshooting.
-The ordinary local-table path remains the default.
-
-For a bounded local-versus-remote lookup microbenchmark, use the same model,
-owner and transport setup described above:
-
-```bash
-python benchmarks/benchmark_engram_rdma.py \
-  --model "$MODEL" --ready "$OWNER_READY_FILE" \
-  --library "$ENGRAM_NIXL_SHIM" --reader-port-base "$TEST_READER_PORT_BASE" \
-  --tokens 1 4 16 64 256 1024 --heads 2 --output results.json
-```
-
-The benchmark compares the native local lookup and remote provider using the
-same randomly selected rows from a bounded checkpoint prefix. It checks exact
-BF16 output and alternates the two paths. It reports CUDA-event and synchronized
-host-wall durations; event intervals can include host launch gaps. This is a
-single-reader component test, not a serving benchmark or a prefetch-overlap
-measurement. The bounded table and repeated IDs may affect cache behavior;
-token counts do not by themselves imply production prefill or decode shapes.
-
-Use a nonzero `--shutdown-timeout` to allow worker cleanup. A forced shutdown
-can leave an owner lease outstanding; the owner must retain the backing until
-the affected consumers are confirmed stopped. Automatic recovery is not part of
-this prototype.
-
 ## Data-parallel topologies (DeepSeek V4.1)
 
 By default (`embedding_across_dp: false`), each DP replica keeps its own
@@ -297,42 +214,15 @@ engine means restarting the group.
 - MXFP4 tables use BF16 row exchange when DP-sharded; the batched FP8
   exchange optimization is disabled for these tables.
 
-### External provider ownership and access
+## External Engram connector
 
-The experimental `rdma_provider` option retains its name for compatibility. Its
-module implements `validate_config(vllm_config)`, `get_reader(checkpoint_path=None,
-full_decode_graph=None)` and `close_reader()`. Configuration validation does not
-attach storage. The loader initializes the worker-local reader using the serving
-checkpoint before accounting for external parameters; model layers borrow it.
-`EngramReaderOwner` provides that lifecycle and retains the reader when closing
-fails, so the caller can retry retirement. Worker shutdown stops model/graph work
-before closing the reader. Factories must retire or retain failed constructions.
+Set `engram_config.connector` to a provider module. The provider validates the
+execution configuration, attaches a worker-local reader in `get_reader`, and
+retires it in `close_reader` after model execution stops. Readers either fill
+lookup output or expose stable contiguous, aligned local weight and scale
+views. The external component owns table loading, mappings, transport and
+leases. UniEngram's optional private implementations are
+`uniengram.vllm_connector` and `uniengram.vllm_mapped_connector`.
 
-Readers declare one access mode. A `lookup` reader writes the existing Engram
-output on the current stream. The included GPU GET provider reuses its row264
-runtime; model-specific output conversion and stream ordering live in the vLLM
-`EngramLookup` adapter, while registration, scratch and owner leases remain with
-the backend. The full-decode graph option is fixed at reader initialization, not
-inferred from mutable per-layer transport fields.
-
-A `mapped` reader instead supplies `storage(table)` weight/scale views to the
-existing `_storage()` and lookup kernel, and reports `uses_small_host_pages`. It
-is not required to implement fetch/lookup. For this NVIDIA model seam those views
-are local-head tensors, with stable addresses and retained mapping lifetimes. This
-does not promise that arbitrary multi-owner or CANN chunk-pointer layouts form a
-contiguous tensor. Mapping providers must reject unsupported layouts and retain
-their imported mappings until device/graph access has retired.
-
-The shared contract does not select a backend automatically, stage GPU IDs on
-CPU, or require EngineCore host-row preparation. The optional reference adapters
-support GPU GET and dense mapped views. Validation is specific to the backend
-and device; an implemented interface does not imply universal hardware support.
-
-The optional mapped reference connector is
-`vllm.distributed.engram_share.uniengram_mapped`. Its mapped checkpoint client
-is currently a private `uniengram-runtime` component and must be installed
-separately. It imports stable, device-accessible dense weight and scale planes;
-each local-head view must be contiguous and aligned as required above. A row264
-GET scratch buffer is not a pair of dense planes and must not be exposed as
-mapped storage. Hardware capability and mapping lifetime are the external
-client's responsibility.
+External tables require CUDA, DeepSeek V4.1, CPU offload, DP size 1 and lazy
+single-threaded safetensors loading. Weight reload is not supported.

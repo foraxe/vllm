@@ -3,8 +3,6 @@
 """Worker-local ownership and access contracts for external Engram tables."""
 
 import importlib
-from collections.abc import Callable
-from pathlib import Path
 from typing import TYPE_CHECKING, Literal, Protocol, cast
 
 if TYPE_CHECKING:
@@ -94,73 +92,9 @@ class EngramProvider(Protocol):
     def get_reader(
         self,
         checkpoint_path: str | None = None,
-        *,
-        full_decode_graph: bool | None = None,
     ) -> EngramReader: ...
 
     def close_reader(self) -> None: ...
-
-
-class EngramReaderOwner:
-    """Own one worker reader, created by the loader and borrowed by model layers.
-
-    Backend factories validate published identity/layout and clean up failed
-    construction. Once returned, close responsibility belongs here. The worker
-    must stop new launches and graph replays before calling close_reader().
-    """
-
-    def __init__(self, factory: Callable[..., EngramReader]):
-        self._factory = factory
-        self._reader: EngramReader | None = None
-        self._checkpoint: Path | None = None
-        self._full_decode_graph = False
-        self._closing = False
-
-    def get_reader(
-        self,
-        checkpoint_path: str | None = None,
-        *,
-        full_decode_graph: bool | None = None,
-    ) -> EngramReader:
-        if self._closing:
-            raise RuntimeError("external Engram reader is closing")
-        checkpoint = (
-            Path(checkpoint_path).resolve(strict=True)
-            if checkpoint_path is not None
-            else None
-        )
-        if self._reader is not None:
-            if checkpoint is not None and checkpoint != self._checkpoint:
-                raise ValueError("reader belongs to a different engine checkpoint")
-            if (
-                full_decode_graph is not None
-                and full_decode_graph != self._full_decode_graph
-            ):
-                raise ValueError(
-                    "reader graph configuration cannot change while attached"
-                )
-            return self._reader
-        if checkpoint is None:
-            raise RuntimeError(
-                "external reader must be initialized by the model loader"
-            )
-        graph = bool(full_decode_graph)
-        reader = self._factory(str(checkpoint), full_decode_graph=graph)
-        self._reader = reader
-        self._checkpoint = checkpoint
-        self._full_decode_graph = graph
-        if getattr(reader, "access_mode", None) not in ("lookup", "mapped"):
-            self.close_reader()
-            raise ValueError("unsupported Engram reader access mode")
-        return reader
-
-    def close_reader(self) -> None:
-        if self._reader is not None:
-            self._closing = True
-            self._reader.close()
-            self._reader = None
-            self._checkpoint = None
-        self._closing = False
 
 
 def get_provider(module_name: str) -> EngramProvider:

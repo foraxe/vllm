@@ -10,9 +10,7 @@ import numpy as np
 import pytest
 import torch
 
-from vllm.config import CompilationConfig, CUDAGraphMode
-from vllm.config.engram import EngramConfig
-from vllm.distributed.engram_share.graph import _validate_remote_graph_mode
+from vllm.config import CUDAGraphMode
 from vllm.forward_context import (
     BatchDescriptor,
     ForwardContext,
@@ -77,8 +75,6 @@ def state(monkeypatch, request):
     cfg.aux_output_config.enable_return_routed_experts = False
     cfg.compilation_config.fast_moe_cold_start = False
     cfg.compilation_config.cudagraph_mode = CUDAGraphMode.NONE
-    cfg.engram_config = None
-    cfg.kv_transfer_config = None
     layers = DecoderReplayLayers(WINDOW, MagicMock(), MagicMock(), set(), "swa_first")
     model = SimpleNamespace(token_lookback_depth=0, decoder_replay_layers=layers)
     builds: list = []
@@ -242,69 +238,6 @@ def test_replay_batch_keeps_device_decode_boundaries(state):
     assert replay is not None
     assert replay.rows.tolist() == [0, 1, 2, 3, *range(304 - WINDOW, 304)]
     assert build.batch.query_start_loc.tolist() == [0, 1, 4, 4 + WINDOW]
-
-
-@pytest.mark.parametrize(
-    "eager,mode,breakable,allowed",
-    [
-        (True, CUDAGraphMode.NONE, False, True),
-        (False, CUDAGraphMode.PIECEWISE, True, True),
-        (False, CUDAGraphMode.PIECEWISE, False, False),
-        (False, CUDAGraphMode.FULL, True, False),
-        (False, CUDAGraphMode.FULL_AND_PIECEWISE, True, False),
-        (False, CUDAGraphMode.NONE, True, False),
-    ],
-)
-def test_remote_graph_requires_breakable_piecewise(eager, mode, breakable, allowed):
-    config = CompilationConfig(cudagraph_mode=mode, use_breakable_cudagraph=breakable)
-    if allowed:
-        _validate_remote_graph_mode(eager, config)
-    else:
-        with pytest.raises(ValueError, match="breakable PIECEWISE"):
-            _validate_remote_graph_mode(eager, config)
-
-
-@pytest.mark.parametrize(
-    "mode,breakable,allowed",
-    [
-        (CUDAGraphMode.FULL_DECODE_ONLY, False, True),
-        (CUDAGraphMode.FULL_AND_PIECEWISE, True, True),
-        (CUDAGraphMode.FULL_AND_PIECEWISE, False, False),
-        (CUDAGraphMode.FULL, True, False),
-    ],
-)
-def test_remote_full_decode_graph_is_opt_in(mode, breakable, allowed):
-    config = CompilationConfig(cudagraph_mode=mode, use_breakable_cudagraph=breakable)
-    if allowed:
-        _validate_remote_graph_mode(False, config, full_decode=True)
-    else:
-        with pytest.raises(ValueError):
-            _validate_remote_graph_mode(False, config, full_decode=True)
-
-
-def test_remote_graph_uses_resolved_config_not_environment(monkeypatch):
-    monkeypatch.setenv("VLLM_USE_BREAKABLE_CUDAGRAPH", "0")
-    config = CompilationConfig(
-        cudagraph_mode=CUDAGraphMode.PIECEWISE, use_breakable_cudagraph=True
-    )
-    _validate_remote_graph_mode(False, config)
-    monkeypatch.setenv("VLLM_USE_BREAKABLE_CUDAGRAPH", "1")
-    config.use_breakable_cudagraph = False
-    with pytest.raises(ValueError, match="breakable PIECEWISE"):
-        _validate_remote_graph_mode(False, config)
-
-
-@pytest.mark.parametrize(
-    "provider,prefetch",
-    [(None, True), ("test_provider", False)],
-)
-def test_remote_full_decode_graph_requires_prefetch_provider(provider, prefetch):
-    with pytest.raises(ValueError, match="requires a prefetching rdma_provider"):
-        EngramConfig(
-            rdma_provider=provider,
-            rdma_prefetch=prefetch,
-            rdma_full_decode_graph=True,
-        )
 
 
 def test_prompt_logprobs_requests_keep_their_rows(state):

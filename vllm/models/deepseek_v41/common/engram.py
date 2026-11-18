@@ -1065,14 +1065,14 @@ class ParallelEngramEmbedding(nn.Module):
         cpu_offload: bool = False,
         dp_shared_memory: bool = False,
         use_thp: bool = False,
-        rdma_provider: str | None = None,
-        rdma_layer_id: int | None = None,
+        connector: str | None = None,
+        connector_layer_id: int | None = None,
         packed_fp4: bool = False,
         peer_group: EngramPeerGroup | None = None,
     ) -> None:
         super().__init__()
-        if rdma_provider and packed_fp4:
-            raise ValueError("rdma_provider does not support packed FP4 Engram tables")
+        if connector and packed_fp4:
+            raise ValueError("connector does not support packed FP4 Engram tables")
         assert head_sizes and all(size > 0 for size in head_sizes)
         assert sum(head_sizes) <= num_embeddings
         assert not packed_fp4 or dim % 2 == 0
@@ -1081,9 +1081,9 @@ class ParallelEngramEmbedding(nn.Module):
         self.cpu_offload = cpu_offload
         self.dp_shared_memory = dp_shared_memory
         self.use_thp = use_thp
-        self.rdma_provider = rdma_provider
-        self.layer_id = rdma_layer_id
-        self._rdma_reader: EngramReader | None = None
+        self.connector = connector
+        self.layer_id = connector_layer_id
+        self._connector_reader: EngramReader | None = None
         self.dp_size = get_engram_dp_size()
         if dp_shared_memory:
             if not cpu_offload:
@@ -1167,7 +1167,7 @@ class ParallelEngramEmbedding(nn.Module):
                     "engram_vocab_start": row_start,
                 },
             )
-            if rdma_provider:
+            if connector:
                 set_weight_attrs(param, {"engram_external": True})
         if cpu_offload and not self.weight.is_meta:
             # Constant dummy values avoid randomizing huge CPU lookup tables.
@@ -1195,7 +1195,7 @@ class ParallelEngramEmbedding(nn.Module):
 
     def _allocate_weights(self) -> tuple[torch.Tensor, torch.Tensor]:
         scale_dim = self.dim // self.block_size
-        if self.rdma_provider:
+        if self.connector:
             return (
                 torch.empty(
                     self.part_num_embeddings,
@@ -1331,20 +1331,20 @@ class ParallelEngramEmbedding(nn.Module):
         """Whether the GPU maps this host table with pages too small for its TLB."""
         if self._shared_memory is not None:
             return not self._shared_memory.huge_pages
-        if self.rdma_provider:
+        if self.connector:
             reader = self._external_reader()
             if reader.access_mode == "mapped":
                 return cast(EngramMappedReader, reader).uses_small_host_pages
         return self.cpu_offload and self._packed is None
 
     def _external_reader(self):
-        if self._rdma_reader is None:
-            assert self.rdma_provider is not None
-            self._rdma_reader = get_provider(self.rdma_provider).get_reader()
-        return self._rdma_reader
+        if self._connector_reader is None:
+            assert self.connector is not None
+            self._connector_reader = get_provider(self.connector).get_reader()
+        return self._connector_reader
 
     def _storage(self) -> tuple[torch.Tensor, torch.Tensor]:
-        if self.rdma_provider:
+        if self.connector:
             reader = self._external_reader()
             if reader.access_mode != "mapped":
                 raise RuntimeError("lookup reader does not expose mapped storage")
@@ -1377,7 +1377,7 @@ class ParallelEngramEmbedding(nn.Module):
         rows = indices.shape[0] * self.part_n_hash_cols
         if not rows:
             return
-        if self.rdma_provider:
+        if self.connector:
             reader = self._external_reader()
             if reader.access_mode == "lookup":
                 cast(EngramLookupReader, reader).lookup(self, indices, out, background)
@@ -1385,7 +1385,7 @@ class ParallelEngramEmbedding(nn.Module):
             if reader.access_mode != "mapped":
                 raise ValueError("unsupported Engram reader access mode")
         weight, scales = self._storage()
-        if self.rdma_provider and weight.device != indices.device:
+        if self.connector and weight.device != indices.device:
             raise ValueError("mapped Engram storage is not on the lookup device")
         ids_stride_t, ids_stride_h = indices.stride()
         sort_min_rows, _ = _engram_lookup_thresholds(indices.device)
@@ -1811,7 +1811,6 @@ class Engram(nn.Module):
     _prefetch_stream: torch.cuda.Stream | None = None
     _prefetch_done: torch.cuda.Event | None = None
     _batch: EngramBatch | None = None
-    _rdma_prefetch: bool = True
     # A model's own TP all-gather of a 2-D tensor's last dimension for the
     # TP-sharded heads and wkv output (set_column_gather); None uses the TP
     # group's.
@@ -1831,8 +1830,6 @@ class Engram(nn.Module):
         # Layers sharing one stream serialize their offloaded lookups, so they
         # take turns instead of jointly starving decoder compute of SMs.
         self._prefetch_stream = prefetch_stream
-        engram_config = get_current_vllm_config().engram_config
-        self._rdma_prefetch = engram_config is None or engram_config.rdma_prefetch
         self.layer_hash_index = layer_hash_index
         self.dim = config.hidden_size
         self.hc_mult = config.hc_mult
@@ -1882,16 +1879,16 @@ class Engram(nn.Module):
         vllm_config = get_current_vllm_config()
         engram_config = vllm_config.engram_config
         assert engram_config is not None
-        if engram_config.rdma_provider:
+        if engram_config.connector:
             load_config = vllm_config.load_config
-            get_provider(engram_config.rdma_provider).validate_config(vllm_config)
+            get_provider(engram_config.connector).validate_config(vllm_config)
             if (
                 load_config.safetensors_load_strategy != "lazy"
                 or load_config.load_format != "safetensors"
                 or load_config.model_loader_extra_config.get("enable_multithread_load")
             ):
                 raise ValueError(
-                    "rdma_provider requires single-threaded lazy safetensors loading"
+                    "connector requires single-threaded lazy safetensors loading"
                 )
         peer_group = None
         if engram_config.peer_group_store is not None:
@@ -1905,11 +1902,9 @@ class Engram(nn.Module):
             cpu_offload=engram_config.cpu_offload,
             dp_shared_memory=bool(engram_config.dp_shared_memory),
             use_thp=engram_config.use_thp,
-            rdma_provider=engram_config.rdma_provider,
-            rdma_layer_id=(
-                layout.layer_ids[layer_hash_index]
-                if engram_config.rdma_provider
-                else None
+            connector=engram_config.connector,
+            connector_layer_id=(
+                layout.layer_ids[layer_hash_index] if engram_config.connector else None
             ),
             packed_fp4=layout.packed_fp4,
             peer_group=peer_group,
@@ -1951,9 +1946,7 @@ class Engram(nn.Module):
         current = stream = torch.cuda.current_stream()
         # Big lookups stall persistent main-stream kernels anyway: run them inline.
         _, inline_min_tokens = _engram_lookup_thresholds(hash_ids.device)
-        if (self.embed_tokens.rdma_provider and not self._rdma_prefetch) or (
-            inline_min_tokens is not None and num_tokens >= inline_min_tokens
-        ):
+        if inline_min_tokens is not None and num_tokens >= inline_min_tokens:
             self.embed_tokens.lookup(hash_ids, rows)
         else:
             stream = self._prefetch_stream

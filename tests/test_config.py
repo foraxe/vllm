@@ -2116,9 +2116,9 @@ def test_engram_dp_shared_memory_requires_cpu_offload():
         {"embedding_across_dp": True},
     ],
 )
-def test_engram_rdma_rejects_incompatible_storage(kwargs):
-    with pytest.raises(ValueError, match="rdma_provider"):
-        EngramConfig(rdma_provider="test_provider", **kwargs)
+def test_engram_connector_rejects_incompatible_storage(kwargs):
+    with pytest.raises(ValueError, match="connector"):
+        EngramConfig(connector="test_provider", **kwargs)
 
 
 @pytest.mark.skip_global_cleanup

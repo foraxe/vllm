@@ -66,15 +66,6 @@ class EngramConfig:
     The connector may supply mapped views or GPU row lookups; table ownership
     and transport are implemented outside the model runtime."""
 
-    rdma_provider: str | None = None
-    """Compatibility spelling for connector in the existing RDMA prototype."""
-
-    rdma_prefetch: bool = True
-    """Allow remote Engram lookups to overlap decoder computation."""
-
-    rdma_full_decode_graph: bool = False
-    """Capture remote lookups in a full decode CUDA graph (experimental)."""
-
     peer_group_size: int = 0
     """Split each GPU table's rows over this many GPUs of several engines in one
     NVLink domain (the sum of their GPU counts); lookups read rows from the
@@ -89,29 +80,20 @@ class EngramConfig:
 
     @model_validator(mode="after")
     def _validate_shared_memory(self) -> Self:
-        if self.connector and self.rdma_provider not in (None, self.connector):
-            raise ValueError("connector and rdma_provider select different modules")
-        self.connector = self.rdma_provider = self.connector or self.rdma_provider
-        if self.rdma_full_decode_graph and (
-            not self.rdma_provider or not self.rdma_prefetch
-        ):
-            raise ValueError(
-                "rdma_full_decode_graph requires a prefetching rdma_provider"
-            )
         if self.dp_shared_memory and not self.cpu_offload:
             raise ValueError("dp_shared_memory requires cpu_offload=True")
         if self.use_thp and (not self.cpu_offload or self.dp_shared_memory):
             raise ValueError(
                 "use_thp requires cpu_offload=True and dp_shared_memory=False"
             )
-        if self.rdma_provider and (
+        if self.connector and (
             not self.cpu_offload
             or self.dp_shared_memory
             or self.use_thp
             or self.embedding_across_dp
         ):
             raise ValueError(
-                "rdma_provider requires cpu_offload and excludes DP sharing, "
+                "connector requires cpu_offload and excludes DP sharing, "
                 "embedding_across_dp, and use_thp"
             )
         if (self.peer_group_size > 0) != (self.peer_group_store is not None):
@@ -124,16 +106,16 @@ class EngramConfig:
 
     def verify_model_config(self, model_config: "ModelConfig | None") -> None:
         """Reject Engram configuration for models without n-gram embeddings."""
-        if self.rdma_provider and (
+        if self.connector and (
             model_config is None
             or model_config.architecture != "DeepseekV41ForCausalLM"
         ):
-            raise ValueError("rdma_provider currently requires DeepseekV41ForCausalLM")
-        if self.rdma_provider:
+            raise ValueError("connector currently requires DeepseekV41ForCausalLM")
+        if self.connector:
             from vllm.platforms import current_platform
 
             if not current_platform.is_cuda():
-                raise ValueError("rdma_provider currently requires CUDA")
+                raise ValueError("connector currently requires CUDA")
         field = (
             _NGRAM_LAYER_FIELDS.get(model_config.architecture)
             if model_config is not None
@@ -163,7 +145,7 @@ class EngramConfig:
         if self.dp_shared_memory is None:
             self.dp_shared_memory = (
                 self.cpu_offload
-                and not self.rdma_provider
+                and not self.connector
                 and not self.use_thp
                 and parallel_config.data_parallel_size > 1
                 and not parallel_config.enable_elastic_ep
@@ -171,8 +153,8 @@ class EngramConfig:
 
     def verify_parallel_config(self, parallel_config: "ParallelConfig") -> None:
         """Reject unsupported embedding parallel topologies."""
-        if self.rdma_provider and parallel_config.data_parallel_size > 1:
-            raise ValueError("rdma_provider currently requires data_parallel_size=1")
+        if self.connector and parallel_config.data_parallel_size > 1:
+            raise ValueError("connector currently requires data_parallel_size=1")
         if self.dp_shared_memory:
             if parallel_config.data_parallel_size <= 1:
                 raise ValueError("dp_shared_memory requires data_parallel_size > 1.")
