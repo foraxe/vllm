@@ -1,0 +1,39 @@
+tests/distributed/test_engram_dp_shard.py
+  s_8476960beb8e18::t_c0c320dfd4d596 388-399
+tests/models/qwen4_exp/test_ple.py
+  s_8476960beb8e18::t_7bc91ced625db1 344-384,1268,1383,1385-1388,1390,1393
+tests/test_config.py
+  s_8476960beb8e18::t_57509b5cb48a15 2274-2303
+vllm/config/vllm.py
+  s_8476960beb8e18::t_1161f56f8a33c8 1547-1559,1561-1563,1565-1567
+vllm/distributed/engram_pool/__init__.py
+  s_8476960beb8e18::t_9fa4810a07d6d0 81,231,233,240,244,246
+vllm/distributed/engram_pool/memory.py
+  s_8476960beb8e18::t_185b2f7125a772 26-28,31-32,34
+vllm/distributed/engram_pool/proxy.py
+  s_8476960beb8e18::t_335346032bb46a 72-73,76-78,236,287,332-339
+vllm/distributed/engram_pool/rdma.py
+  s_8476960beb8e18::t_99d0d318e3a94e 48,556-567,580,631-634,713,724-751,857-858
+vllm/distributed/engram_pool/rows.py
+  s_8476960beb8e18::t_93c6d216f8213a 24,63-64,73-77,83
+vllm/model_executor/model_loader/reload/inplace.py
+  s_8476960beb8e18::t_8fab823e868ecb 58-68,70
+vllm/models/qwen4_exp/nvidia/ngram_embedding.py
+  s_8476960beb8e18::t_b747d8767473a1 281,291-292,300,306-318,321-327,330,792-795,810-816
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "26e43e06a70c5d0abd69aa59daf398b0ea23a2d3",
+  "prompts": {},
+  "sessions": {
+    "s_8476960beb8e18": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1ed57-844a-7d41-81c3-ccda2a5e5a39",
+        "model": "gpt-6.2-sol"
+      },
+      "human_author": "yunzhi <ningyunxiao.nyx@antgroup.com>"
+    }
+  }
+}
