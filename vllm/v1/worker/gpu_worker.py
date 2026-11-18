@@ -691,6 +691,9 @@ class Worker(WorkerBase):
         weights_path: str | None = None,
         is_checkpoint_format: bool = True,
     ) -> None:
+        engram = self.vllm_config.engram_config
+        if engram is not None and engram.connector:
+            raise RuntimeError("remote Engram does not support weight reload")
         # Kernel-format weights are copied into place, needing no room.
         kv_cache_loan = (
             kv_cache_lent_for_weight_update(
@@ -1734,6 +1737,9 @@ class Worker(WorkerBase):
             self._start_weight_update(is_draft=True)
 
     def _start_weight_update(self, is_draft: bool = False) -> None:
+        engram = self.vllm_config.engram_config
+        if engram is not None and engram.connector:
+            raise RuntimeError("remote Engram does not support online weight updates")
         self._check_weight_transfer_engine()
         assert self.weight_transfer_engine is not None
 
@@ -1883,6 +1889,12 @@ class Worker(WorkerBase):
         # can be reclaimed when running in-process
         if model_runner := getattr(self, "model_runner", None):
             model_runner.shutdown()
+
+        engram_config = self.vllm_config.engram_config
+        if engram_config is not None and engram_config.connector:
+            from vllm.distributed.engram_share.provider import get_provider
+
+            get_provider(engram_config.connector).close_reader()
 
         # Release kept-alive cumem pools while the pluggable allocator wrappers
         # and callbacks are still alive, so MemPool teardown is not deferred to

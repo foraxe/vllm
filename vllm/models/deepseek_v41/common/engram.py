@@ -28,12 +28,15 @@ from collections.abc import Callable
 from contextlib import ExitStack
 from datetime import timedelta
 from functools import cache
+from typing import cast
 
 import numpy as np
 import torch
 from torch import nn
 
-from vllm.compilation.breakable_cudagraph import eager_break_during_capture
+from vllm.compilation.breakable_cudagraph import (
+    eager_break_during_capture,
+)
 from vllm.config import VllmConfig, get_current_vllm_config
 from vllm.distributed import (
     get_dp_group,
@@ -46,6 +49,13 @@ from vllm.distributed import (
 from vllm.distributed.device_communicators.shm_broadcast import (
     SHM_PATH,
     check_shm_free_space,
+)
+from vllm.distributed.engram_share.provider import (
+    EngramLookupReader,
+    EngramMappedReader,
+    EngramReader,
+    get_provider,
+    mapped_storage,
 )
 from vllm.distributed.parallel_state import GroupCoordinator, in_the_same_node_as
 from vllm.forward_context import get_forward_context, is_forward_context_available
@@ -67,6 +77,7 @@ from vllm.utils.platform_utils import is_uva_available
 from vllm.utils.torch_utils import get_accelerator_view_from_cpu_tensor
 
 logger = init_logger(__name__)
+
 
 # Per-rank token slot from which the Engram DP exchange switches from peer
 # reads to all-to-all.
@@ -1054,10 +1065,14 @@ class ParallelEngramEmbedding(nn.Module):
         cpu_offload: bool = False,
         dp_shared_memory: bool = False,
         use_thp: bool = False,
+        connector: str | None = None,
+        connector_layer_id: int | None = None,
         packed_fp4: bool = False,
         peer_group: EngramPeerGroup | None = None,
     ) -> None:
         super().__init__()
+        if connector and packed_fp4:
+            raise ValueError("connector does not support packed FP4 Engram tables")
         assert head_sizes and all(size > 0 for size in head_sizes)
         assert sum(head_sizes) <= num_embeddings
         assert not packed_fp4 or dim % 2 == 0
@@ -1066,6 +1081,9 @@ class ParallelEngramEmbedding(nn.Module):
         self.cpu_offload = cpu_offload
         self.dp_shared_memory = dp_shared_memory
         self.use_thp = use_thp
+        self.connector = connector
+        self.layer_id = connector_layer_id
+        self._connector_reader: EngramReader | None = None
         self.dp_size = get_engram_dp_size()
         if dp_shared_memory:
             if not cpu_offload:
@@ -1112,6 +1130,7 @@ class ParallelEngramEmbedding(nn.Module):
         self.num_embeddings = num_embeddings
         self.dim = dim
         self.block_size = block_size
+        self.head_sizes = head_sizes
         self.n_hash_cols = len(head_sizes)
         self.tp_size = get_tensor_model_parallel_world_size()
         num_shards, head_rank = self._get_shard_info()
@@ -1148,6 +1167,8 @@ class ParallelEngramEmbedding(nn.Module):
                     "engram_vocab_start": row_start,
                 },
             )
+            if connector:
+                set_weight_attrs(param, {"engram_external": True})
         if cpu_offload and not self.weight.is_meta:
             # Constant dummy values avoid randomizing huge CPU lookup tables.
             set_weight_attrs(self.weight, {"dummy_weight_value": 1.0})
@@ -1174,6 +1195,21 @@ class ParallelEngramEmbedding(nn.Module):
 
     def _allocate_weights(self) -> tuple[torch.Tensor, torch.Tensor]:
         scale_dim = self.dim // self.block_size
+        if self.connector:
+            return (
+                torch.empty(
+                    self.part_num_embeddings,
+                    self.dim,
+                    dtype=torch.float8_e4m3fn,
+                    device="meta",
+                ),
+                torch.empty(
+                    self.part_num_embeddings,
+                    scale_dim,
+                    dtype=torch.uint8,
+                    device="meta",
+                ),
+            )
         weight_dtype = torch.uint8 if self.packed_fp4 else torch.float8_e4m3fn
         if torch.get_default_device().type == "meta" or not (
             self.cpu_offload or self.peer_rows
@@ -1295,9 +1331,26 @@ class ParallelEngramEmbedding(nn.Module):
         """Whether the GPU maps this host table with pages too small for its TLB."""
         if self._shared_memory is not None:
             return not self._shared_memory.huge_pages
+        if self.connector:
+            reader = self._external_reader()
+            if reader.access_mode == "mapped":
+                return cast(EngramMappedReader, reader).uses_small_host_pages
         return self.cpu_offload and self._packed is None
 
+    def _external_reader(self):
+        if self._connector_reader is None:
+            assert self.connector is not None
+            self._connector_reader = get_provider(self.connector).get_reader()
+        return self._connector_reader
+
     def _storage(self) -> tuple[torch.Tensor, torch.Tensor]:
+        if self.connector:
+            reader = self._external_reader()
+            if reader.access_mode != "mapped":
+                raise RuntimeError("lookup reader does not expose mapped storage")
+            if self._views is None:
+                self._views = mapped_storage(cast(EngramMappedReader, reader), self)
+            return self._views
         if self._shared_memory is not None:
             return self._shared_memory.get_views(self.weight, self.weight_scale_inv)
         if not self.cpu_offload:
@@ -1324,7 +1377,16 @@ class ParallelEngramEmbedding(nn.Module):
         rows = indices.shape[0] * self.part_n_hash_cols
         if not rows:
             return
+        if self.connector:
+            reader = self._external_reader()
+            if reader.access_mode == "lookup":
+                cast(EngramLookupReader, reader).lookup(self, indices, out, background)
+                return
+            if reader.access_mode != "mapped":
+                raise ValueError("unsupported Engram reader access mode")
         weight, scales = self._storage()
+        if self.connector and weight.device != indices.device:
+            raise ValueError("mapped Engram storage is not on the lookup device")
         ids_stride_t, ids_stride_h = indices.stride()
         sort_min_rows, _ = _engram_lookup_thresholds(indices.device)
         sort = (
@@ -1814,8 +1876,20 @@ class Engram(nn.Module):
     def _create_embedding(
         self, layout: EngramLayout, layer_hash_index: int
     ) -> ParallelEngramEmbedding:
-        engram_config = get_current_vllm_config().engram_config
+        vllm_config = get_current_vllm_config()
+        engram_config = vllm_config.engram_config
         assert engram_config is not None
+        if engram_config.connector:
+            load_config = vllm_config.load_config
+            get_provider(engram_config.connector).validate_config(vllm_config)
+            if (
+                load_config.safetensors_load_strategy != "lazy"
+                or load_config.load_format != "safetensors"
+                or load_config.model_loader_extra_config.get("enable_multithread_load")
+            ):
+                raise ValueError(
+                    "connector requires single-threaded lazy safetensors loading"
+                )
         peer_group = None
         if engram_config.peer_group_store is not None:
             peer_group = join_engram_peer_group(
@@ -1828,6 +1902,10 @@ class Engram(nn.Module):
             cpu_offload=engram_config.cpu_offload,
             dp_shared_memory=bool(engram_config.dp_shared_memory),
             use_thp=engram_config.use_thp,
+            connector=engram_config.connector,
+            connector_layer_id=(
+                layout.layer_ids[layer_hash_index] if engram_config.connector else None
+            ),
             packed_fp4=layout.packed_fp4,
             peer_group=peer_group,
         )

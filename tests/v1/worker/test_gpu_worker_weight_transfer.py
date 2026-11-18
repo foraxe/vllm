@@ -7,6 +7,7 @@ delegates to the configured weight transfer engine and tracks whether an update
 session is active. These tests verify that delegation and the session guard.
 """
 
+import sys
 from contextlib import ExitStack
 
 import pytest
@@ -99,6 +100,54 @@ def test_reload_weights_sets_current_config():
     Worker.reload_weights(worker)
 
     assert model_runner.seen_config is worker.vllm_config
+
+
+def test_remote_engram_rejects_weight_changes_before_mutation():
+    from vllm.config.engram import EngramConfig
+
+    engine = _RecordingEngine()
+    worker = _make_worker(engine)
+    worker.vllm_config.engram_config = EngramConfig(connector="test_provider")
+    with pytest.raises(RuntimeError, match="does not support weight reload"):
+        Worker.reload_weights(worker)
+    with pytest.raises(RuntimeError, match="does not support online weight updates"):
+        Worker.start_weight_update(worker)
+    assert not engine.started
+    assert isinstance(worker.model_runner, _RecordingModelRunner)
+    assert worker.model_runner.seen_config is None
+
+
+@pytest.mark.parametrize("runner_fails", [False, True])
+def test_shutdown_retires_connector_after_model_runner(monkeypatch, runner_fails):
+    from types import ModuleType, SimpleNamespace
+
+    from vllm.config.engram import EngramConfig
+
+    order = []
+    provider = ModuleType("test_shutdown_engram_provider")
+    provider.__dict__["close_reader"] = lambda: order.append("connector")
+    monkeypatch.setitem(sys.modules, provider.__name__, provider)
+    monkeypatch.setattr(gpu_worker, "ensure_kv_transfer_shutdown", None)
+    monkeypatch.setattr(gpu_worker, "ensure_ec_transfer_shutdown", None)
+    monkeypatch.setattr(gpu_worker.gc, "unfreeze", lambda: None)
+    worker = _make_worker(None)
+    worker.vllm_config.engram_config = EngramConfig(connector=provider.__name__)
+    worker.profiler = None
+    worker.elastic_ep_executor = SimpleNamespace(shutdown=lambda: None)
+
+    def shutdown_runner():
+        order.append("runner")
+        if runner_fails:
+            raise RuntimeError("runner shutdown failed")
+
+    worker.model_runner = SimpleNamespace(shutdown=shutdown_runner)
+    if runner_fails:
+        with pytest.raises(RuntimeError, match="runner shutdown failed"):
+            worker.shutdown()
+        assert order == ["runner"]
+    else:
+        worker.shutdown()
+        assert order == ["runner", "connector"]
 
 
 @pytest.mark.parametrize(

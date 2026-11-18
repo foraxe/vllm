@@ -213,3 +213,16 @@ engine means restarting the group.
   unsupported with elastic expert parallelism.
 - MXFP4 tables use BF16 row exchange when DP-sharded; the batched FP8
   exchange optimization is disabled for these tables.
+
+## External Engram connector
+
+Set `engram_config.connector` to a provider module. The provider validates the
+execution configuration, attaches a worker-local reader in `get_reader`, and
+retires it in `close_reader` after model execution stops. Readers either fill
+lookup output or expose stable contiguous, aligned local weight and scale
+views. The external component owns table loading, mappings, transport and
+leases. UniEngram's optional private implementations are
+`uniengram.vllm_connector` and `uniengram.vllm_mapped_connector`.
+
+External tables require CUDA, DeepSeek V4.1, CPU offload, DP size 1 and lazy
+single-threaded safetensors loading. Weight reload is not supported.
