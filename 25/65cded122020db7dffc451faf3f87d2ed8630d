@@ -1,0 +1,75 @@
+tests/models/qwen4_exp/test_ple.py
+  s_8476960beb8e18::t_342cfa02da0553 345-357,360-384
+  s_8476960beb8e18::t_b5476aa18dc581 1268,1383,1385-1388,1390,1393
+  s_8476960beb8e18::t_ab1ebc4fccc751 344
+  s_8476960beb8e18::t_c7a4cea216a5fd 358-359
+vllm/distributed/engram_pool/memory.py
+  s_8476960beb8e18::t_828f212e5a4cbb 152-153,155-156,165-166,168-169,172-174
+  s_8476960beb8e18::t_9e83970ccaec5c 154,167
+  s_8476960beb8e18::t_cd1dcdffb82e23 175
+vllm/config/engram.py
+  s_8476960beb8e18::t_824e4662209627 40,76,80-83,124-136
+  s_8476960beb8e18::t_4af7d85c3f5184 120
+  s_8476960beb8e18::t_1799e07325500a 116-119
+  s_8476960beb8e18::t_d8677e68f2c14b 137
+docs/features/engram.md
+  s_8476960beb8e18::t_824e4662209627 212-218
+tests/test_config.py
+  s_8476960beb8e18::t_f53d22b3711d61 2287-2316
+  s_8476960beb8e18::t_824e4662209627 2203-2211
+vllm/models/qwen4_exp/nvidia/ngram_embedding.py
+  s_8476960beb8e18::t_00e50b9f1ad58c 291-292,308,311,314-316,321,325-326,792-795,810-813
+  s_8476960beb8e18::t_6deabeb332bd3b 300,330
+  s_8476960beb8e18::t_0d47ae74786174 814-816
+  s_8476960beb8e18::t_9ad73ec0a423ec 281,306-307,309-310,312-313,317-318,322-324,327
+vllm/distributed/engram_pool/nvlink.py
+  s_8476960beb8e18::t_9e83970ccaec5c 45,47,49,53-58,63-66,69,82,99-102,114
+  s_8476960beb8e18::t_828f212e5a4cbb 67-68,70-81,83-86,92,96-98,103-104,110,116-120
+  s_8476960beb8e18::t_b2d74d2cb14549 87-91,93-95,105-109,111-113
+  s_8476960beb8e18::t_b08ef5dcd1f554 115
+  s_8476960beb8e18::t_0af018ec3366f4 121
+vllm/model_executor/model_loader/reload/inplace.py
+  s_8476960beb8e18::t_2b8b339cd51547 58-62,65-68,70
+  s_8476960beb8e18::t_ea385ea6bc2644 63-64
+vllm/models/deepseek_v41/common/engram.py
+  s_8476960beb8e18::t_1c5b461460a1f3 500-503,514-526
+vllm/distributed/engram_pool/__init__.py
+  s_8476960beb8e18::t_6588d7bda98a27 147
+  s_8476960beb8e18::t_2b8b339cd51547 81,115-116,136-137,141-145,154,166,240,242,249,253,255,275,281
+vllm/models/deepseek_v41/nvidia/ops/engram_pool.py
+  s_8476960beb8e18::t_6588d7bda98a27 25,162-165
+  s_480f842b4b95f0::t_5d3ba4a9a9cda0 166
+tests/distributed/test_engram_dp_shard.py
+  s_8476960beb8e18::t_6588d7bda98a27 326,332-333
+  s_8476960beb8e18::t_0ce58016524585 327-331,1305-1307
+  s_8476960beb8e18::t_e88959c25a0151 1304,1308
+  s_8476960beb8e18::t_a9b4d0a24e9d0b 1237-1238,1242-1257,1260-1303,1309-1312,1319-1324
+  s_8476960beb8e18::t_b08ef5dcd1f554 1239-1241,1258-1259,1313-1318
+vllm/config/vllm.py
+  s_8476960beb8e18::t_2b8b339cd51547 1547-1549,1552-1556
+  s_8476960beb8e18::t_ea385ea6bc2644 1550-1551,1557-1559,1561-1563,1565-1567
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "2565cded122020db7dffc451faf3f87d2ed8630d",
+  "prompts": {},
+  "sessions": {
+    "s_480f842b4b95f0": {
+      "agent_id": {
+        "tool": "antcc",
+        "id": "7f96548e-9703-4091-aab9-2de7749a032e",
+        "model": "antchat/DeepSeek-V4.1-Flash-1017"
+      },
+      "human_author": "yunzhi <ningyunxiao.nyx@antgroup.com>"
+    },
+    "s_8476960beb8e18": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1ed57-844a-7d41-81c3-ccda2a5e5a39",
+        "model": "gpt-6.2-sol"
+      },
+      "human_author": "yunzhi <ningyunxiao.nyx@antgroup.com>"
+    }
+  }
+}
