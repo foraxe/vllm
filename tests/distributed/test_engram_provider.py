@@ -181,21 +181,23 @@ def test_invalid_access_mode_is_retired_or_retained(
 def test_mapped_connector_owns_external_attachment(tmp_path, monkeypatch):
     """The optional client owns one mapping until the worker closes it."""
     import importlib
+    import sys
+    from types import ModuleType
 
-    package = tmp_path / "uniengram" / "cuda"
-    package.mkdir(parents=True)
-    (package.parent / "__init__.py").write_text("")
-    (package / "__init__.py").write_text("")
-    (package / "mapped_checkpoint.py").write_text(
-        "class MappedCheckpointReader:\n"
-        "    access_mode = 'mapped'\n"
-        "    def __init__(self, checkpoint):\n"
-        "        self.checkpoint = checkpoint\n"
-        "        self.closed = False\n"
-        "    def close(self):\n"
-        "        self.closed = True\n"
-    )
-    monkeypatch.syspath_prepend(str(tmp_path))
+    class MappedCheckpointReader:
+        access_mode = "mapped"
+
+        def __init__(self, checkpoint):
+            self.checkpoint = checkpoint
+            self.closed = False
+
+        def close(self):
+            self.closed = True
+
+    for name in ("uniengram", "uniengram.cuda", "uniengram.cuda.mapped_checkpoint"):
+        module = ModuleType(name)
+        module.__dict__["MappedCheckpointReader"] = MappedCheckpointReader
+        monkeypatch.setitem(sys.modules, name, module)
     # Only the external service is substituted; use the real connector and owner.
     connector = importlib.import_module(
         "vllm.distributed.engram_share.uniengram_mapped"
