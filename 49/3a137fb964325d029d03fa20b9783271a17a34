@@ -1,0 +1,31 @@
+tests/distributed/test_engram_provider.py
+  s_480f842b4b95f0::t_4f2bbd260d0bb7 9,67
+vllm/models/deepseek_v41/nvidia/model.py
+  s_480f842b4b95f0::t_f51038b0671c75 2035
+vllm/distributed/engram_share/provider.py
+  s_3a97cd23ed5ecf::t_c19d402c1f4888 119-121
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "493a137fb964325d029d03fa20b9783271a17a34",
+  "prompts": {},
+  "sessions": {
+    "s_3a97cd23ed5ecf": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "s_3a97cd23ed5ecf",
+        "model": "unknown"
+      },
+      "human_author": "yunzhi <ningyunxiao.nyx@antgroup.com>"
+    },
+    "s_480f842b4b95f0": {
+      "agent_id": {
+        "tool": "antcc",
+        "id": "7f96548e-9703-4091-aab9-2de7749a032e",
+        "model": "antchat/DeepSeek-V4.1-Flash-1017"
+      },
+      "human_author": "yunzhi <ningyunxiao.nyx@antgroup.com>"
+    }
+  }
+}
