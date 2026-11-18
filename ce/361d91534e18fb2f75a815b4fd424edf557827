@@ -1,0 +1,19 @@
+tests/distributed/test_engram_provider.py
+  s_21454b8ea7419a::t_ca3672eb5bf0e4 184-185,187-200
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "ce361d91534e18fb2f75a815b4fd424edf557827",
+  "prompts": {},
+  "sessions": {
+    "s_21454b8ea7419a": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "s_21454b8ea7419a",
+        "model": "unknown"
+      },
+      "human_author": "yunzhi <ningyunxiao.nyx@antgroup.com>"
+    }
+  }
+}
