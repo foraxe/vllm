@@ -1,0 +1,21 @@
+vllm/models/qwen4_exp/nvidia/ngram_embedding.py
+  s_b6549f4f06a772::t_6cfaa424bb6f42 282-284,317-319
+tests/models/qwen4_exp/test_ple.py
+  s_b6549f4f06a772::t_6cfaa424bb6f42 1289-1303
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "fc52b2597050360d2fe3ea8e74c27d50ab0ea566",
+  "prompts": {},
+  "sessions": {
+    "s_b6549f4f06a772": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1ef0c-1e02-7562-9991-e563f93fbcc7",
+        "model": "gpt-6.2-sol"
+      },
+      "human_author": "yunzhi <ningyunxiao.nyx@antgroup.com>"
+    }
+  }
+}
