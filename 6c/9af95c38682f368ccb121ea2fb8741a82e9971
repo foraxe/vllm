@@ -1,0 +1,31 @@
+docs/features/engram.md
+  s_f4ecdc97fbe5c3::t_c47fdf1dc3b5f2 327-338
+tests/distributed/test_engram_provider.py
+  s_f4ecdc97fbe5c3::t_066dd42f2c3d75 179-207
+vllm/distributed/engram_share/uniengram_mapped.py
+  s_480f842b4b95f0::t_165aede79f6d2f 1-27
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "6c9af95c38682f368ccb121ea2fb8741a82e9971",
+  "prompts": {},
+  "sessions": {
+    "s_480f842b4b95f0": {
+      "agent_id": {
+        "tool": "antcc",
+        "id": "7f96548e-9703-4091-aab9-2de7749a032e",
+        "model": "antchat/DeepSeek-V4.1-Flash-1017"
+      },
+      "human_author": "yunzhi <ningyunxiao.nyx@antgroup.com>"
+    },
+    "s_f4ecdc97fbe5c3": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1a0b5-a6d4-72d0-a235-18ac3c6a5232",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "yunzhi <ningyunxiao.nyx@antgroup.com>"
+    }
+  }
+}
