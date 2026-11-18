@@ -1,0 +1,21 @@
+docs/features/engram.md
+  s_f4ecdc97fbe5c3::t_5b9d05c9465006 205-210
+benchmarks/benchmark_engram_rdma.py
+  s_f4ecdc97fbe5c3::t_5b9d05c9465006 7,98-101,125-132,179-184
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "31aaecaf18025bfe2808bf1883bc8a73834471cb",
+  "prompts": {},
+  "sessions": {
+    "s_f4ecdc97fbe5c3": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1a0b5-a6d4-72d0-a235-18ac3c6a5232",
+        "model": "gpt-6.1-terra"
+      },
+      "human_author": "yunzhi <ningyunxiao.nyx@antgroup.com>"
+    }
+  }
+}
