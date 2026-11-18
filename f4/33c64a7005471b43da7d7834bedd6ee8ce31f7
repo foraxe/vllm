@@ -1,0 +1,35 @@
+.buildkite/test_areas/distributed.yaml
+  s_480f842b4b95f0::t_7d2ea6a184f370 15-16
+docs/features/engram.md
+  s_480f842b4b95f0::t_b47701ec98c30d 240-255
+vllm/compilation/cuda_graph.py
+  s_480f842b4b95f0::t_fdfe758da91270 185,235-246,248-249
+vllm/models/deepseek_v41/common/engram.py
+  s_480f842b4b95f0::t_df7fb84b7e2ebf 1088,1342-1354,1356-1357,1392-1393
+tests/distributed/test_engram_provider.py
+  s_cbd6dd158b1d6e::t_9f842fa52a0a47 139-268
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "f433c64a7005471b43da7d7834bedd6ee8ce31f7",
+  "prompts": {},
+  "sessions": {
+    "s_480f842b4b95f0": {
+      "agent_id": {
+        "tool": "antcc",
+        "id": "7f96548e-9703-4091-aab9-2de7749a032e",
+        "model": "antchat/DeepSeek-V4.1-Flash-1017"
+      },
+      "human_author": "yunzhi <ningyunxiao.nyx@antgroup.com>"
+    },
+    "s_cbd6dd158b1d6e": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "s_cbd6dd158b1d6e",
+        "model": "unknown"
+      },
+      "human_author": "yunzhi <ningyunxiao.nyx@antgroup.com>"
+    }
+  }
+}
