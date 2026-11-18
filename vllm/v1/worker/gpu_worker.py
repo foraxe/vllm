@@ -1882,16 +1882,28 @@ class Worker(WorkerBase):
 
         self.elastic_ep_executor.shutdown()
 
-        # Release GPU resources held by the model runner so that memory
-        # can be reclaimed when running in-process
-        if model_runner := getattr(self, "model_runner", None):
-            model_runner.shutdown()
-
         engram_config = self.vllm_config.engram_config
+        provider = None
         if engram_config is not None and engram_config.rdma_provider:
             from vllm.distributed.engram_share.provider import get_provider
 
-            get_provider(engram_config.rdma_provider).close_reader()
+            provider = get_provider(engram_config.rdma_provider)
+            prepare = getattr(provider, "prepare_close", None)
+            if prepare is not None:
+                try:
+                    prepare()
+                except BaseException:
+                    quarantine = getattr(provider, "quarantine_graph_owner", None)
+                    if quarantine is not None:
+                        quarantine(getattr(self, "model_runner", None))
+                    raise
+
+        # Retire the provider before dropping any graph-owned buffers.
+        if model_runner := getattr(self, "model_runner", None):
+            model_runner.shutdown()
+
+        if provider is not None:
+            provider.close_reader()
 
         # Release kept-alive cumem pools while the pluggable allocator wrappers
         # and callbacks are still alive, so MemPool teardown is not deferred to

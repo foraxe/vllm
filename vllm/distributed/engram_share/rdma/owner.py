@@ -394,6 +394,14 @@ class RealCheckpointOwner:
         self.host_mapping = None
         self.host_pointer = None
 
+    def _start_control(self, metadata):
+        return CountingOwnerServer(
+            metadata, host=self.args.control_host, port=self.args.control_port
+        ).start()
+
+    def _retire_additional_registrations(self):
+        pass
+
     def start(self):
         import torch
 
@@ -492,9 +500,7 @@ class RealCheckpointOwner:
             self.context.metadata(),
             storage_layout=storage_layout,
         )
-        self.control = CountingOwnerServer(
-            metadata, host=self.args.control_host, port=self.args.control_port
-        ).start()
+        self.control = self._start_control(metadata)
         self.ready = {
             "state": "ready",
             "host": self.args.advertise_host,
@@ -574,6 +580,7 @@ class RealCheckpointOwner:
             "drain complete; deregistering native MRs, counters=%s",
             self.control.counter_snapshot(),
         )
+        self._retire_additional_registrations()
         while True:
             try:
                 self.context.close()
@@ -648,13 +655,38 @@ def main(argv=None):
     )
     parser.add_argument("--copy-chunk-mib", type=int, default=8)
     parser.add_argument("--storage-layout", choices=("row264",), default="row264")
+    parser.add_argument("--gather-library", type=Path)
+    parser.add_argument("--gather-device")
+    parser.add_argument("--gather-gid-index", type=int, default=0)
+    parser.add_argument("--gather-base-port", type=int)
+    parser.add_argument("--gather-readers", type=int, default=0)
     args = parser.parse_args(argv)
     logging.basicConfig(
         level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s"
     )
     if args.max_pinned_gib <= 0 or args.owner_gpu < 0:
         parser.error("max-pinned-gib must be positive and owner-gpu nonnegative")
-    owner = RealCheckpointOwner(args)
+    if args.gather_readers:
+        if (
+            args.gather_readers < 0
+            or args.gather_library is None
+            or not args.gather_device
+            or args.gather_base_port is None
+            or args.gather_base_port < 1
+            or args.gather_base_port + args.gather_readers - 1 > 65535
+        ):
+            parser.error(
+                "gather requires a library, device, valid ports and reader count"
+            )
+        from vllm.distributed.engram_share.rdma.gather_owner import (
+            create_gather_checkpoint_owner,
+        )
+
+        owner = create_gather_checkpoint_owner(args)
+    else:
+        if args.gather_library or args.gather_device or args.gather_base_port:
+            parser.error("gather options require --gather-readers")
+        owner = RealCheckpointOwner(args)
     owner.start()
     owner.serve()
 

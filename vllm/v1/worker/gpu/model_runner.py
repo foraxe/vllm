@@ -46,6 +46,7 @@ from vllm.distributed.aux_output_connector.worker import (
     AuxOutputWorkerConnector,
     get_aux_output_connector,
 )
+from vllm.distributed.engram_share.execution import with_provider_execution
 from vllm.distributed.parallel_state import (
     get_dcp_group,
     get_pp_group,
@@ -890,6 +891,7 @@ class GPUModelRunner(LoRAModelRunnerMixin):
         )
 
     @torch.inference_mode()
+    @with_provider_execution
     @step_eplb_after(is_dummy=True)
     def _dummy_run(
         self,
@@ -1149,6 +1151,7 @@ class GPUModelRunner(LoRAModelRunnerMixin):
         )
 
     @torch.inference_mode()
+    @with_provider_execution
     def capture_model(self, *, profile_only: bool = False) -> int:
         assert self.cudagraph_manager is not None
         capture_encoder = (
@@ -1834,6 +1837,7 @@ class GPUModelRunner(LoRAModelRunnerMixin):
         )
 
     @torch.inference_mode()
+    @with_provider_execution
     def execute_model(
         self,
         scheduler_output: SchedulerOutput,
