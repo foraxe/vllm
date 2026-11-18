@@ -1,0 +1,37 @@
+docs/features/engram.md
+  s_585ef4a8bb864f::t_5324e034daaefb 217-228
+tests/distributed/test_engram_provider.py
+  s_585ef4a8bb864f::t_287617e7091782 3
+tests/kernels/test_engram.py
+  s_585ef4a8bb864f::t_76a2d624530726 1429-1437,1450-1451
+tests/models/test_deepseek_v41_replay_batch.py
+  s_585ef4a8bb864f::t_92325eceda41ba 13
+tests/test_config.py
+  s_585ef4a8bb864f::t_7d6358ed26c4d0 2119-2121
+tests/v1/worker/test_gpu_worker_weight_transfer.py
+  s_585ef4a8bb864f::t_2f23ec5801fa84 10,110,120-152
+vllm/config/engram.py
+  s_585ef4a8bb864f::t_e6b78ffd2ddca8 89,96,109,113-114,118,148,156-157
+vllm/models/deepseek_v41/common/engram.py
+  s_585ef4a8bb864f::t_6adaf338df0998 1068-1069,1074-1075,1084-1086,1170,1198,1334,1341-1344,1347,1380,1388,1882,1884,1891,1905-1907,1949
+vllm/models/deepseek_v41/nvidia/model.py
+  s_585ef4a8bb864f::t_575cb1075825ae 2032,2036,2046,2057,2070
+vllm/v1/worker/gpu_worker.py
+  s_585ef4a8bb864f::t_4e0206dbbbbdaf 695,1741,1894,1897
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "47e4214e8a094711b5219bdf8220dbadb668e849",
+  "prompts": {},
+  "sessions": {
+    "s_585ef4a8bb864f": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "s_585ef4a8bb864f",
+        "model": "unknown"
+      },
+      "human_author": "yunzhi <ningyunxiao.nyx@antgroup.com>"
+    }
+  }
+}
