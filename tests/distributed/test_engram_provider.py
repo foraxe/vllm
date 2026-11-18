@@ -176,3 +176,32 @@ def test_invalid_access_mode_is_retired_or_retained(
     assert backend.close_calls == (2 if retirement_fails else 1)
     with pytest.raises(RuntimeError, match="model loader"):
         owner.get_reader()
+
+
+def test_mapped_connector_owns_external_attachment(tmp_path, monkeypatch):
+    """The optional client owns one mapping until the worker closes it."""
+    import importlib
+
+    package = tmp_path / "uniengram" / "cuda"
+    package.mkdir(parents=True)
+    (package.parent / "__init__.py").write_text("")
+    (package / "__init__.py").write_text("")
+    (package / "mapped_checkpoint.py").write_text(
+        "class MappedCheckpointReader:\n"
+        "    access_mode = 'mapped'\n"
+        "    def __init__(self, checkpoint):\n"
+        "        self.checkpoint = checkpoint\n"
+        "        self.closed = False\n"
+        "    def close(self):\n"
+        "        self.closed = True\n"
+    )
+    monkeypatch.syspath_prepend(str(tmp_path))
+    # Only the external service is substituted; use the real connector and owner.
+    connector = importlib.import_module(
+        "vllm.distributed.engram_share.uniengram_mapped"
+    )
+    reader = connector.get_reader(str(tmp_path), full_decode_graph=True)
+    assert connector.get_reader() is reader
+    assert reader.checkpoint == str(tmp_path.resolve())
+    connector.close_reader()
+    assert reader.closed

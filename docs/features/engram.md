@@ -324,7 +324,15 @@ contiguous tensor. Mapping providers must reject unsupported layouts and retain
 their imported mappings until device/graph access has retired.
 
 The shared contract does not select a backend automatically, stage GPU IDs on
-CPU, or require EngineCore host-row preparation. The current included backend is
-still GPU GET; the mapped access seam has a real embedding/kernel regression
-test, while a production #64082 backend adaptation and hardware qualification
-remain separate work.
+CPU, or require EngineCore host-row preparation. The optional reference adapters
+support GPU GET and dense mapped views. Validation is specific to the backend
+and device; an implemented interface does not imply universal hardware support.
+
+The optional mapped reference connector is
+`vllm.distributed.engram_share.uniengram_mapped`. Its mapped checkpoint client
+is currently a private `uniengram-runtime` component and must be installed
+separately. It imports stable, device-accessible dense weight and scale planes;
+each local-head view must be contiguous and aligned as required above. A row264
+GET scratch buffer is not a pair of dense planes and must not be exposed as
+mapped storage. Hardware capability and mapping lifetime are the external
+client's responsibility.
