@@ -1,0 +1,452 @@
+{
+  "source": "WIP provider; checkpoint owner lifecycle stubbed",
+  "native_enabled": true,
+  "native_qps": 16,
+  "threshold": 32768,
+  "pattern": "unique",
+  "rows": 1048576,
+  "prefix_sha256": [
+    "668b2ad262b795baa7b03097b7ee56e288139c66a80f6f1fd200ca105a7ffb10",
+    "23925e54ea25231ae6c2e12c408767e065b42f05faef0338bd9f1d8c20f60a45"
+  ],
+  "results": [
+    {
+      "rows": 64,
+      "correct": true,
+      "event_median_us": 163.96800428628922,
+      "wall_median_us": 220.833,
+      "reader_process_cpu_median_us": 219.723,
+      "samples": [
+        {
+          "event_us": 223.64799678325653,
+          "wall_us": 333.14,
+          "reader_process_cpu_us": 325.957
+        },
+        {
+          "event_us": 179.74400520324707,
+          "wall_us": 243.16,
+          "reader_process_cpu_us": 243.575
+        },
+        {
+          "event_us": 170.46399414539337,
+          "wall_us": 228.472,
+          "reader_process_cpu_us": 228.965
+        },
+        {
+          "event_us": 163.26400637626648,
+          "wall_us": 221.021,
+          "reader_process_cpu_us": 221.273
+        },
+        {
+          "event_us": 162.4639928340912,
+          "wall_us": 221.242,
+          "reader_process_cpu_us": 221.577
+        },
+        {
+          "event_us": 171.1679995059967,
+          "wall_us": 227.586,
+          "reader_process_cpu_us": 223.311
+        },
+        {
+          "event_us": 167.77600347995758,
+          "wall_us": 224.806,
+          "reader_process_cpu_us": 225.061
+        },
+        {
+          "event_us": 162.56000101566315,
+          "wall_us": 217.901,
+          "reader_process_cpu_us": 218.228
+        },
+        {
+          "event_us": 166.01599752902985,
+          "wall_us": 221.748,
+          "reader_process_cpu_us": 222.001
+        },
+        {
+          "event_us": 161.5999937057495,
+          "wall_us": 217.467,
+          "reader_process_cpu_us": 214.39
+        },
+        {
+          "event_us": 160.70400178432465,
+          "wall_us": 216.647,
+          "reader_process_cpu_us": 216.96
+        },
+        {
+          "event_us": 163.32800686359406,
+          "wall_us": 220.107,
+          "reader_process_cpu_us": 220.385
+        },
+        {
+          "event_us": 168.09600591659546,
+          "wall_us": 223.053,
+          "reader_process_cpu_us": 223.31
+        },
+        {
+          "event_us": 162.6880019903183,
+          "wall_us": 218.494,
+          "reader_process_cpu_us": 218.72
+        },
+        {
+          "event_us": 165.43999314308167,
+          "wall_us": 220.645,
+          "reader_process_cpu_us": 216.956
+        },
+        {
+          "event_us": 161.15200519561768,
+          "wall_us": 216.956,
+          "reader_process_cpu_us": 217.242
+        },
+        {
+          "event_us": 163.13600540161133,
+          "wall_us": 218.098,
+          "reader_process_cpu_us": 218.422
+        },
+        {
+          "event_us": 160.0639969110489,
+          "wall_us": 215.621,
+          "reader_process_cpu_us": 215.954
+        },
+        {
+          "event_us": 166.52800142765045,
+          "wall_us": 222.182,
+          "reader_process_cpu_us": 219.017
+        },
+        {
+          "event_us": 164.60800170898438,
+          "wall_us": 218.806,
+          "reader_process_cpu_us": 219.061
+        }
+      ]
+    },
+    {
+      "rows": 1024,
+      "correct": true,
+      "event_median_us": 957.5839936733246,
+      "wall_median_us": 1015.643,
+      "reader_process_cpu_median_us": 1012.802,
+      "samples": [
+        {
+          "event_us": 998.6240267753601,
+          "wall_us": 1117.096,
+          "reader_process_cpu_us": 1113.946
+        },
+        {
+          "event_us": 1002.1120309829712,
+          "wall_us": 1079.31,
+          "reader_process_cpu_us": 1074.442
+        },
+        {
+          "event_us": 958.6880207061768,
+          "wall_us": 1019.022,
+          "reader_process_cpu_us": 1014.053
+        },
+        {
+          "event_us": 957.535982131958,
+          "wall_us": 1016.538,
+          "reader_process_cpu_us": 1025.276
+        },
+        {
+          "event_us": 945.4399943351746,
+          "wall_us": 1002.483,
+          "reader_process_cpu_us": 999.038
+        },
+        {
+          "event_us": 955.5839896202087,
+          "wall_us": 1014.931,
+          "reader_process_cpu_us": 1011.088
+        },
+        {
+          "event_us": 959.4240188598633,
+          "wall_us": 1020.091,
+          "reader_process_cpu_us": 1015.995
+        },
+        {
+          "event_us": 957.2160243988037,
+          "wall_us": 1015.998,
+          "reader_process_cpu_us": 1012.793
+        },
+        {
+          "event_us": 949.2800235748291,
+          "wall_us": 1008.359,
+          "reader_process_cpu_us": 1004.64
+        },
+        {
+          "event_us": 965.0560021400452,
+          "wall_us": 1024.015,
+          "reader_process_cpu_us": 1022.136
+        },
+        {
+          "event_us": 952.0959854125977,
+          "wall_us": 1010.966,
+          "reader_process_cpu_us": 1008.273
+        },
+        {
+          "event_us": 958.7200284004211,
+          "wall_us": 1025.637,
+          "reader_process_cpu_us": 1022.281
+        },
+        {
+          "event_us": 945.5999732017517,
+          "wall_us": 999.503,
+          "reader_process_cpu_us": 997.238
+        },
+        {
+          "event_us": 959.9999785423279,
+          "wall_us": 1016.941,
+          "reader_process_cpu_us": 1014.405
+        },
+        {
+          "event_us": 953.4720182418823,
+          "wall_us": 1011.048,
+          "reader_process_cpu_us": 1008.16
+        },
+        {
+          "event_us": 953.1520009040833,
+          "wall_us": 1014.031,
+          "reader_process_cpu_us": 1010.781
+        },
+        {
+          "event_us": 959.007978439331,
+          "wall_us": 1017.484,
+          "reader_process_cpu_us": 1015.009
+        },
+        {
+          "event_us": 958.5919976234436,
+          "wall_us": 1015.189,
+          "reader_process_cpu_us": 1012.811
+        },
+        {
+          "event_us": 945.7280039787292,
+          "wall_us": 1003.091,
+          "reader_process_cpu_us": 1001.095
+        },
+        {
+          "event_us": 957.6320052146912,
+          "wall_us": 1015.288,
+          "reader_process_cpu_us": 1004.648
+        }
+      ]
+    },
+    {
+      "rows": 4096,
+      "correct": true,
+      "event_median_us": 783.1519842147827,
+      "wall_median_us": 844.8054999999999,
+      "reader_process_cpu_median_us": 840.8495,
+      "samples": [
+        {
+          "event_us": 860.5120182037354,
+          "wall_us": 973.941,
+          "reader_process_cpu_us": 968.677
+        },
+        {
+          "event_us": 782.7839851379395,
+          "wall_us": 846.278,
+          "reader_process_cpu_us": 842.502
+        },
+        {
+          "event_us": 783.519983291626,
+          "wall_us": 846.194,
+          "reader_process_cpu_us": 842.477
+        },
+        {
+          "event_us": 789.4080281257629,
+          "wall_us": 849.404,
+          "reader_process_cpu_us": 846.083
+        },
+        {
+          "event_us": 809.5679879188538,
+          "wall_us": 870.418,
+          "reader_process_cpu_us": 867.722
+        },
+        {
+          "event_us": 763.5520100593567,
+          "wall_us": 821.755,
+          "reader_process_cpu_us": 822.07
+        },
+        {
+          "event_us": 773.3759880065918,
+          "wall_us": 835.276,
+          "reader_process_cpu_us": 833.106
+        },
+        {
+          "event_us": 791.4559841156006,
+          "wall_us": 854.466,
+          "reader_process_cpu_us": 850.319
+        },
+        {
+          "event_us": 780.7040214538574,
+          "wall_us": 839.069,
+          "reader_process_cpu_us": 833.528
+        },
+        {
+          "event_us": 767.0080065727234,
+          "wall_us": 828.882,
+          "reader_process_cpu_us": 825.525
+        },
+        {
+          "event_us": 785.2799892425537,
+          "wall_us": 846.75,
+          "reader_process_cpu_us": 841.372
+        },
+        {
+          "event_us": 799.0720272064209,
+          "wall_us": 867.507,
+          "reader_process_cpu_us": 867.983
+        },
+        {
+          "event_us": 796.2560057640076,
+          "wall_us": 856.271,
+          "reader_process_cpu_us": 852.67
+        },
+        {
+          "event_us": 784.2879891395569,
+          "wall_us": 843.417,
+          "reader_process_cpu_us": 840.327
+        },
+        {
+          "event_us": 794.5280075073242,
+          "wall_us": 851.716,
+          "reader_process_cpu_us": 849.045
+        },
+        {
+          "event_us": 776.639997959137,
+          "wall_us": 833.222,
+          "reader_process_cpu_us": 830.375
+        },
+        {
+          "event_us": 775.7120132446289,
+          "wall_us": 832.994,
+          "reader_process_cpu_us": 830.44
+        },
+        {
+          "event_us": 766.3360238075256,
+          "wall_us": 829.533,
+          "reader_process_cpu_us": 825.448
+        },
+        {
+          "event_us": 761.9839906692505,
+          "wall_us": 819.514,
+          "reader_process_cpu_us": 819.854
+        },
+        {
+          "event_us": 778.8800001144409,
+          "wall_us": 836.031,
+          "reader_process_cpu_us": 831.906
+        }
+      ]
+    },
+    {
+      "rows": 32768,
+      "correct": true,
+      "event_median_us": 1213.4559750556946,
+      "wall_median_us": 1274.742,
+      "reader_process_cpu_median_us": 1348.2824999999998,
+      "samples": [
+        {
+          "event_us": 1306.2399625778198,
+          "wall_us": 1449.07,
+          "reader_process_cpu_us": 1541.675
+        },
+        {
+          "event_us": 1209.887981414795,
+          "wall_us": 1280.57,
+          "reader_process_cpu_us": 1370.439
+        },
+        {
+          "event_us": 1224.9280214309692,
+          "wall_us": 1294.786,
+          "reader_process_cpu_us": 1380.003
+        },
+        {
+          "event_us": 1199.0400552749634,
+          "wall_us": 1261.038,
+          "reader_process_cpu_us": 1334.376
+        },
+        {
+          "event_us": 1214.2399549484253,
+          "wall_us": 1274.692,
+          "reader_process_cpu_us": 1347.479
+        },
+        {
+          "event_us": 1231.7759990692139,
+          "wall_us": 1292.391,
+          "reader_process_cpu_us": 1360.562
+        },
+        {
+          "event_us": 1205.664038658142,
+          "wall_us": 1265.106,
+          "reader_process_cpu_us": 1347.841
+        },
+        {
+          "event_us": 1217.311978340149,
+          "wall_us": 1276.227,
+          "reader_process_cpu_us": 1348.724
+        },
+        {
+          "event_us": 1212.000012397766,
+          "wall_us": 1271.472,
+          "reader_process_cpu_us": 1345.485
+        },
+        {
+          "event_us": 1185.696005821228,
+          "wall_us": 1247.17,
+          "reader_process_cpu_us": 1318.249
+        },
+        {
+          "event_us": 1209.3440294265747,
+          "wall_us": 1268.363,
+          "reader_process_cpu_us": 1340.012
+        },
+        {
+          "event_us": 1219.391942024231,
+          "wall_us": 1279.745,
+          "reader_process_cpu_us": 1354.798
+        },
+        {
+          "event_us": 1198.3040571212769,
+          "wall_us": 1263.385,
+          "reader_process_cpu_us": 1327.697
+        },
+        {
+          "event_us": 1217.0560359954834,
+          "wall_us": 1274.792,
+          "reader_process_cpu_us": 1349.173
+        },
+        {
+          "event_us": 1212.6719951629639,
+          "wall_us": 1271.008,
+          "reader_process_cpu_us": 1344.058
+        },
+        {
+          "event_us": 1217.471957206726,
+          "wall_us": 1276.113,
+          "reader_process_cpu_us": 1352.368
+        },
+        {
+          "event_us": 1225.98397731781,
+          "wall_us": 1285.767,
+          "reader_process_cpu_us": 1360.657
+        },
+        {
+          "event_us": 1218.2719707489014,
+          "wall_us": 1277.905,
+          "reader_process_cpu_us": 1352.482
+        },
+        {
+          "event_us": 1206.3360214233398,
+          "wall_us": 1266.244,
+          "reader_process_cpu_us": 1338.44
+        },
+        {
+          "event_us": 1200.6399631500244,
+          "wall_us": 1259.517,
+          "reader_process_cpu_us": 1330.703
+        }
+      ]
+    }
+  ],
+  "packed_layer14": true,
+  "outer_graph": true
+}
