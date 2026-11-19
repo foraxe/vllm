@@ -1,0 +1,22 @@
+vllm/v1/core/single_type_kv_cache_manager.py
+  s_02192fcd3e1eb5::t_ed79a72bf89d76 415-437
+tests/v1/core/test_single_type_kv_cache_manager.py
+  s_02192fcd3e1eb5::t_6d0fe5ad11c617 319-321,334-335,349-351,362-363
+  s_02192fcd3e1eb5::t_8486e1f9a2ab2b 315-318,322-333,336-348,352-361,364-373
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "a29a1665d428b92dcdd08c3da4a8bcec85c09a29",
+  "prompts": {},
+  "sessions": {
+    "s_02192fcd3e1eb5": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1edd1-8477-77f2-b997-87ce778cdcbe",
+        "model": "gpt-6.1-terra"
+      },
+      "human_author": "yunzhi <ningyunxiao.nyx@antgroup.com>"
+    }
+  }
+}
