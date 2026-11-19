@@ -1,0 +1,67 @@
+research/engram-gather-20261118/CONTRACT.md
+  s_3cf79041d34315::t_12b96da82bdfc5 1-34
+research/engram-gather-20261118/README.md
+  s_3cf79041d34315::t_446063d9424935 1-68
+research/engram-gather-20261118/SHA256SUMS
+  s_3cf79041d34315::t_8507fdf1dccfdb 1-22
+research/engram-gather-20261118/gather_transport_vllm_20261118/build.sh
+  s_3cf79041d34315::t_27563ddd8f86b8 1-7
+research/engram-gather-20261118/gather_transport_vllm_20261118/checkpoint_prefix.py
+  s_3cf79041d34315::t_1d5d0a59aa0cc3 1-22
+research/engram-gather-20261118/gather_transport_vllm_20261118/gather_graph.cu
+  s_3cf79041d34315::t_ac0984cb2a5565 1-192
+research/engram-gather-20261118/gather_transport_vllm_20261118/gather_graph.v2.cu
+  s_3cf79041d34315::t_40ee7d6b1b08b8 1-198
+research/engram-gather-20261118/gather_transport_vllm_20261118/lease_gpu_probe.py
+  s_3cf79041d34315::t_ce669fb20c8180 1-211
+research/engram-gather-20261118/gather_transport_vllm_20261118/provider_checkpoint_probe.py
+  s_3cf79041d34315::t_b56acc12fa66f6 1-205
+research/engram-gather-20261118/gather_transport_vllm_20261118/provider_imports.py
+  s_3cf79041d34315::t_d0bad1e397a179 1-13
+research/engram-gather-20261118/mechanism/with_indices/verbs_probe.cpp
+  s_3cf79041d34315::t_ac8dd092156a2c 1-89
+research/engram-gather-20261118/provider-src/vllm/distributed/engram_share/provider.py
+  s_3cf79041d34315::t_c538f4875446a2 1-46
+research/engram-gather-20261118/provider-src/vllm/distributed/engram_share/rdma/gather_control.py
+  s_3cf79041d34315::t_e872be821f9ec3 1-49
+research/engram-gather-20261118/provider-src/vllm/distributed/engram_share/rdma/gather_kernels.py
+  s_3cf79041d34315::t_7c6fa737b91794 1-83
+research/engram-gather-20261118/provider-src/vllm/distributed/engram_share/rdma/gather_owner.py
+  s_3cf79041d34315::t_8a00a7ea5e2bc2 1-123
+research/engram-gather-20261118/provider-src/vllm/distributed/engram_share/rdma/gather_provider.py
+  s_3cf79041d34315::t_c6500a171f5fed 1-311
+research/engram-gather-20261118/provider-src/vllm/distributed/engram_share/rdma/gather_transport.py
+  s_3cf79041d34315::t_8a65513ef0aeb9 1-36
+research/engram-gather-20261118/provider-src/vllm/distributed/engram_share/rdma/native_group.py
+  s_3cf79041d34315::t_fa623c65816c5d 1-113
+research/engram-gather-20261118/provider-src/vllm/distributed/engram_share/rdma/owner.py
+  s_3cf79041d34315::t_e062f605c7cda5 1-695
+research/engram-gather-20261118/provider-src/vllm/distributed/engram_share/rdma/provider.py
+  s_3cf79041d34315::t_1080c5cef9247d 1-330
+research/engram-gather-20261118/provider-src/vllm/distributed/engram_share/rdma/runtime.py
+  s_3cf79041d34315::t_90d2619b6a64ce 1-423
+research/engram-gather-20261118/results/probe-16qp-gather-1.json
+  s_3cf79041d34315::t_1e74cdda425c34 1-452
+research/engram-gather-20261118/results/probe-16qp-gather-2.json
+  s_3cf79041d34315::t_4505cb68333bfe 1-452
+research/engram-gather-20261118/results/probe-16qp-native-0.json
+  s_3cf79041d34315::t_eac452b653cb52 1-452
+research/engram-gather-20261118/results/probe-16qp-native-3.json
+  s_3cf79041d34315::t_06e9ace2e6420a 1-452
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "7f97592737722cb2c5a21c7f56b57f0cfb89d530",
+  "prompts": {},
+  "sessions": {
+    "s_3cf79041d34315": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1834a-b744-7223-a82f-250c1c976df0",
+        "model": "gpt-6.1-terra"
+      },
+      "human_author": "yunzhi <ningyunxiao.nyx@antgroup.com>"
+    }
+  }
+}
