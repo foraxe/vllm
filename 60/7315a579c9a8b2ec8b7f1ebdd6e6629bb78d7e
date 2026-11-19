@@ -1,0 +1,25 @@
+docs/features/engram.md
+  s_8476960beb8e18::t_e428aa1b59ef58 228-230
+tests/models/qwen4_exp/test_ple.py
+  s_8476960beb8e18::t_15bda1576f7119 35,1266,1277-1278,1327,1355-1361,1363-1366,1392-1393
+tests/test_config.py
+  s_8476960beb8e18::t_73b02a9127613f 2230-2236
+vllm/config/engram.py
+  s_8476960beb8e18::t_157d128e380d6d 165,167
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "607315a579c9a8b2ec8b7f1ebdd6e6629bb78d7e",
+  "prompts": {},
+  "sessions": {
+    "s_8476960beb8e18": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1ed57-844a-7d41-81c3-ccda2a5e5a39",
+        "model": "gpt-6.2-sol"
+      },
+      "human_author": "yunzhi <ningyunxiao.nyx@antgroup.com>"
+    }
+  }
+}
