@@ -13,8 +13,15 @@ if TYPE_CHECKING:
 
 # Architecture -> the hf_text_config field naming its n-gram layers. A model is
 # only configurable here if it actually has such layers to store.
+_FLASH_ENGRAM_ARCHITECTURES = {
+    "HYV4FlashForCausalLM",
+    "HYV4FlashVLForConditionalGeneration",
+}
+
 _NGRAM_LAYER_FIELDS = {
     "DeepseekV41ForCausalLM": "engram_layer_ids",
+    "HYV4FlashForCausalLM": "engram_layer_ids",
+    "HYV4FlashVLForConditionalGeneration": "engram_layer_ids",
     "Qwen4ExpForCausalLM": "ple_layer_ids",
     "Qwen4ExpForConditionalGeneration": "ple_layer_ids",
 }
@@ -37,7 +44,8 @@ class EngramConfig:
     """Configuration for Engram embedding storage and sharding."""
 
     cpu_offload: bool = True
-    """Store embedding weights in pinned CPU memory for UVA lookup."""
+    """Store embedding weights in host memory. NVLink peer groups use local
+    Grace EGM when enabled and HBM when disabled."""
 
     disk_offload: bool = False
     """Keep Qwen4Exp PLE tables in the checkpoint files and read each step's
@@ -54,9 +62,9 @@ class EngramConfig:
     memory without per-step Engram DP collectives. Uses host-NUMA cuMem shared
     by FABRIC handle where supported (on ROCm, HIP VMM host memory with
     VLLM_ROCM_ENGRAM_HIP_VMM=1), else /dev/shm (which then needs capacity and a
-    shared IPC namespace). Defaults to enabled whenever the other settings
-    allow it, falling back to per-replica tables when DP replicas are not
-    co-located on one node or the host cannot hold them."""
+    shared IPC namespace). Defaults to enabled when the model and other settings
+    allow it; Flash uses private replicas. Falls back to per-replica tables when
+    DP replicas are not co-located on one node or the host cannot hold them."""
 
     use_thp: bool = False
     """Back private CPU-offloaded tables with transparent huge pages (best
@@ -72,10 +80,10 @@ class EngramConfig:
     PP=1."""
 
     peer_group_transport: Literal["nvlink", "rdma"] = "nvlink"
-    """How a peer group reads rows: `nvlink` loads them from peers' HBM (CUDA
-    FABRIC handles, an IMEX channel, cpu_offload=False); with `rdma`, the NICs
-    of the GPUs holding them gather them from HBM, or from host memory with
-    cpu_offload."""
+    """How a peer group reads rows: `nvlink` loads them from peers' HBM or EGM
+    through CUDA FABRIC handles and an IMEX channel.
+    With `rdma`, the owners' NICs gather them from HBM, or from host memory
+    with `cpu_offload`."""
 
     peer_group_fetch: Literal["sync", "async"] = "sync"
     """Where a peer group's fetch kernels run. `sync`: on the compute stream,
@@ -124,16 +132,14 @@ class EngramConfig:
             raise ValueError(
                 "peer_group_size and peer_group_store must be set together"
             )
-        if self.peer_group_size and self.cpu_offload:
-            if self.peer_group_transport != "rdma":
-                raise ValueError(
-                    "peer_group_size with cpu_offload requires "
-                    "peer_group_transport='rdma'"
-                )
-            if self.dp_shared_memory or self.use_thp:
-                raise ValueError(
-                    "peer_group_size does not support dp_shared_memory or use_thp"
-                )
+        if (
+            self.peer_group_size
+            and self.cpu_offload
+            and (self.dp_shared_memory or self.use_thp)
+        ):
+            raise ValueError(
+                "peer_group_size does not support dp_shared_memory or use_thp"
+            )
         return self
 
     def verify_model_config(self, model_config: "ModelConfig | None") -> None:
@@ -152,6 +158,10 @@ class EngramConfig:
                 "EngramConfig requires a model with supported Engram "
                 "embeddings and non-empty n-gram layer ids."
             )
+        if model_config.architecture in _FLASH_ENGRAM_ARCHITECTURES:
+            for option in ("dp_shared_memory", "embedding_across_dp", "disk_offload"):
+                if getattr(self, option):
+                    raise ValueError(f"Flash Engram does not support {option}")
         if self.disk_offload:
             from vllm.platforms import current_platform
 
@@ -162,8 +172,12 @@ class EngramConfig:
                 "peer_group_size requires a model with Engram pool support"
             )
 
-    def resolve_dp_shared_memory(self, parallel_config: "ParallelConfig") -> None:
-        """Share host tables by default wherever the configuration permits."""
+    def resolve_dp_shared_memory(
+        self,
+        parallel_config: "ParallelConfig",
+        model_config: "ModelConfig | None" = None,
+    ) -> None:
+        """Share host tables by default wherever the model supports them."""
         if self.dp_shared_memory is None:
             self.dp_shared_memory = (
                 self.cpu_offload
@@ -171,6 +185,10 @@ class EngramConfig:
                 and not self.peer_group_size
                 and parallel_config.data_parallel_size > 1
                 and not parallel_config.enable_elastic_ep
+                and (
+                    model_config is None
+                    or model_config.architecture not in _FLASH_ENGRAM_ARCHITECTURES
+                )
             )
 
     def verify_parallel_config(self, parallel_config: "ParallelConfig") -> None:
@@ -195,13 +213,16 @@ class EngramConfig:
 
             if (
                 not current_platform.is_cuda()
+                # Pool rows are dequantized from FP8 (e4m3), which Triton
+                # supports from SM89 on.
+                or not current_platform.has_device_capability(89)
                 or parallel_config.tensor_parallel_size > 1
                 # Every GPU of the group must build the same tables.
                 or parallel_config.pipeline_parallel_size > 1
                 or parallel_config.enable_elastic_ep
             ):
                 raise ValueError(
-                    "peer_group_size requires CUDA, TP=1, PP=1 and no elastic EP"
+                    "peer_group_size requires CUDA SM89+, TP=1, PP=1 and no elastic EP"
                 )
             if self.peer_group_size < parallel_config.data_parallel_size:
                 raise ValueError(
