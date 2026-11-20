@@ -1,0 +1,22 @@
+vllm/distributed/engram_pool/nvlink.py
+  s_8476960beb8e18::t_ef6f25f02ea700 11,86
+tests/distributed/test_engram_dp_shard.py
+  s_8476960beb8e18::t_1e4ab297f376e6 1242,1302,1304-1305
+  s_8476960beb8e18::t_7df51d57573a1b 1303
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "61038d408887e6050ec4a4ab92d4c65e7a90629e",
+  "prompts": {},
+  "sessions": {
+    "s_8476960beb8e18": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1ed57-844a-7d41-81c3-ccda2a5e5a39",
+        "model": "gpt-6.2-sol"
+      },
+      "human_author": null
+    }
+  }
+}
