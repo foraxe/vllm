@@ -1,0 +1,25 @@
+tests/models/qwen4_exp/test_ple.py
+  s_8476960beb8e18::t_56b0bb527b3472 346,359,370-375,384
+vllm/models/qwen4_exp/nvidia/ngram_embedding.py
+  s_8476960beb8e18::t_56b0bb527b3472 312,315,317-318
+vllm/models/qwen4_exp/common/ngram_embedding.py
+  s_8476960beb8e18::t_56b0bb527b3472 384
+docs/features/engram.md
+  s_8476960beb8e18::t_a0d97a8c8fce18 165
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "f6bdfe010c95de282f3b0d51ac1c113b578c0310",
+  "prompts": {},
+  "sessions": {
+    "s_8476960beb8e18": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1ed57-844a-7d41-81c3-ccda2a5e5a39",
+        "model": "gpt-6.2-sol"
+      },
+      "human_author": null
+    }
+  }
+}
