@@ -1,0 +1,24 @@
+vllm/model_executor/model_loader/reload/inplace.py
+  s_8476960beb8e18::t_cd727da84db929 17,45-46,60-61
+vllm/models/qwen4_exp/nvidia/ngram_embedding.py
+  s_8476960beb8e18::t_cd727da84db929 21,267,270-273
+vllm/model_executor/model_loader/reload/types.py
+  s_8476960beb8e18::t_cd727da84db929 3,9,15-20
+  s_8476960beb8e18::t_26bc41c82152e7 21-22
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "f253f2a6428caa7bef07633ee2f9dec7c2dbf7c6",
+  "prompts": {},
+  "sessions": {
+    "s_8476960beb8e18": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1ed57-844a-7d41-81c3-ccda2a5e5a39",
+        "model": "gpt-6.2-sol"
+      },
+      "human_author": "yunzhi <ningyunxiao.nyx@antgroup.com>"
+    }
+  }
+}
